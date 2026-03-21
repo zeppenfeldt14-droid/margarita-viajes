@@ -27,7 +27,7 @@ export default function Login({ onLogin, onBack }: LoginProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/admin/login', {
+      const response = await fetch('http://https://margarita-viajes-api.onrender.com/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ alias: loginData.alias, password: loginData.password })
