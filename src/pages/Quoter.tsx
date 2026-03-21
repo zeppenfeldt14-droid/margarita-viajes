@@ -191,7 +191,7 @@ export default function Quoter() {
           plan: selectedHotel?.plan || null
         };
 
-      const response = await fetch('http://localhost:3000/api/admin/quotes', {
+      const response = await fetch('https://margarita-viajes-api.onrender.com/api/admin/quotes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newQuote)
