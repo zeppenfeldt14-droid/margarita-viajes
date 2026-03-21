@@ -10,7 +10,18 @@ const __dirname = path.dirname(__filename);
 const DB_PATH = path.join(__dirname, 'db.json');
 
 const app = express();
-app.use(cors());
+
+// Configuración de CORS robusta para Producción (Vercel)
+app.use(cors({
+  origin: ['https://margarita-viajes.vercel.app', 'http://localhost:5173'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
+// Manejo explícito de preflight OPTIONS
+app.options('*', cors());
+
 app.use(express.json({ limit: '50mb' }));
 
 app.get('/api/ping', (req, res) => {
