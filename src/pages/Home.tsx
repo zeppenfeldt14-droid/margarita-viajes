@@ -35,8 +35,8 @@ export default function Home({ onAdminClick }: HomeProps) {
     const fetchData = async () => {
       try {
         const [hotelsRes, configRes] = await Promise.all([
-          fetch('http://localhost:3000/api/hotels'),
-          fetch('http://localhost:3000/api/config')
+          fetch('https://margarita-viajes-api.onrender.com/api/hotels'),
+          fetch('https://margarita-viajes-api.onrender.com/api/config')
         ]);
         const hotelsData = await hotelsRes.json();
         const configData = await configRes.json();
