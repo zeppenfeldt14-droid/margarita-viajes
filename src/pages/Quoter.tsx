@@ -86,7 +86,7 @@ export default function Quoter() {
     const generateQuoteId = async () => {
       try {
         const token = localStorage.getItem("staff_token");
-        const response = await fetch('http://localhost:3000/api/admin/quotes', {
+        const response = await fetch('https://margarita-viajes-api.onrender.com/api/admin/quotes', {
           headers: token ? { 'Authorization': `Bearer ${token}` } : {}
         });
         const data = await response.json();
