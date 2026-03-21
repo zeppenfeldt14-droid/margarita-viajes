@@ -1,0 +1,15 @@
+PARTE 1 - Imports, interfaces y estados:
+
+(Copia todo el código de Admin.tsx que te pasé originalmente)
+
+PARTE 2 - Funciones auxiliares y handler:
+
+(Copia las funciones de addRoom, removeRoom, addSeason, removeSeason, updateSeasonPrice, handleEdit, handleDelete)
+
+PARTE 3 - Render del sidebar y main:
+
+(Copia el return hasta antes del showModal)
+
+PARTE 4 - Modal y cierre:
+
+(Copia desde {showModal && hasta el final)

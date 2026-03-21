@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0088cc;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #005580;
+  --color-secondary-foreground: #ffffff;
+  --color-accent: #ffb703;
+  --color-accent-foreground: #023047;
+  --color-background: #f8fafc;
+  --color-foreground: #0f172a;
+  
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+}
+
+@media print {
+  /* 1. Ocultar la barra lateral de navegación y elementos marcados */
+  aside, .print-hidden, .print\:hidden { 
+    display: none !important; 
+  }
+
+  /* 2. Liberar el contenedor principal de la web */
+  html, body, #root, main {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+    background: white !important;
+  }
+
+  /* 3. El truco mágico: Romper la caja del modal para que pagine hacia abajo */
+  .fixed {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  /* 4. Destruir los límites de scroll y altura que causan el corte en la página 1 */
+  .overflow-y-auto, .overflow-hidden, .max-h-[95vh], .max-h-[90vh], .custom-scrollbar {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    padding: 0 !important;
+  }
+
+  /* 5. Expandir al 100% de la hoja A4 y limpiar el diseño (sin sombras ni bordes redondos) */
+  .max-w-5xl, .max-w-4xl, .max-w-3xl, .max-w-2xl, .w-full {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+}

@@ -1,0 +1,262 @@
+import { Request, Response } from 'express';
+import { IHotelRepository } from '../../../domain/repositories/IHotelRepository.js';
+import { IRoomRepository } from '../../../domain/repositories/IRoomRepository.js';
+import { IAuditRepository } from '../../../domain/repositories/IAuditRepository.js';
+import { ITransferRepository } from '../../../domain/repositories/ITransferRepository.js';
+import { IQuoteRepository } from '../../../domain/repositories/IQuoteRepository.js';
+import { IWebConfigRepository } from '../../../domain/repositories/IWebConfigRepository.js';
+import { IOperationRepository } from '../../../domain/repositories/IOperationRepository.js';
+import { IReservationRepository } from '../../../domain/repositories/IReservationRepository.js';
+
+export class AdminController {
+  constructor(
+    private hotelRepo: IHotelRepository,
+    private roomRepo: IRoomRepository,
+    private auditRepo: IAuditRepository,
+    private transferRepo: ITransferRepository,
+    private quoteRepo: IQuoteRepository,
+    private configRepo: IWebConfigRepository,
+    private operationRepo: IOperationRepository,
+    private reservationRepo: IReservationRepository
+  ) {}
+
+  async getHotels(req: Request, res: Response) {
+    try {
+      const hotels = await this.hotelRepo.findAll();
+      return res.json(hotels);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async createHotel(req: Request, res: Response) {
+    try {
+      const hotel = await this.hotelRepo.create(req.body);
+      
+      await this.auditRepo.log({
+        action: 'CREATE',
+        tableName: 'hotels',
+        recordId: hotel.id,
+        newValue: JSON.stringify(hotel)
+      });
+
+      return res.status(201).json(hotel);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async deleteHotel(req: Request, res: Response) {
+    try {
+      const id = req.params['id'] as string;
+      await this.hotelRepo.delete(id);
+
+      await this.auditRepo.log({
+        action: 'DELETE',
+        tableName: 'hotels',
+        recordId: id
+      });
+
+      return res.status(204).send();
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async updateHotel(req: Request, res: Response) {
+    try {
+      const id = req.params['id'] as string;
+      await this.hotelRepo.update(id, req.body);
+      
+      await this.auditRepo.log({
+        action: 'UPDATE',
+        tableName: 'hotels',
+        recordId: id,
+        newValue: JSON.stringify(req.body)
+      });
+
+      return res.status(200).json({ message: 'Hotel updated' });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async getRoomsByHotel(req: Request, res: Response) {
+    try {
+      const rooms = await this.roomRepo.findByHotelId(req.params['hotelId'] as string);
+      return res.json(rooms);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async createRoom(req: Request, res: Response) {
+    try {
+      const room = await this.roomRepo.create(req.body);
+      return res.status(201).json(room);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  // --- TRANSFERS ---
+  async getTransfers(req: Request, res: Response) {
+    try {
+      const transfers = await this.transferRepo.findAll();
+      return res.json(transfers);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async createTransfer(req: Request, res: Response) {
+    try {
+      const transfer = await this.transferRepo.create(req.body);
+      await this.auditRepo.log({ action: 'CREATE', tableName: 'transfers', recordId: transfer.id, newValue: JSON.stringify(transfer) });
+      return res.status(201).json(transfer);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async deleteTransfer(req: Request, res: Response) {
+    try {
+      const id = req.params['id'] as string;
+      await this.transferRepo.delete(id);
+      await this.auditRepo.log({ action: 'DELETE', tableName: 'transfers', recordId: id });
+      return res.status(204).send();
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async updateTransfer(req: Request, res: Response) {
+    try {
+      const id = req.params['id'] as string;
+      await this.transferRepo.update(id, req.body);
+      return res.status(200).json({ message: 'Transfer updated' });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  // --- QUOTES ---
+  async getQuotes(req: Request, res: Response) {
+    try {
+      const quotes = await this.quoteRepo.findAll();
+      return res.json(quotes);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async updateQuote(req: Request, res: Response) {
+    try {
+      const quote = await this.quoteRepo.update(req.params['id'] as string, req.body);
+      return res.json(quote);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  // --- CONFIG ---
+  async getConfig(req: Request, res: Response) {
+    try {
+      const config = await this.configRepo.getConfig();
+      return res.json(config);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async updateConfig(req: Request, res: Response) {
+    try {
+      const configData = req.body;
+      
+      // Si es un objeto con múltiples claves, guardarlas todas
+      if (typeof configData === 'object' && !configData.key) {
+        for (const [key, value] of Object.entries(configData)) {
+          if (value !== undefined && value !== null) {
+            await this.configRepo.updateConfig(key, String(value));
+          }
+        }
+      } else {
+        // Si es el formato antiguo { key, value }
+        const { key, value } = configData;
+        await this.configRepo.updateConfig(key, value);
+      }
+      
+      return res.status(204).send();
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  // --- OPERATIONS ---
+  async getOperations(req: Request, res: Response) {
+    try {
+      const operations = await this.operationRepo.findAll();
+      return res.json(operations);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async getOperationSequence(req: Request, res: Response) {
+    try {
+      const seq = await this.operationRepo.getNextSequence();
+      return res.json(seq);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async createOperation(req: Request, res: Response) {
+    try {
+      const operation = await this.operationRepo.create(req.body);
+      await this.auditRepo.log({
+        action: 'CREATE',
+        tableName: 'operations',
+        recordId: operation.id,
+        newValue: JSON.stringify(operation)
+      });
+      return res.status(201).json(operation);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  // --- RESERVATIONS ---
+  async getReservations(req: Request, res: Response) {
+    try {
+      const reservations = await this.reservationRepo.findAll();
+      return res.json(reservations);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async createReservation(req: Request, res: Response) {
+    try {
+      const reservation = await this.reservationRepo.create(req.body);
+      await this.auditRepo.log({
+        action: 'CREATE',
+        tableName: 'reservations',
+        recordId: reservation.id,
+        newValue: JSON.stringify(reservation)
+      });
+      return res.status(201).json(reservation);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async updateReservation(req: Request, res: Response) {
+    try {
+      const reservation = await this.reservationRepo.update(req.params['id'] as string, req.body);
+      return res.json(reservation);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+}
