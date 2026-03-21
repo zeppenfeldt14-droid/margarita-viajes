@@ -6,10 +6,9 @@ import { showToast } from '../Toast';
 interface MarketingProps {
   quotes: any[];
   config?: any;
-  onSaveConfig?: (config: any) => void;
 }
 
-export default function MarketingPanel({ quotes, config, onSaveConfig }: MarketingProps) {
+export default function MarketingPanel({ quotes, config }: MarketingProps) {
   const [coupon, setCoupon] = useState(config?.activeCoupon || { code: '', discount: '', expiry: '' });
   const [waTemplate, setWaTemplate] = useState(config?.waTemplate || "Hola {{name}}, vimos que estabas interesado en {{hotel}}. ¡Tengo un descuento especial para ti!");
   const [coupons, setCoupons] = useState<any[]>([]);

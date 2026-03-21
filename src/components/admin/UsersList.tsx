@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Camera, Plus, ShieldCheck, Target, X } from 'lucide-react';
 import { api } from '../../services/api';
 import { Card, SectionTitle } from './Common';
@@ -44,14 +44,16 @@ export default function UsersList() {
         setNewUser({ name: '', alias: '', email: '', password: '', role: 'Vendedor 1', dailyQuota: 20, active: true, level: 3, photo: '', inRoulette: true, modules: defaultModules });
         fetchUsers();
       } else {
-        alert('Error al guardar el usuario en la base de datos.');
+        const errorData = await response.json().catch(() => ({}));
+        alert(`Error al guardar: ${errorData.message || 'No se pudo procesar la solicitud.'}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
+      alert(`Error de conexión: ${error.message || 'Error desconocido'}`);
     }
   };
 
-  const isUserConnected = showLogsModal?.isOnline === true || showLogsModal?.is_online === true || showLogsModal?.id === localStorage.getItem("logged_user_id");
+  const isUserConnected = showLogsModal?.isOnline === true || showLogsModal?.is_online === true;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -122,15 +124,15 @@ export default function UsersList() {
       </div>
 
       {showUserModal && (
-        <div className="fixed inset-0 bg-[#0B132B]/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-3xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-300">
+        <div className="fixed inset-0 bg-[#0B132B]/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-3xl rounded-[2rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[95vh] animate-in fade-in zoom-in duration-300">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
               <h3 className="text-xl font-black italic text-[#0B132B] uppercase tracking-tighter">{newUser.id ? 'Editar Perfil' : 'Nuevo Perfil'}</h3>
               <button onClick={() => setShowUserModal(false)} className="text-gray-400 hover:text-red-500 bg-white p-2 rounded-xl shadow-sm"><X size={20}/></button>
             </div>
             
             <div className="p-8 overflow-y-auto space-y-8 custom-scrollbar">
-              <div className="flex items-center gap-6">
+              <div className="flex flex-col md:flex-row items-center gap-6">
                 <div className="h-24 w-24 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center relative overflow-hidden group shrink-0 hover:bg-gray-100 transition-colors">
                   {newUser.photo ? (
                     <img src={newUser.photo} className="w-full h-full object-cover" />

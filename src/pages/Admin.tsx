@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, LogOut, Search, Plus, Trash2, X, Camera,
   Calendar, ShieldCheck, Briefcase, Settings,
   Image as ImageIcon, Upload, Edit2,
-  Package, Target, User, Megaphone, Globe
+  Package, Target, User, Megaphone, Globe, Menu
 } from 'lucide-react';
 import { api } from '../services/api';
 import { showToast, ToastContainer } from '../components/Toast';
@@ -14,7 +14,7 @@ import CustomersList from '../components/admin/CustomersList';
 import MarketingPanel from '../components/admin/MarketingPanel';
 import UsersList from '../components/admin/UsersList';
 import { useGlobalData } from '../context/GlobalContext';
-import type { Hotel, Transfer, Quotation, StaffUser, Operation } from '../types';
+import type { Hotel, Transfer, Quotation } from '../types';
 import { NavItem } from "../components/admin/NavItem";
 import { Card, SectionTitle } from "../components/admin/Common";
 import { InputField } from "../components/admin/FormFields";
@@ -34,7 +34,7 @@ export default function AdminDashboard({ user, onLogout }: AdminProps) {
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('admin_active_tab') || 'inventory');
   const [inventorySubTab, setInventorySubTab] = useState<'hotels' | 'fullday' | 'packages' | 'transfers'>(() => (localStorage.getItem('admin_sub_tab') as any) || 'hotels');
   
-  const userModules = useMemo(() => {
+  const userModules = React.useMemo(() => {
     const level = parseInt(localStorage.getItem('user_level') || '3');
     const saved = JSON.parse(localStorage.getItem('user_modules') || '{}');
     if (level === 1) return { inventory: true, quotes: true, bookings: true, operations: true, users: true, customers: true, marketing: true, webconfig: true };
@@ -47,22 +47,10 @@ export default function AdminDashboard({ user, onLogout }: AdminProps) {
   
   const [config, setConfig] = useState<any>({});
   const [savingConfig, setSavingConfig] = useState(false);
-  const [selectedOperation, setSelectedOperation] = useState<Operation | null>(null);
+  const [selectedOperation, setSelectedOperation] = useState<any>(null);
   const [opFilter, setOpFilter] = useState<'activas' | 'historial' | 'todas'>('activas');
   const { hotels, transfers, quotes, users, setQuotes, refreshData } = useGlobalData();
-  const [showUserModal, setShowUserModal] = useState(false);
-  const [newUser, setNewUser] = useState<Partial<StaffUser>>({ 
-    name: '', alias: '', role: '', email: '', status: true,
-    level: 3,
-    modules: {
-      inventory: false, quotes: false, bookings: false, operations: false,
-      users: false, customers: false, marketing: false, webconfig: false
-    },
-    targetHours: 8,
-    connectionLogs: [],
-    actionLogs: []
-  });
-  const [editingUser] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [quoteFilter, setQuoteFilter] = useState<'original' | 'discounted' | 'unassigned' | 'history'>('original');
   const [quoteSearchTerm, setQuoteSearchTerm] = useState('');
@@ -217,21 +205,38 @@ export default function AdminDashboard({ user, onLogout }: AdminProps) {
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex font-inter">
 
-      <aside className="w-[320px] bg-[#0B132B] text-white flex flex-col p-8 fixed h-full z-50 print:hidden">
-        <div className="flex items-center gap-4 mb-14 px-4">
-          <div className="w-12 h-12 bg-[#ea580c] rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/20"><Target className="text-white" size={24} /></div>
-          <div><h1 className="text-xl font-black tracking-tighter italic uppercase text-white leading-none">Admin</h1><p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase mt-1">Panel de Gestión</p></div>
+      {/* MOBILE TOPBAR */}
+      <div className="md:hidden fixed top-0 left-0 right-0 bg-[#0B132B] text-white p-4 flex items-center justify-between z-[60] shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-[#ea580c] rounded-lg flex items-center justify-center"><Target size={16} /></div>
+          <span className="font-black uppercase italic tracking-tighter text-sm">Admin Panel</span>
+        </div>
+        <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-white/10 rounded-lg"><Menu size={20} /></button>
+      </div>
+
+      {/* OVERLAY FOR MOBILE SIDEBAR */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 bg-[#0B132B]/60 backdrop-blur-sm z-[70] md:hidden" onClick={() => setIsSidebarOpen(false)}></div>
+      )}
+
+      <aside className={`w-[320px] bg-[#0B132B] text-white flex flex-col p-8 fixed h-full z-[80] transition-transform duration-300 print:hidden ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+        <div className="flex items-center justify-between mb-14 px-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-[#ea580c] rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/20"><Target className="text-white" size={24} /></div>
+            <div><h1 className="text-xl font-black tracking-tighter italic uppercase text-white leading-none">Admin</h1><p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase mt-1">Panel de Gestión</p></div>
+          </div>
+          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-gray-400 hover:text-white"><X size={20} /></button>
         </div>
         <nav className="flex-1 space-y-3 overflow-y-auto pb-4 custom-scrollbar">
-          <NavItem icon={<Target size={20} />} label="Inicio" active={activeTab === 'inicio'} onClick={() => setActiveTab('inicio')} />
-          {userModules?.inventory && <NavItem icon={<Package size={20} />} label="Inventario" active={activeTab === 'inventory'} onClick={() => setActiveTab('inventory')} />}
-          {userModules?.quotes && <NavItem icon={<Users size={20} />} label="Cotizaciones" active={activeTab === 'quotes'} onClick={() => setActiveTab('quotes')} />}
-          {userModules?.bookings && <NavItem icon={<ShieldCheck size={20} />} label="Reservas" active={activeTab === 'bookings'} onClick={() => setActiveTab('bookings')} />}
-          {userModules?.operations && <NavItem icon={<Briefcase size={20} />} label="Operaciones" active={activeTab === 'operations'} onClick={() => setActiveTab('operations')} />}
-          {userModules?.users && <NavItem icon={<User size={20} />} label="Usuarios" active={activeTab === 'users'} onClick={() => setActiveTab('users')} />}
-          {userModules?.customers && <NavItem icon={<Users size={20} />} label="Clientes" active={activeTab === 'customers'} onClick={() => setActiveTab('customers')} />}
-          {userModules?.marketing && <NavItem icon={<Megaphone size={20} />} label="Marketing" active={activeTab === 'marketing'} onClick={() => setActiveTab('marketing')} />}
-          {userModules?.webconfig && <NavItem icon={<Settings size={20} />} label="Configuración" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />}
+          <NavItem icon={<Target size={20} />} label="Inicio" active={activeTab === 'inicio'} onClick={() => { setActiveTab('inicio'); setIsSidebarOpen(false); }} />
+          {userModules?.inventory && <NavItem icon={<Package size={20} />} label="Inventario" active={activeTab === 'inventory'} onClick={() => { setActiveTab('inventory'); setIsSidebarOpen(false); }} />}
+          {userModules?.quotes && <NavItem icon={<Users size={20} />} label="Cotizaciones" active={activeTab === 'quotes'} onClick={() => { setActiveTab('quotes'); setIsSidebarOpen(false); }} />}
+          {userModules?.bookings && <NavItem icon={<ShieldCheck size={20} />} label="Reservas" active={activeTab === 'bookings'} onClick={() => { setActiveTab('bookings'); setIsSidebarOpen(false); }} />}
+          {userModules?.operations && <NavItem icon={<Briefcase size={20} />} label="Operaciones" active={activeTab === 'operations'} onClick={() => { setActiveTab('operations'); setIsSidebarOpen(false); }} />}
+          {userModules?.users && <NavItem icon={<User size={20} />} label="Usuarios" active={activeTab === 'users'} onClick={() => { setActiveTab('users'); setIsSidebarOpen(false); }} />}
+          {userModules?.customers && <NavItem icon={<Users size={20} />} label="Clientes" active={activeTab === 'customers'} onClick={() => { setActiveTab('customers'); setIsSidebarOpen(false); }} />}
+          {userModules?.marketing && <NavItem icon={<Megaphone size={20} />} label="Marketing" active={activeTab === 'marketing'} onClick={() => { setActiveTab('marketing'); setIsSidebarOpen(false); }} />}
+          {userModules?.webconfig && <NavItem icon={<Settings size={20} />} label="Configuración" active={activeTab === 'settings'} onClick={() => { setActiveTab('settings'); setIsSidebarOpen(false); }} />}
         </nav>
         <div className="pt-8 border-t border-white/10 space-y-4">
           <div className="bg-white/5 p-4 rounded-2xl flex items-center gap-4 border border-white/5">
@@ -245,7 +250,7 @@ export default function AdminDashboard({ user, onLogout }: AdminProps) {
         </div>
       </aside>
 
-      <main className="flex-1 ml-[320px] p-12 print:ml-0 print:p-0">
+      <main className="flex-1 md:ml-[320px] p-6 md:p-12 mt-16 md:mt-0 print:ml-0 print:p-0">
         <div className="max-w-7xl mx-auto">
         {activeTab === 'inicio' && (
           <div className="space-y-8 animate-in fade-in duration-500 print-hidden">
@@ -506,7 +511,7 @@ export default function AdminDashboard({ user, onLogout }: AdminProps) {
           {activeTab === 'users' && typeof UsersList !== 'undefined' && <UsersList />}
 
           {activeTab === 'marketing' && userModules?.marketing && (
-            <MarketingPanel quotes={quotes} config={config} onSaveConfig={saveFullConfig} />
+            <MarketingPanel quotes={quotes} config={config} />
           )}
 
         {activeTab === 'settings' && userModules?.webconfig && (
@@ -1208,24 +1213,6 @@ export default function AdminDashboard({ user, onLogout }: AdminProps) {
           </div>
         );
       })()}
-
-      {showUserModal && (
-        <div className="fixed inset-0 bg-[#0B132B]/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl p-10">
-            <h3 className="text-2xl font-black uppercase mb-8">{editingUser ? 'Editar Perfil' : 'Nuevo Colaborador'}</h3>
-            <div className="space-y-6">
-              <InputField name="userName" label="Nombre Completo" value={newUser.name || ''} onChange={e => setNewUser({...newUser, name: e.target.value})} />
-              <InputField name="userEmail" label="Correo Electrónico" value={newUser.email || ''} onChange={e => setNewUser({...newUser, email: e.target.value})} />
-              <button onClick={async () => {
-                try {
-                  await api.saveUser(newUser, editingUser);
-                  showToast('Usuario guardado'); refreshData(); setShowUserModal(false);
-                } catch(e) { showToast('Error al guardar'); }
-              }} className="w-full bg-[#0B132B] text-white py-4 rounded-2xl font-black text-[10px] uppercase hover:bg-orange-600 transition-all">Guardar Usuario</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <ToastContainer />
     </div>

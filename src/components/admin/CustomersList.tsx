@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { SectionTitle, Card } from './Common';
+import { useState } from 'react';
+import { SectionTitle } from './Common';
 import { Search, Mail, Eye, X, Calendar, User } from 'lucide-react';
 
 export default function CustomersList({ quotes }: { quotes: any[] }) {
@@ -29,9 +29,13 @@ export default function CustomersList({ quotes }: { quotes: any[] }) {
   // Agrupar por cliente para evitar duplicados en la lista principal (mostrar el más reciente)
   const clientsMap = new Map();
   safeQuotes.forEach(q => {
-    const email = q.email?.toLowerCase();
+    const email = (q.email || '').toLowerCase();
     if (!email) return;
-    if (!clientsMap.has(email) || new Date(q.checkIn || q.date) > new Date(clientsMap.get(email).checkIn || clientsMap.get(email).date)) {
+    const qDate = new Date(q.checkIn || q.check_in || q.date || 0);
+    const existing = clientsMap.get(email);
+    const existingDate = existing ? new Date(existing.checkIn || existing.check_in || existing.date || 0) : new Date(0);
+
+    if (!existing || qDate > existingDate) {
       clientsMap.set(email, q);
     }
   });
@@ -51,16 +55,22 @@ export default function CustomersList({ quotes }: { quotes: any[] }) {
 
     // Filtro de Mes
     if (selectedMonth !== 'all') {
-      const date = c.checkIn || c.date;
-      if (!date || new Date(date).getMonth() !== selectedMonth) return false;
+      const dateStr = c.checkIn || c.check_in || c.date;
+      if (!dateStr) return false;
+      const dateObj = new Date(dateStr);
+      if (isNaN(dateObj.getTime()) || dateObj.getMonth() !== selectedMonth) return false;
     }
 
     return true;
   });
 
   const openHistory = (email: string) => {
-    const history = safeQuotes.filter(q => q.email?.toLowerCase() === email.toLowerCase())
-      .sort((a, b) => new Date(b.checkIn || b.date).getTime() - new Date(a.checkIn || a.date).getTime());
+    const history = safeQuotes.filter(q => (q.email || '').toLowerCase() === email.toLowerCase())
+      .sort((a, b) => {
+        const da = new Date(a.checkIn || a.check_in || a.date || 0).getTime();
+        const db = new Date(b.checkIn || b.check_in || b.date || 0).getTime();
+        return db - da;
+      });
     setSelectedClientHistory(history);
   };
 
@@ -69,8 +79,8 @@ export default function CustomersList({ quotes }: { quotes: any[] }) {
       <SectionTitle>Base de Clientes (CRM)</SectionTitle>
       
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm">
-        <div className="flex flex-1 gap-3 w-full md:w-auto">
-          <div className="relative flex-1">
+        <div className="flex flex-wrap flex-1 gap-3 w-full md:w-auto">
+          <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
