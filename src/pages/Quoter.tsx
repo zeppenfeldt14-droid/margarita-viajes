@@ -31,7 +31,7 @@ export default function Quoter() {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/config');
+        const response = await fetch('http://https://margarita-viajes-api.onrender.com/api/config');
         const data = await response.json();
         setActiveConfig(data);
       } catch (err) {
