@@ -989,7 +989,7 @@ export default function AdminDashboard({ user, onLogout }: AdminProps) {
                           const technicalSheet = { savedAt: new Date().toISOString(), passengers: companions };
                           
                           // 2. Uso de ruta relativa o variable de entorno en lugar de localhost quemado
-                          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+                          const apiUrl = import.meta.env.VITE_API_URL || 'https://margarita-viajes-api.onrender.com';
                           const quoteUpdateRes = await fetch(`${apiUrl}/api/admin/quotes/${selectedQuote.id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
