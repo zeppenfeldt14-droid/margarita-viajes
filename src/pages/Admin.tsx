@@ -1027,7 +1027,7 @@ export default function AdminDashboard({ user, onLogout }: AdminProps) {
 
                         try {
                           const token = localStorage.getItem("staff_token");
-                          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+                          const apiUrl = import.meta.env.VITE_API_URL || 'https://margarita-viajes-api.onrender.com';
 
                           // 4. Crear la Reserva con ID Secuencial R00...
                           let nextResNum = 100001;
