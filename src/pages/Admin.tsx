@@ -923,7 +923,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                   <button 
                     onClick={() => {
                       const folio = selectedQuote.id || selectedQuote.folio;
-                      window.open(`https://margaritaviajes-backend.render.com/api/public/quotes/${folio}/pdf`, '_blank');
+                      window.open(`https://margarita-viajes.onrender.com/api/public/quotes/${folio}/pdf`, '_blank');
                     }} 
                     className="w-full bg-teal-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-teal-700 transition-all flex items-center justify-center gap-2"
                   >
