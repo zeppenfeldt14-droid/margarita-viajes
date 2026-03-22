@@ -16,7 +16,9 @@ export function createRouter(
 
   // Public Endpoints
   router.get('/hotels', (req, res) => adminController.getHotels(req, res));
+  router.get('/public/hotels', (req, res) => adminController.getHotels(req, res));
   router.get('/transfers', (req, res) => adminController.getTransfers(req, res));
+  router.get('/public/transfers', (req, res) => adminController.getTransfers(req, res));
   router.get('/config', (req, res) => adminController.getConfig(req, res));
   router.get('/public/config', (req, res) => adminController.getConfig(req, res));
   router.post('/quotes/calculate', (req, res) => quoteController.calculatePrice(req, res));

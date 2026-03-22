@@ -61,7 +61,7 @@ export const api = {
 
   // Hotels
   getHotels: async () => {
-    const response = await fetchWithAuth('/hotels');
+    const response = await fetchWithAuth('/public/hotels');
     return response.json();
   },
 
@@ -82,7 +82,7 @@ export const api = {
 
   // Transfers
   getTransfers: async () => {
-    const response = await fetchWithAuth('/transfers');
+    const response = await fetchWithAuth('/public/transfers');
     return response.json();
   },
 
