@@ -4,33 +4,18 @@ import {
   Plus, 
   Trash2, 
   Search, 
-  ChevronRight, 
-  Filter, 
-  LayoutDashboard, 
-  Hotel, 
   Briefcase, 
-  Users, 
   Settings, 
-  ExternalLink, 
-  Eye, 
-  Check, 
   X, 
-  MoreVertical, 
-  Menu,
-  ChevronLeft,
   Calendar,
   ShieldCheck,
-  Plane,
-  CloudUpload,
-  UserPlus,
-  Send,
-  Database,
-  Grid,
-  ClipboardList
+  Edit2,
+  Image as ImageIcon,
+  Upload,
+  Globe,
+  Camera
 } from 'lucide-react';
 import { api } from '../services/api';
-import { useGlobalData } from '../context/GlobalContext';
-import { formatDateVisual } from '../utils/pricingEngine';
 import { showToast, ToastContainer } from '../components/Toast';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -110,9 +95,9 @@ export default function AdminDashboard({ user }: AdminProps) {
     };
   }, [user]);
 
-  const [config, setConfig] = useState<any>({});
+  const [config, setConfig] = useState<Record<string, string>>({});
   const [savingConfig, setSavingConfig] = useState(false);
-  const [selectedOperation, setSelectedOperation] = useState<any>(null);
+  const [selectedOperation, setSelectedOperation] = useState<any>(null); // Assuming Operation type is not defined in types.ts
   const [opFilter, setOpFilter] = useState<'activas' | 'historial' | 'todas'>('activas');
   const { hotels, transfers, quotes, users, setQuotes, refreshData } = useGlobalData();
 
@@ -157,10 +142,10 @@ export default function AdminDashboard({ user }: AdminProps) {
 
   const handleConfigChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setConfig((prev: any) => ({ ...prev, [name]: value }));
+    setConfig((prev: Record<string, any>) => ({ ...prev, [name]: value }));
   };
 
-  const saveFullConfig = async (e?: any) => {
+  const saveFullConfig = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setSavingConfig(true);
     try {
@@ -171,14 +156,14 @@ export default function AdminDashboard({ user }: AdminProps) {
   };
 
 
-  const handleEdit = (item: any, type: string) => {
-    setEditingId(item.id);
-    if (type === 'transfer') setNewTransfer(item);
-    else setNewHotel(item);
+  const handleEdit = (item: Hotel | Transfer, type: string) => {
+    setEditingId(item.id || null);
+    if (type === 'transfer') setNewTransfer(item as Transfer);
+    else setNewHotel(item as Hotel);
     setShowModal(true);
   };
 
-  const ColorField = ({ label, name, value, onChange }: any) => (
+  const ColorField = ({ label, name, value, onChange }: { label: string, name: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) => (
     <div className="flex flex-col gap-2">
       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{label}</label>
       <div className="flex items-center gap-3 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm group hover:border-orange-200 transition-all">
@@ -265,7 +250,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10"></div>
                   <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-green-200 mb-4">Ventas del Mes</h3>
                   <p className="text-5xl font-black italic tracking-tighter">
-                    {(quotes || []).filter((q: any) =>
+                    {(quotes || []).filter((q: Quotation) =>
                       ['Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(q.status) &&
                       new Date(q.date || "").getMonth() === new Date().getMonth()
                     ).length}
@@ -275,7 +260,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10"></div>
                   <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-200 mb-4">Tasa de Conversión</h3>
                   <p className="text-5xl font-black italic tracking-tighter">
-                    {(quotes || []).length > 0 ? Math.round(((quotes || []).filter((q: any) => ['Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(q.status)).length / (quotes || []).length) * 100) : 0}%
+                    {(quotes || []).length > 0 ? Math.round(((quotes || []).filter((q: Quotation) => ['Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(q.status)).length / (quotes || []).length) * 100) : 0}%
                   </p>
                 </Card>
               </div>
@@ -314,10 +299,10 @@ export default function AdminDashboard({ user }: AdminProps) {
                     </Card>
                   ))
                 ) : (
-                  (hotels || []).filter(h => {
-                    const typeMap: any = { hotels: 'hotel', fullday: 'full-day', packages: 'package' };
+                  (hotels || []).filter((h: Hotel) => {
+                    const typeMap: Record<string, string> = { hotels: 'hotel', fullday: 'full-day', packages: 'package' };
                     return h.type === typeMap[inventorySubTab];
-                  }).map(h => (
+                  }).map((h: Hotel) => (
                     <Card key={h.id} className="group hover:border-orange-500/20 transition-all">
                       <div className="aspect-video bg-gray-100 rounded-3xl mb-6 overflow-hidden relative">
                         {h.photos?.[0] ? <img src={h.photos[0]} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-300"><ImageIcon size={40} /></div>}
@@ -371,7 +356,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                     </thead>
                     <tbody className="text-sm font-bold">
                       {(quotes || [])
-                        .filter(q => {
+                        .filter((q: Quotation) => {
                           const matchesSearch = (q.clientName || q.client_name)?.toLowerCase().includes(quoteSearchTerm.toLowerCase()) || q.id?.toString().includes(quoteSearchTerm);
                           if (!matchesSearch) return false;
                           if (quoteFilter === 'original') return q.status === 'Nuevo' && !String(q.id).includes('-01');
@@ -380,7 +365,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                           if (quoteFilter === 'history') return q.status === 'Atendido' || q.status === 'Reserva' || q.status === 'Nuevo';
                           return true;
                         })
-                        .map(quote => (
+                        .map((quote: Quotation) => (
                           <tr key={quote.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                             <td className="py-5 px-4"><span className="font-black italic text-orange-600">{quote.id}</span></td>
                             <td className="py-5 px-4"><div className="flex flex-col"><span className="font-black italic uppercase text-[#0B132B]">{quote.clientName || quote.client_name}</span><div className="flex items-center gap-1.5"><span className="text-[9px] text-gray-400 uppercase font-bold">{quote.hotelName || quote.hotel_name}</span>{quote.plan && <span className="bg-orange-50 text-orange-600 text-[8px] px-1.5 py-0.5 rounded font-black uppercase">{quote.plan}</span>}</div></div></td>
@@ -389,14 +374,14 @@ export default function AdminDashboard({ user }: AdminProps) {
                             <td className="py-5 px-4">
                               <select
                                 value={quote.status}
-                                onChange={async (e) => {
+                                onChange={async (e: React.ChangeEvent<HTMLSelectElement>) => {
                                   const newStatus = e.target.value;
                                   let newId = quote.id;
 
                                   if (newStatus === 'Reserva') {
                                     const totalExpected = parseInt(quote.pax || '0') + parseInt(quote.children || '0');
-                                    const currentCompanions = (quote as any).companions || [];
-                                    const hasEmptyNames = currentCompanions.some((c: any) => !c.name || c.name.trim() === '');
+                                    const currentCompanions = (quote as Quotation).companions || [];
+                                    const hasEmptyNames = currentCompanions.some((c: { name: string }) => !c.name || c.name.trim() === '');
 
                                     if (currentCompanions.length !== totalExpected || hasEmptyNames || (!(quote as any).technicalSheet && !technicalSheetSaved)) {
                                       alert('Debe cargar la ficha técnica de todos los pasajeros (con nombre y apellido) antes de pasar a Reserva');
@@ -411,7 +396,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                                       const resData = await api.getReservations().catch(() => []);
                                       if (Array.isArray(resData) && resData.length > 0) {
                                         const rIds = resData
-                                          .map((r: any) => r.id?.toString() || '')
+                                          .map((r: { id?: string | number }) => r.id?.toString() || '')
                                           .filter((id: string) => id.startsWith('R'))
                                           .map((id: string) => parseInt(id.replace(/\D/g, '')) || 0);
                                         if (rIds.length > 0) nextResNum = Math.max(...rIds) + 1;
@@ -436,8 +421,8 @@ export default function AdminDashboard({ user }: AdminProps) {
                                         totalAmount: quote.totalAmount || quote.total_amount,
                                         discount: quote.discount || null,
                                         discountAmount: quote.discountAmount || null,
-                                        companions: (quote as any).companions || [],
-                                        technicalSheet: (quote as any).technicalSheet || null,
+                                        companions: (quote as Quotation).companions || [],
+                                        technicalSheet: (quote as Quotation).technicalSheet || null,
                                         plan: quote.plan || null,
                                         status: 'Confirmada'
                                       };
@@ -462,7 +447,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                                     });
 
                                     if (response.ok) {
-                                      setQuotes(quotes.map(q => q.id === quote.id ? { ...q, status: newStatus as any, id: newId } : q));
+                                      setQuotes(quotes.map((q: Quotation) => q.id === quote.id ? { ...q, status: newStatus as any, id: newId } : q));
                                       showToast(`Estado cambiado a: ${newStatus}${newStatus === "Reserva" ? " y Reserva creada" : ""}`);
                                     } else {
                                       const errorData = await response.json().catch(() => ({}));
@@ -525,14 +510,14 @@ export default function AdminDashboard({ user }: AdminProps) {
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Logo del Sitio</p>
                       <div className="h-44 bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200 flex items-center justify-center relative overflow-hidden group hover:bg-gray-100 transition-all">
                         {config.logoImage ? <img src={config.logoImage} className="max-h-24 object-contain" /> : <div className="text-center"><Upload size={32} className="text-gray-300 mx-auto mb-3 group-hover:text-orange-500 transition-colors" /><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Subir Logo</p></div>}
-                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e: any) => { const file = e.target.files?.[0]; if (file) { const reader = new FileReader(); reader.onloadend = async () => { const comp = await compressImage(reader.result as string, 400, 400); handleConfigChange({ target: { name: 'logoImage', value: comp } } as any); }; reader.readAsDataURL(file); } }} />
+                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (file) { const reader = new FileReader(); reader.onloadend = async () => { const comp = await compressImage(reader.result as string, 400, 400); handleConfigChange({ target: { name: 'logoImage', value: comp } } as unknown as React.ChangeEvent<HTMLInputElement>); }; reader.readAsDataURL(file); } }} />
                       </div>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Banner Principal</p>
                       <div className="h-44 bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200 flex items-center justify-center relative overflow-hidden group hover:bg-gray-100 transition-all">
                         {config.bannerImage ? <img src={config.bannerImage} className="w-full h-full object-cover rounded-[2.5rem]" /> : <div className="text-center"><Upload size={32} className="text-gray-300 mx-auto mb-3 group-hover:text-blue-500 transition-colors" /><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Subir Banner</p></div>}
-                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e: any) => { const file = e.target.files?.[0]; if (file) { const reader = new FileReader(); reader.onloadend = async () => { const comp = await compressImage(reader.result as string, 1920, 1080); handleConfigChange({ target: { name: 'bannerImage', value: comp } } as any); }; reader.readAsDataURL(file); } }} />
+                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (file) { const reader = new FileReader(); reader.onloadend = async () => { const comp = await compressImage(reader.result as string, 1920, 1080); handleConfigChange({ target: { name: 'bannerImage', value: comp } } as unknown as React.ChangeEvent<HTMLInputElement>); }; reader.readAsDataURL(file); } }} />
                       </div>
                     </div>
                   </div>
@@ -620,18 +605,18 @@ export default function AdminDashboard({ user }: AdminProps) {
                 <div className="space-y-6">
                   {inventorySubTab === 'transfers' ? (
                     <div className="grid grid-cols-1 gap-6">
-                      <InputField name="operator" label="Operador" value={newTransfer.operator || ''} onChange={(e: any) => setNewTransfer(prev => ({ ...prev, operator: e.target.value }))} />
-                      <select className="w-full bg-gray-50 rounded-2xl px-6 py-4 text-sm font-bold border-none outline-none ring-2 ring-gray-100" value={newTransfer.route} onChange={(e: any) => setNewTransfer(prev => ({ ...prev, route: e.target.value }))}><option value="">Seleccionar Ruta...</option>{TRANSFER_ROUTES.map((r: string) => <option key={r} value={r}>{r}</option>)}</select>
-                      <InputField name="email" label="Email del Operador" value={newTransfer.email || ''} onChange={(e: any) => setNewTransfer(prev => ({ ...prev, email: e.target.value }))} />
-                      <div className="grid grid-cols-2 gap-6"><InputField name="netCost" label="Neto ($)" value={String(newTransfer.netCost || '')} onChange={(e: any) => setNewTransfer(prev => ({ ...prev, netCost: Number(e.target.value) }))} /><InputField name="salePrice" label="Venta ($)" value={String(newTransfer.salePrice || '')} onChange={(e: any) => setNewTransfer(prev => ({ ...prev, salePrice: Number(e.target.value) }))} /></div>
+                      <InputField name="operator" label="Operador" value={newTransfer.operator || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTransfer(prev => ({ ...prev, operator: e.target.value }))} />
+                      <select className="w-full bg-gray-50 rounded-2xl px-6 py-4 text-sm font-bold border-none outline-none ring-2 ring-gray-100" value={newTransfer.route} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setNewTransfer(prev => ({ ...prev, route: e.target.value }))}><option value="">Seleccionar Ruta...</option>{TRANSFER_ROUTES.map((r: string) => <option key={r} value={r}>{r}</option>)}</select>
+                      <InputField name="email" label="Email del Operador" value={newTransfer.email || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTransfer(prev => ({ ...prev, email: e.target.value }))} />
+                      <div className="grid grid-cols-2 gap-6"><InputField name="netCost" label="Neto ($)" value={String(newTransfer.netCost || '')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTransfer(prev => ({ ...prev, netCost: Number(e.target.value) }))} /><InputField name="salePrice" label="Venta ($)" value={String(newTransfer.salePrice || '')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTransfer(prev => ({ ...prev, salePrice: Number(e.target.value) }))} /></div>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 gap-8">
                       <div className="grid grid-cols-1 gap-5">
-                        <InputField name="name" label="Nombre" value={newHotel.name || ''} onChange={(e: any) => setNewHotel(prev => ({ ...prev, name: e.target.value }))} />
-                        <select className="w-full bg-gray-50 rounded-2xl px-6 py-4 text-sm font-bold border-none outline-none ring-2 ring-gray-100" value={newHotel.location} onChange={(e: any) => setNewHotel(prev => ({ ...prev, location: e.target.value }))}><option value="">Ubicación...</option>{LOCATIONS.map((l: string) => <option key={l} value={l}>{l}</option>)}</select>
-                        <textarea value={newHotel.description || ''} onChange={(e: any) => setNewHotel(prev => ({ ...prev, description: e.target.value }))} className="w-full bg-gray-50 rounded-2xl p-5 text-sm font-bold min-h-[80px] outline-none ring-2 ring-gray-100" placeholder="Descripción..." />
-                        <InputField name="email" label="Email del Hotel/Servicio" value={newHotel.email || ''} onChange={(e: any) => setNewHotel(prev => ({ ...prev, email: e.target.value }))} />
+                        <InputField name="name" label="Nombre" value={newHotel.name || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewHotel(prev => ({ ...prev, name: e.target.value }))} />
+                        <select className="w-full bg-gray-50 rounded-2xl px-6 py-4 text-sm font-bold border-none outline-none ring-2 ring-gray-100" value={newHotel.location} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setNewHotel(prev => ({ ...prev, location: e.target.value }))}><option value="">Ubicación...</option>{LOCATIONS.map((l: string) => <option key={l} value={l}>{l}</option>)}</select>
+                        <textarea value={newHotel.description || ''} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewHotel(prev => ({ ...prev, description: e.target.value }))} className="w-full bg-gray-50 rounded-2xl p-5 text-sm font-bold min-h-[80px] outline-none ring-2 ring-gray-100" placeholder="Descripción..." />
+                        <InputField name="email" label="Email del Hotel/Servicio" value={newHotel.email || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewHotel(prev => ({ ...prev, email: e.target.value }))} />
 
                         {(inventorySubTab === 'hotels' || inventorySubTab === 'packages') && (
                           <div className="space-y-2">
@@ -649,10 +634,10 @@ export default function AdminDashboard({ user }: AdminProps) {
                         )}
 
                         <div className="grid grid-cols-2 gap-6">
-                          <div><SectionTitle>Logo</SectionTitle><div className="h-28 bg-gray-50 rounded-2xl border-2 border-dashed flex items-center justify-center relative hover:bg-gray-100 transition-colors">{newHotel.logo ? <img src={newHotel.logo} className="w-full h-full object-contain" /> : <Upload size={28} className="text-gray-300" />}<input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e: any) => { const file = e.target.files?.[0]; if (file) { const reader = new FileReader(); reader.onloadend = async () => { const comp = await compressImage(reader.result as string, 400, 400); setNewHotel(p => ({ ...p, logo: comp })); }; reader.readAsDataURL(file); } }} /></div></div>
+                          <div><SectionTitle>Logo</SectionTitle><div className="h-28 bg-gray-50 rounded-2xl border-2 border-dashed flex items-center justify-center relative hover:bg-gray-100 transition-colors">{newHotel.logo ? <img src={newHotel.logo} className="w-full h-full object-contain" /> : <Upload size={28} className="text-gray-300" />}<input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (file) { const reader = new FileReader(); reader.onloadend = async () => { const comp = await compressImage(reader.result as string, 400, 400); setNewHotel(p => ({ ...p, logo: comp })); }; reader.readAsDataURL(file); } }} /></div></div>
                           <div><SectionTitle>Fotos ({newHotel.photos?.length || 0}/5)</SectionTitle>
                             <div className="space-y-2">
-                              <div className="h-16 bg-gray-50 rounded-2xl border-2 border-dashed flex items-center justify-center relative hover:bg-gray-100 transition-colors"><Camera size={20} className="text-gray-400" /><span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest ml-2">Agregar fotos</span><input type="file" multiple className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e: any) => { Array.from(e.target.files || []).slice(0, 5 - (newHotel.photos?.length || 0)).forEach((f: any) => { const r = new FileReader(); r.onloadend = async () => { const c = await compressImage(r.result as string, 1200, 800); setNewHotel(p => ({ ...p, photos: [...(p.photos || []), c] })); }; r.readAsDataURL(f); }); }} /></div>
+                              <div className="h-16 bg-gray-50 rounded-2xl border-2 border-dashed flex items-center justify-center relative hover:bg-gray-100 transition-colors"><Camera size={20} className="text-gray-400" /><span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest ml-2">Agregar fotos</span><input type="file" multiple className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { Array.from(e.target.files || []).slice(0, 5 - (newHotel.photos?.length || 0)).forEach((f: File) => { const r = new FileReader(); r.onloadend = async () => { const c = await compressImage(r.result as string, 1200, 800); setNewHotel(p => ({ ...p, photos: [...(p.photos || []), c] })); }; r.readAsDataURL(f); }); }} /></div>
                               {newHotel.photos && newHotel.photos.length > 0 && (
                                 <div className="grid grid-cols-5 gap-2">
                                   {newHotel.photos.map((photo: any, idx: number) => (
@@ -676,7 +661,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                           <button onClick={addRoom} className="bg-orange-500 text-white p-3 rounded-xl hover:bg-orange-600 transition-colors"><Plus size={20} /></button>
                         </div>
                         <div className="grid grid-cols-1 gap-2 max-h-[140px] overflow-y-auto pr-2 custom-scrollbar">
-                          {newHotel.rooms?.map((r: any) => (
+                          {newHotel.rooms?.map((r: { id: string, name: string, capacity: number }) => (
                             <div key={r.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl">
                               <span className="text-xs font-black uppercase italic text-[#0B132B]">{r.name} - <span className="text-gray-400 font-bold">{r.capacity} Pax</span></span>
                               <button onClick={() => removeRoom(r.id)} className="text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
@@ -697,7 +682,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                         <button onClick={addSeason} className="text-[10px] font-black uppercase text-orange-500 hover:text-orange-600 flex items-center gap-1 bg-orange-50 px-4 py-2 rounded-xl transition-colors"><Plus size={14} /> Añadir</button>
                       </div>
                       <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                        {newHotel.seasons?.map((s: any) => (
+                        {newHotel.seasons?.map((s: { id: string, type: string, startDate: string, endDate: string, roomPrices: Record<string, number> }) => (
                           <div key={s.id} className="p-5 bg-white rounded-[1.5rem] border-2 border-gray-50 space-y-4 relative group hover:border-orange-200 transition-colors shadow-sm">
                             <button onClick={() => removeSeason(s.id)} className="absolute top-4 right-4 text-gray-300 hover:text-red-500 bg-red-50 w-8 h-8 rounded-lg flex items-center justify-center transition-colors"><X size={14} /></button>
                             <div className="grid grid-cols-3 gap-3 pr-10">
@@ -719,7 +704,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                             <div className="space-y-2 pt-3 border-t border-dashed border-gray-200">
                               <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Precios por Habitación ($)</p>
                               <div className="grid grid-cols-2 gap-3">
-                                {newHotel.rooms?.map((r: any) => (
+                                {newHotel.rooms?.map((r: { id: string, name: string, capacity: number }) => (
                                   <div key={r.id} className="flex items-center gap-2">
                                     <span className="text-[10px] font-bold text-[#0B132B] truncate flex-1">{r.name}</span>
                                     <input
