@@ -60,4 +60,46 @@ export class QuoteController {
       return res.status(500).json([]);
     }
   }
+
+  async getQuotePdf(req: Request, res: Response) {
+    try {
+      const folio = req.params['folio'] as string;
+      const quote = await this.quoteRepo.findById(folio);
+      
+      if (!quote || !quote.pdfBase64) {
+        return res.status(404).json({ error: 'Cotización o PDF no encontrado' });
+      }
+
+      const base64Data = quote.pdfBase64.includes(';base64,') 
+        ? quote.pdfBase64.split(';base64,')[1] 
+        : quote.pdfBase64;
+        
+      const pdfBuffer = Buffer.from(base64Data, 'base64');
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="Cotizacion_${folio}.pdf"`);
+      return res.send(pdfBuffer);
+    } catch (error: any) {
+      console.error('Error al obtener PDF:', error);
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async updateQuote(req: Request, res: Response) {
+    try {
+      const id = req.params['id'] as string;
+      const quote = await this.quoteRepo.update(id, req.body);
+      
+      if (req.body.pdfBase64) {
+          this.processQuoteNotifications(quote, req.body.pdfBase64).catch(err => 
+            console.error('[QuoteController] Error en notificación background:', err)
+          );
+      }
+
+      return res.json(quote);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
 }
+
