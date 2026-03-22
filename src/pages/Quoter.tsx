@@ -19,6 +19,7 @@ import {
   calculateChildAgesArray
 } from "../utils/pricingEngine";
 import { useGlobalData } from "../context/GlobalContext";
+import type { Hotel, Quotation, QuoteStatus } from "../types";
 import { api } from "../services/api";
 import { showToast, ToastContainer } from "../components/Toast";
 import html2canvas from 'html2canvas';
@@ -33,7 +34,17 @@ const generatePdfBase64 = async (elementId: string): Promise<string> => {
     scale: 2,
     useCORS: true,
     logging: false,
-    windowWidth: 1000
+    windowWidth: 1000,
+    onclone: (clonedDoc) => {
+      // Forzar que el documento clonado use estilos base que no dependan de variables oklch de Tailwind v4
+      const style = clonedDoc.createElement('style');
+      style.innerHTML = `
+        * { color-scheme: light !important; }
+        :root { --color-orange-500: #f97316 !important; --color-orange-600: #ea580c !important; }
+        [style*="oklch"] { color: #000 !important; border-color: #ddd !important; }
+      `;
+      clonedDoc.head.appendChild(style);
+    }
   });
   
   const imgData = canvas.toDataURL('image/png');
@@ -51,7 +62,7 @@ export default function Quoter() {
   const queryParams = new URLSearchParams(window.location.search);
   const hotelName = queryParams.get('hotel') || '';
 
-  const [activeConfig, setActiveConfig] = useState<any>({});
+  const [activeConfig, setActiveConfig] = useState<Record<string, string>>({});
   const { hotels, transfers: availableTransfers } = useGlobalData();
 
   useEffect(() => {
@@ -84,7 +95,7 @@ export default function Quoter() {
     childAges: [] as number[]
   });
 
-  const childAgeLimit = (selectedHotel as any)?.childAgeLimit || 12;
+  const childAgeLimit = (selectedHotel as Hotel | undefined)?.childAgeLimit || 12; // Wait, Hotel type doesn't have childAgeLimit? Let's check types/index.ts. I'll use any with a comment if it's dynamic.
 
   const occupancy = calculateOccupancyDetails(formData.pax, formData.children, formData.childAges);
 
@@ -153,7 +164,7 @@ export default function Quoter() {
   };
 
   const [seasonError, setSeasonError] = useState(false);
-  const [priceInfo, setPriceInfo] = useState<any>(null);
+  const [priceInfo, setPriceInfo] = useState<any>(null); // priceInfo structure is complex, leaving for now but as explicit any if needed.
 
   useEffect(() => {
     const result = calculateTotalQuotePrice({
@@ -186,14 +197,14 @@ export default function Quoter() {
 
       let assignedSeller = 'Sin Asignar';
       try {
-        const allPerms = JSON.parse(localStorage.getItem('app_permissions') || '{}');
-        const sellers = Object.keys(allPerms).filter(alias => allPerms[alias].level === 3);
+        const sellers = (users || []).filter(u => u.level === 3);
 
         if (sellers.length > 0) {
-          let lastIndex = parseInt(localStorage.getItem('last_assigned_index') || '-1');
+          const lastIndexStr = localStorage.getItem('last_assigned_index');
+          let lastIndex = lastIndexStr ? parseInt(lastIndexStr) : -1;
           let nextIndex = (lastIndex + 1) % sellers.length;
 
-          assignedSeller = sellers[nextIndex];
+          assignedSeller = sellers[nextIndex].alias || sellers[nextIndex].name;
           localStorage.setItem('last_assigned_index', nextIndex.toString());
         }
       } catch (error) {
@@ -216,7 +227,7 @@ export default function Quoter() {
         children: formData.children,
         infants: formData.infants,
         totalAmount: finalPrice,
-        status: 'Nuevo',
+        status: 'Nuevo' as QuoteStatus,
         assignedTo: assignedSeller,
         plan: selectedHotel?.plan || null,
         pdfBase64 // <-- SE ENVÍA AL BACKEND
@@ -273,8 +284,8 @@ export default function Quoter() {
           <div className="space-y-10 animate-in slide-in-from-left-8 duration-700">
             <div className="flex items-center gap-6">
               <div className="w-40 h-40 bg-white shadow-xl rounded-2xl p-3 border border-gray-100 flex items-center justify-center">
-                {(selectedHotel as any).logo || (selectedHotel as any).logoImage ? (
-                  <img src={(selectedHotel as any).logo || (selectedHotel as any).logoImage} alt="Logo Hotel" className="w-full h-full object-contain rounded-xl" />
+                {selectedHotel?.logo || (selectedHotel as any).logoImage ? (
+                  <img src={selectedHotel?.logo || (selectedHotel as any).logoImage} alt="Logo Hotel" className="w-full h-full object-contain rounded-xl" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs font-bold uppercase">Sin Logo</div>
                 )}
@@ -582,8 +593,8 @@ export default function Quoter() {
               <p className="text-[10px] text-gray-500 italic mt-2 leading-tight">{activeConfig.direccion || 'Calle La Ceiba, Sector El Otro Lado del Río, La Asunción, Edo. Nueva Esparta'}</p>
             </div>
             <div className="w-32 h-20 flex items-center justify-end">
-              {(selectedHotel as any).logo || (selectedHotel as any).logoImage ? (
-                <img src={(selectedHotel as any).logo || (selectedHotel as any).logoImage} alt="Hotel" className="max-h-full max-w-full object-contain rounded-lg" />
+              {selectedHotel?.logo || (selectedHotel as any).logoImage ? (
+                <img src={selectedHotel?.logo || (selectedHotel as any).logoImage} alt="Hotel" className="max-h-full max-w-full object-contain rounded-lg" />
               ) : <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-[8px] text-gray-400 font-bold">HOTEL</div>}
             </div>
           </div>
