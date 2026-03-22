@@ -62,26 +62,45 @@ export class PostgresHotelRepository implements IHotelRepository {
         type: hotel.type || 'hotel'
       }).returning('*');
 
+      const idMapping: Record<string, string> = {};
+
       if (hotel.rooms && hotel.rooms.length > 0) {
-        const roomsToInsert = hotel.rooms.map((r: Room) => ({
-          id: r.id || crypto.randomUUID(),
-          hotel_id: hotelId,
-          name: r.name,
-          capacity: r.capacity
-        }));
+        const roomsToInsert = hotel.rooms.map((r: Room) => {
+          const newRoomId = crypto.randomUUID();
+          if (r.id) idMapping[r.id] = newRoomId;
+          return {
+            id: newRoomId,
+            hotel_id: hotelId,
+            name: r.name,
+            capacity: r.capacity
+          };
+        });
         await trx('rooms').insert(roomsToInsert);
         newHotel.rooms = roomsToInsert;
       }
 
       if (hotel.seasons && hotel.seasons.length > 0) {
-        const seasonsToInsert = hotel.seasons.map((s: SeasonRate) => ({
-          id: s.id || crypto.randomUUID(),
-          hotel_id: hotelId,
-          type: s.type,
-          start_date: s.startDate,
-          end_date: s.endDate,
-          room_prices: JSON.stringify(s.roomPrices)
-        }));
+        const seasonsToInsert = hotel.seasons.map((s: SeasonRate) => {
+          const newSeasonId = crypto.randomUUID();
+          
+          // Re-mapear precios con los nuevos IDs de habitaciones
+          const newRoomPrices: Record<string, number> = {};
+          if (s.roomPrices) {
+            Object.entries(s.roomPrices).forEach(([oldId, price]) => {
+              const targetId = idMapping[oldId] || oldId;
+              newRoomPrices[targetId] = price;
+            });
+          }
+
+          return {
+            id: newSeasonId,
+            hotel_id: hotelId,
+            type: s.type,
+            start_date: s.startDate,
+            end_date: s.endDate,
+            room_prices: JSON.stringify(newRoomPrices)
+          };
+        });
         await trx('seasons').insert(seasonsToInsert);
         newHotel.seasons = seasonsToInsert;
       }
@@ -94,7 +113,7 @@ export class PostgresHotelRepository implements IHotelRepository {
     await this.db.transaction(async trx => {
       const { rooms, seasons, photos, id: _id, ...basicData } = hotel;
 
-      // 1. Actualizar datos básicos del hotel (Solo columnas que existen)
+      // 1. Actualizar datos básicos
       const updateData: any = {};
       const validColumns = ['name', 'location', 'description', 'logo', 'type'];
       for (const col of validColumns) {
@@ -108,50 +127,51 @@ export class PostgresHotelRepository implements IHotelRepository {
         await trx('hotels').where('id', id).update(updateData);
       }
 
-      // 2. Sincronizar Habitaciones (Delete + Insert)
+      const idMapping: Record<string, string> = {};
+
+      // 2. Sincronizar Habitaciones (SIEMPRE generar nuevos IDs para evitar pkey conflict con otros hoteles)
       if (rooms) {
         await trx('rooms').where('hotel_id', id).del();
         if (rooms.length > 0) {
-          const idMapping: Record<string, string> = {};
           const roomsToInsert = rooms.map((r: Room) => {
-            const isUuid = r.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(r.id);
-            const newId = isUuid ? r.id! : crypto.randomUUID();
-            if (r.id) idMapping[r.id] = newId;
+            const newRoomId = crypto.randomUUID();
+            if (r.id) idMapping[r.id] = newRoomId;
             return {
-              id: newId,
+              id: newRoomId,
               hotel_id: id,
               name: r.name,
               capacity: r.capacity
             };
           });
           await trx('rooms').insert(roomsToInsert);
-
-          // Actualizar los IDs en las temporadas que vienen en el payload
-          if (seasons) {
-            seasons.forEach(s => {
-              const newPrices: Record<string, number> = {};
-              Object.entries(s.roomPrices || {}).forEach(([oldRoomId, price]) => {
-                const targetId = idMapping[oldRoomId] || oldRoomId;
-                newPrices[targetId] = price;
-              });
-              s.roomPrices = newPrices;
-            });
-          }
         }
       }
 
-      // 3. Sincronizar Temporadas (Delete + Insert)
+      // 3. Sincronizar Temporadas (SIEMPRE generar nuevos IDs)
       if (seasons) {
         await trx('seasons').where('hotel_id', id).del();
         if (seasons.length > 0) {
-          const seasonsToInsert = seasons.map((s: SeasonRate) => ({
-            id: s.id && !s.id.startsWith('season-') ? s.id : crypto.randomUUID(),
-            hotel_id: id,
-            type: s.type,
-            start_date: s.startDate,
-            end_date: s.endDate,
-            room_prices: JSON.stringify(s.roomPrices)
-          }));
+          const seasonsToInsert = seasons.map((s: SeasonRate) => {
+            const newSeasonId = crypto.randomUUID();
+            
+            // Re-mapear precios con el mapeo de habitaciones
+            const newRoomPrices: Record<string, number> = {};
+            if (s.roomPrices) {
+              Object.entries(s.roomPrices).forEach(([oldId, price]) => {
+                const targetId = idMapping[oldId] || oldId;
+                newRoomPrices[targetId] = price;
+              });
+            }
+
+            return {
+              id: newSeasonId,
+              hotel_id: id,
+              type: s.type,
+              start_date: s.startDate,
+              end_date: s.endDate,
+              room_prices: JSON.stringify(newRoomPrices)
+            };
+          });
           await trx('seasons').insert(seasonsToInsert);
         }
       }
