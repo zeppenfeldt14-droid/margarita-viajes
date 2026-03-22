@@ -1,4 +1,4 @@
-const API_BASE = 'https://margarita-viajes.onrender.com/api';
+const API_BASE = (import.meta.env.VITE_API_URL || 'https://margarita-viajes.onrender.com') + '/api';
 
 /**
  * Interceptor/Wrapper base para la función fetch
