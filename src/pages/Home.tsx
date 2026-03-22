@@ -106,7 +106,7 @@ export default function Home({ onAdminClick }: HomeProps) {
               {config.logoImage ? (
                 <img src={config.logoImage} alt="Margarita Viajes" className="w-14 h-14 object-contain relative" />
               ) : (
-                <img src="https://margaritaviajes.com/assets/img/logo.png" alt="Margarita Viajes" className="w-14 h-14 object-contain relative" />
+                <img src="/assets/img/logo.png" alt="Margarita Viajes" className="w-14 h-14 object-contain relative" />
               )}
             </div>
             <div className="flex flex-col">

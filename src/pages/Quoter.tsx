@@ -254,7 +254,7 @@ export default function Quoter() {
           {activeConfig.logoImage ? (
             <img src={activeConfig.logoImage} alt="Logo" className="w-14 h-14 object-contain" />
           ) : (
-            <img src="https://margaritaviajes.com/assets/img/logo.png" alt="Logo" className="w-12 h-12 object-contain" />
+            <img src="/assets/img/logo.png" alt="Logo" className="w-12 h-12 object-contain" />
           )}
           <div className="flex flex-col">
             <h1 className="text-xl font-black italic text-[#ea580c] leading-none uppercase">

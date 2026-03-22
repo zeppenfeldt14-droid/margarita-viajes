@@ -30,6 +30,7 @@ export function createRouter(
   router.delete('/admin/hotels/:id', (req, res) => adminController.deleteHotel(req, res));
   router.get('/admin/hotels/:hotelId/rooms', (req, res) => adminController.getRoomsByHotel(req, res));
   router.post('/admin/rooms', (req, res) => adminController.createRoom(req, res));
+  router.get('/admin/users', (req, res) => adminController.getUsers(req, res));
 
   // Transfers
   router.get('/admin/transfers', (req, res) => adminController.getTransfers(req, res));

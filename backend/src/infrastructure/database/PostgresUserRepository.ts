@@ -16,6 +16,17 @@ export class PostgresUserRepository implements IUserRepository {
     };
   }
 
+  async findAll(): Promise<User[]> {
+    const rows = await this.db('users').select('*');
+    return rows.map(row => ({
+      id: row.id,
+      username: row.email,
+      passwordHash: row.password_hash,
+      role: row.role,
+      fullName: row.full_name
+    }));
+  }
+
   async create(user: User): Promise<User> {
     const [row] = await this.db('users').insert({
       email: user.username,

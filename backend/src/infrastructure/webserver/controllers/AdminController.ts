@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { IHotelRepository } from '../../../domain/repositories/IHotelRepository.js';
+import { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
 import { IRoomRepository } from '../../../domain/repositories/IRoomRepository.js';
 import { IAuditRepository } from '../../../domain/repositories/IAuditRepository.js';
 import { ITransferRepository } from '../../../domain/repositories/ITransferRepository.js';
@@ -21,8 +22,24 @@ export class AdminController {
     private operationRepo: IOperationRepository,
     private reservationRepo: IReservationRepository,
     private couponRepo: ICouponRepository,
+    private userRepo: IUserRepository,
     private notificationService: NotificationService
   ) {}
+
+  async getUsers(req: Request, res: Response) {
+    try {
+      const users = await this.userRepo.findAll();
+      // No devolver hashes de password
+      const safeUsers = users.map(u => {
+        const { passwordHash, ...rest } = u;
+        return rest;
+      });
+      return res.json(safeUsers);
+    } catch (error: any) {
+      console.error('[AdminController] Error en getUsers:', error);
+      return res.status(500).json({ error: error.message });
+    }
+  }
 
   async getHotels(req: Request, res: Response) {
     try {
@@ -70,6 +87,8 @@ export class AdminController {
   async updateHotel(req: Request, res: Response) {
     try {
       const id = req.params['id'] as string;
+      if (!id) throw new Error('ID de hotel no proporcionado');
+
       await this.hotelRepo.update(id, req.body);
       
       await this.auditRepo.log({
@@ -81,6 +100,7 @@ export class AdminController {
 
       return res.status(200).json({ message: 'Hotel updated' });
     } catch (error: any) {
+      console.error('[AdminController] Error en updateHotel:', error);
       return res.status(500).json({ error: error.message });
     }
   }

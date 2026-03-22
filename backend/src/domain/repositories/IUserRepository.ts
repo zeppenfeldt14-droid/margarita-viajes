@@ -8,5 +8,6 @@ export interface User {
 
 export interface IUserRepository {
   findByUsername(username: string): Promise<User | null>;
+  findAll(): Promise<User[]>;
   create(user: User): Promise<User>;
 }
