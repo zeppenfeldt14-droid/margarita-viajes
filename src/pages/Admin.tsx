@@ -25,11 +25,22 @@ const generatePdfBase64 = async (elementId: string): Promise<string> => {
   const element = document.getElementById(elementId);
   if (!element) throw new Error('Element not found');
   
+  // Opción para forzar el renderizado a colores compatibles (No oklch)
   const canvas = await html2canvas(element, {
     scale: 2,
     useCORS: true,
     logging: false,
-    windowWidth: 1200
+    windowWidth: 1200,
+    onclone: (clonedDoc) => {
+      // Forzar que el documento clonado use estilos base que no dependan de variables oklch de Tailwind v4
+      const style = clonedDoc.createElement('style');
+      style.innerHTML = `
+        * { color-scheme: light !important; }
+        :root { --color-orange-500: #f97316 !important; --color-orange-600: #ea580c !important; }
+        [style*="oklch"] { color: #000 !important; border-color: #ddd !important; }
+      `;
+      clonedDoc.head.appendChild(style);
+    }
   });
   
   const imgData = canvas.toDataURL('image/png');
