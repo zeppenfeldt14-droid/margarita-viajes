@@ -1,268 +1,72 @@
-const API_BASE = (import.meta.env.VITE_API_URL || 'https://margarita-viajes.onrender.com') + '/api';
+import express, { Request, Response } from 'express';
+import { QuoteController } from '../controllers/QuoteController.js';
+import { AdminController } from '../controllers/AdminController.js';
+import { AuthController } from '../controllers/AuthController.js';
+import { authMiddleware } from '../middlewares/auth.js';
 
-/**
- * Interceptor/Wrapper base para la función fetch
- * Función automática:
- * 1. Inyecta siempre el header Authorization con el token actual.
- * 2. Intercepta respuestas 401 Unauthorized para limpiar sesión y forzar Login.
- */
-async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
-  const token = localStorage.getItem('staff_token');
-  
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-    ...options.headers,
-  };
-
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
-
-  // Intercepción global de errores 401 (Unauthorized / Token expirado o inválido)
-  if (response.status === 401) {
-    const isLoginPage = window.location.pathname === '/login';
-    const isHomePage = window.location.pathname === '/';
-    const hasToken = !!localStorage.getItem('staff_token');
-
-    console.error('Sesión expirada o token inválido (401).');
-    
-    if (hasToken) {
-      localStorage.removeItem('staff_token');
-      localStorage.removeItem('staff_auth');
-      localStorage.removeItem('staff_user');
-      
-      // Solo redirigir si no estamos ya en login o home
-      if (!isLoginPage && !isHomePage) {
-        window.location.href = '/login';
-      }
-    }
-    
-    return Promise.reject(new Error('Unauthorized'));
-  }
-
-  return response;
-}
-
-export const api = {
-  // Config
-  getConfig: async () => {
-    const response = await fetchWithAuth('/config');
-    return response.json();
-  },
-
-  saveFullConfig: async (config: any) => {
-    return fetchWithAuth('/admin/config', {
-      method: 'POST',
-      body: JSON.stringify(config)
-    });
-  },
-
-  // Hotels
-  getHotels: async () => {
-    const response = await fetchWithAuth('/hotels');
-    return response.json();
-  },
-
-  saveHotel: async (hotel: any, id?: string | null) => {
-    const method = id ? 'PUT' : 'POST';
-    const url = id ? `/admin/hotels/${id}` : `/admin/hotels`;
-    return fetchWithAuth(url, {
-      method,
-      body: JSON.stringify(hotel)
-    });
-  },
-
-  deleteHotel: async (id: string) => {
-    return fetchWithAuth(`/admin/hotels/${id}`, {
-      method: 'DELETE'
-    });
-  },
-
-  // Transfers
-  getTransfers: async () => {
-    const response = await fetchWithAuth('/transfers');
-    return response.json();
-  },
-
-  saveTransfer: async (transfer: any, id?: string | null) => {
-    const method = id ? 'PUT' : 'POST';
-    const url = id ? `/admin/transfers/${id}` : `/admin/transfers`;
-    return fetchWithAuth(url, {
-      method,
-      body: JSON.stringify(transfer)
-    });
-  },
-
-  deleteTransfer: async (id: string) => {
-    return fetchWithAuth(`/admin/transfers/${id}`, {
-      method: 'DELETE'
-    });
-  },
-
-  // Quotes
-  getQuotes: async () => {
-    const response = await fetchWithAuth('/admin/quotes');
-    return response.json();
-  },
-
-  getQuotesByHotel: async (hotelId: string) => {
-    const response = await fetchWithAuth(`/admin/quotes?hotelId=${hotelId}`);
-    return response.json();
-  },
-
-  createQuote: async (quoteData: any) => {
-    // El backend tiene /api/quotes como POST público
-    return fetchWithAuth('/quotes', {
-      method: 'POST',
-      body: JSON.stringify(quoteData)
-    });
-  },
-
-  updateQuote: async (id: string, data: any) => {
-    return fetchWithAuth(`/admin/quotes/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data)
-    });
-  },
-
-  deleteQuote: async (id: string) => {
-    return fetchWithAuth(`/admin/quotes/${id}`, {
-      method: 'DELETE'
-    });
-  },
-
-  // Reservations
-  getReservations: async () => {
-    const response = await fetchWithAuth('/admin/reservations');
-    return response.json();
-  },
-
-  createReservation: async (reservationData: any) => {
-    return fetchWithAuth('/admin/reservations', {
-      method: 'POST',
-      body: JSON.stringify(reservationData)
-    });
-  },
-
-  updateReservation: async (id: string, data: any) => {
-    return fetchWithAuth(`/admin/reservations/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data)
-    });
-  },
-
-  // Operations
-  getOperations: async () => {
-    const response = await fetchWithAuth('/admin/operations');
-    return response.json();
-  },
-
-  createOperation: async (operationData: any) => {
-    return fetchWithAuth('/admin/operations', {
-      method: 'POST',
-      body: JSON.stringify(operationData)
-    });
-  },
-
-  updateOperation: async (id: string, data: any) => {
-    return fetchWithAuth(`/admin/operations/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data)
-    });
-  },
-
-  deleteOperation: async (id: string) => {
-    return fetchWithAuth(`/admin/operations/${id}`, {
-      method: 'DELETE'
-    });
-  },
-  
-  getOperation: async (quoteId: string) => {
-    return fetchWithAuth(`/admin/operations/by-quote/${quoteId}`);
-  },
-
-  getOperationSequence: async () => {
-    return fetchWithAuth(`/admin/operation`);
-  },
-  
-  saveOperation: async (id: string | null, operationData: any) => {
-    const method = id ? 'PUT' : 'POST';
-    const url = id ? `/admin/operation/${id}` : `/admin/operation`;
-    return fetchWithAuth(url, {
-      method,
-      body: JSON.stringify(operationData)
-    });
-  },
-
-  // Users
-  getUsers: async () => {
-    const response = await fetchWithAuth('/admin/users');
-    return response.json();
-  },
-
-  saveUser: async (user: any, id?: string | null) => {
-    const method = id ? 'PUT' : 'POST';
-    const url = id ? `/admin/users/${id}` : `/admin/users`;
-    return fetchWithAuth(url, {
-      method,
-      body: JSON.stringify(user)
-    });
-  },
-
-  deleteUser: async (id: string) => {
-    return fetchWithAuth(`/admin/users/${id}`, {
-      method: 'DELETE'
-    });
-  },
-
-  trackConnection: async (userId: string, hours: number) => {
-    return fetchWithAuth(`/admin/users/${userId}/track-connection`, {
-      method: 'PUT',
-      body: JSON.stringify({ hours })
-    });
-  },
-
-  saveConnectionLog: async (userId: string, data: any) => {
-    return fetchWithAuth(`/admin/users/${userId}/connection-log`, {
-      method: 'POST',
-      body: JSON.stringify(data)
-    });
-  },
+export function createRouter(
+  quoteController: QuoteController, 
+  adminController: AdminController,
+  authController: AuthController
+) {
+  const router = express.Router();
 
   // Auth
-  login: async (credentials: any) => {
-    return fetch(`${API_BASE}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials)
-    });
-  },
+  router.post('/auth/login', (req: Request, res: Response) => authController.login(req, res));
+
+  // Public Endpoints
+  router.get('/hotels', (req: Request, res: Response) => adminController.getHotels(req, res));
+  router.get('/public/hotels', (req: Request, res: Response) => adminController.getHotels(req, res));
+  router.get('/transfers', (req: Request, res: Response) => adminController.getTransfers(req, res));
+  router.get('/public/transfers', (req: Request, res: Response) => adminController.getTransfers(req, res));
+  router.get('/config', (req: Request, res: Response) => adminController.getConfig(req, res));
+  router.get('/public/config', (req: Request, res: Response) => adminController.getConfig(req, res));
+  router.post('/quotes/calculate', (req: Request, res: Response) => quoteController.calculatePrice(req, res));
+  router.post('/quotes', (req: Request, res: Response) => quoteController.saveQuote(req, res));
+  router.get('/public/quotes/:folio/pdf', (req: Request, res: Response) => quoteController.getQuotePdf(req, res));
+
+  // Admin Endpoints (Protected)
+  router.use('/admin', authMiddleware(['LEVEL_1', 'LEVEL_2', 'LEVEL_3']));
+  
+  router.get('/admin/hotels', (req: Request, res: Response) => adminController.getHotels(req, res));
+  router.post('/admin/hotels', (req: Request, res: Response) => adminController.createHotel(req, res));
+  router.put('/admin/hotels/:id', (req: Request, res: Response) => adminController.updateHotel(req, res));
+  router.delete('/admin/hotels/:id', (req: Request, res: Response) => adminController.deleteHotel(req, res));
+  router.get('/admin/hotels/:hotelId/rooms', (req: Request, res: Response) => adminController.getRoomsByHotel(req, res));
+  router.post('/admin/rooms', (req: Request, res: Response) => adminController.createRoom(req, res));
+  router.get('/admin/users', (req: Request, res: Response) => adminController.getUsers(req, res));
+
+  // Transfers
+  router.get('/admin/transfers', (req: Request, res: Response) => adminController.getTransfers(req, res));
+  router.post('/admin/transfers', (req: Request, res: Response) => adminController.createTransfer(req, res));
+  router.put('/admin/transfers/:id', (req: Request, res: Response) => adminController.updateTransfer(req, res));
+  router.delete('/admin/transfers/:id', (req: Request, res: Response) => adminController.deleteTransfer(req, res));
+
+  // Quotes
+  router.get('/admin/quotes', (req: Request, res: Response) => adminController.getQuotes(req, res));
+  router.get('/quotes/check', (req: Request, res: Response) => quoteController.checkDuplicate(req, res));
+  router.put('/admin/quotes/:id', (req: Request, res: Response) => adminController.updateQuote(req, res));
+
+  // Config
+  router.get('/admin/config', (req: Request, res: Response) => adminController.getConfig(req, res));
+  router.post('/admin/config', (req: Request, res: Response) => adminController.updateConfig(req, res));
+
+  // Operations
+  router.get('/admin/operation', (req: Request, res: Response) => adminController.getOperationSequence(req, res));
+  router.get('/admin/operations', (req: Request, res: Response) => adminController.getOperations(req, res));
+  router.post('/admin/operation', (req: Request, res: Response) => adminController.createOperation(req, res));
+
+  // Reservations
+  router.get('/admin/reservations', (req: Request, res: Response) => adminController.getReservations(req, res));
+  router.post('/admin/reservations', (req: Request, res: Response) => adminController.createReservation(req, res));
+  router.put('/admin/reservations/:id', (req: Request, res: Response) => adminController.updateReservation(req, res));
 
   // Coupons
-  getCoupons: async () => {
-    const response = await fetchWithAuth('/coupons');
-    return response.json();
-  },
+  router.get('/coupons', (req: Request, res: Response) => adminController.getCoupons(req, res));
+  router.get('/admin/coupons', (req: Request, res: Response) => adminController.getCoupons(req, res));
+  router.post('/admin/coupons', (req: Request, res: Response) => adminController.createCoupon(req, res));
+  router.put('/admin/coupons/:id', (req: Request, res: Response) => adminController.updateCoupon(req, res));
+  router.delete('/admin/coupons/:id', (req: Request, res: Response) => adminController.deleteCoupon(req, res));
 
-  getAdminCoupons: async () => {
-    const response = await fetchWithAuth('/admin/coupons');
-    return response.json();
-  },
-
-  saveCoupon: async (coupon: any) => {
-    return fetchWithAuth('/admin/coupons', {
-      method: 'POST',
-      body: JSON.stringify(coupon)
-    });
-  },
-
-  deleteCoupon: async (id: string) => {
-    return fetchWithAuth(`/admin/coupons/${id}`, {
-      method: 'DELETE'
-    });
-  }
-};
-
-export default api;
+  return router;
+}
