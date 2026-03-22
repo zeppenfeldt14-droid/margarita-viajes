@@ -48,7 +48,7 @@ import CustomersList from '../components/admin/CustomersList';
 import MarketingPanel from '../components/admin/MarketingPanel';
 import UsersList from '../components/admin/UsersList';
 import { useGlobalData } from '../context/GlobalContext';
-import type { Hotel, Transfer, Quotation } from '../types';
+import type { Hotel, Transfer, Quotation, Operation, Reservation, ReservationStatus, QuoteStatus } from '../types';
 // import { NavItem } from "../components/admin/NavItem"; // No utilizado
 import { Card, SectionTitle } from "../components/admin/Common";
 import { InputField } from "../components/admin/FormFields";
@@ -66,7 +66,7 @@ interface AdminProps {
 export default function AdminDashboard({ user }: AdminProps) {
   const [location] = useLocation();
   const [activeTab, setActiveTab] = useState('inicio');
-  const [inventorySubTab, setInventorySubTab] = useState<'hotels' | 'fullday' | 'packages' | 'transfers'>(() => (localStorage.getItem('admin_sub_tab') as any) || 'hotels');
+  const [inventorySubTab, setInventorySubTab] = useState<'hotels' | 'fullday' | 'packages' | 'transfers'>('hotels');
 
   useEffect(() => {
     if (location === '/admin') setActiveTab('inicio');
@@ -97,7 +97,7 @@ export default function AdminDashboard({ user }: AdminProps) {
 
   const [config, setConfig] = useState<Record<string, string>>({});
   const [savingConfig, setSavingConfig] = useState(false);
-  const [selectedOperation, setSelectedOperation] = useState<any>(null); // Assuming Operation type is not defined in types.ts
+  const [selectedOperation, setSelectedOperation] = useState<Operation | null>(null);
   const [opFilter, setOpFilter] = useState<'activas' | 'historial' | 'todas'>('activas');
   const { hotels, transfers, quotes, users, setQuotes, refreshData } = useGlobalData();
 
@@ -383,7 +383,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                                     const currentCompanions = (quote as Quotation).companions || [];
                                     const hasEmptyNames = currentCompanions.some((c: { name: string }) => !c.name || c.name.trim() === '');
 
-                                    if (currentCompanions.length !== totalExpected || hasEmptyNames || (!(quote as any).technicalSheet && !technicalSheetSaved)) {
+                                    if (currentCompanions.length !== totalExpected || hasEmptyNames || (!quote.technicalSheet && !technicalSheetSaved)) {
                                       alert('Debe cargar la ficha técnica de todos los pasajeros (con nombre y apellido) antes de pasar a Reserva');
                                       return;
                                     }
@@ -396,7 +396,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                                       const resData = await api.getReservations().catch(() => []);
                                       if (Array.isArray(resData) && resData.length > 0) {
                                         const rIds = resData
-                                          .map((r: { id?: string | number }) => r.id?.toString() || '')
+                                          .map((r: Reservation) => r.id?.toString() || '')
                                           .filter((id: string) => id.startsWith('R'))
                                           .map((id: string) => parseInt(id.replace(/\D/g, '')) || 0);
                                         if (rIds.length > 0) nextResNum = Math.max(...rIds) + 1;
@@ -424,10 +424,10 @@ export default function AdminDashboard({ user }: AdminProps) {
                                         companions: (quote as Quotation).companions || [],
                                         technicalSheet: (quote as Quotation).technicalSheet || null,
                                         plan: quote.plan || null,
-                                        status: 'Confirmada'
+                                        status: 'Confirmada' as ReservationStatus
                                       };
 
-                                      const reservationRes = await api.createReservation(reservationData);
+                                      const reservationRes = await api.createReservation(reservationData as Partial<Reservation>);
 
                                       if (!reservationRes.ok) {
                                         showToast('Error al crear la reserva');
@@ -441,13 +441,13 @@ export default function AdminDashboard({ user }: AdminProps) {
                                   }
 
                                   try {
-                                    const response = await api.updateQuote(quote.id, {
-                                      status: newStatus,
-                                      id: newId
-                                    });
+                                      const response = await api.updateQuote(quote.id, {
+                                        status: newStatus as QuoteStatus,
+                                        id: newId
+                                      });
 
                                     if (response.ok) {
-                                      setQuotes(quotes.map((q: Quotation) => q.id === quote.id ? { ...q, status: newStatus as any, id: newId } : q));
+                                      setQuotes(quotes.map((q: Quotation) => q.id === quote.id ? { ...q, status: newStatus as QuoteStatus, id: newId } : q));
                                       showToast(`Estado cambiado a: ${newStatus}${newStatus === "Reserva" ? " y Reserva creada" : ""}`);
                                     } else {
                                       const errorData = await response.json().catch(() => ({}));
@@ -535,7 +535,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                     <div className="bg-blue-50/50 p-8 rounded-[2rem] border border-blue-100">
                       <h5 className="text-[10px] font-black uppercase tracking-widest text-blue-800 mb-4 flex items-center gap-2"><Globe size={16} /> Resumen de la Plataforma</h5>
                       <div className="space-y-4">
-                        <div className="flex justify-between items-center border-b border-blue-100/50 pb-2"><span className="text-[11px] font-bold text-blue-600/70">Usuarios Activos</span><span className="text-sm font-black italic text-blue-900">{(users || []).filter(u => u.status === true).length}</span></div>
+                        <div className="flex justify-between items-center border-b border-blue-100/50 pb-2"><span className="text-[11px] font-bold text-blue-600/70">Usuarios Activos</span><span className="text-sm font-black italic text-blue-900">{(users || []).filter(u => u.active === true).length}</span></div>
                         <div className="flex justify-between items-center border-b border-blue-100/50 pb-2"><span className="text-[11px] font-bold text-blue-600/70">Hoteles en Inventario</span><span className="text-sm font-black italic text-blue-900">{hotels?.length || 0}</span></div>
                         <div className="flex justify-between items-center"><span className="text-[11px] font-bold text-blue-600/70">Cotizaciones Totales</span><span className="text-sm font-black italic text-blue-900">{quotes?.length || 0}</span></div>
                       </div>
@@ -624,7 +624,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                             <select
                               className="w-full bg-gray-50 rounded-2xl px-6 py-4 text-sm font-bold border-none outline-none ring-2 ring-gray-100 transition-all focus:ring-orange-500/20"
                               value={newHotel.plan || ''}
-                              onChange={(e: any) => setNewHotel(prev => ({ ...prev, plan: e.target.value as 'TODO INCLUIDO' | 'SOLO DESAYUNO' }))}
+                              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setNewHotel(prev => ({ ...prev, plan: e.target.value as 'TODO INCLUIDO' | 'SOLO DESAYUNO' }))}
                             >
                               <option value="">Seleccionar Plan...</option>
                               <option value="TODO INCLUIDO">TODO INCLUIDO</option>
@@ -640,7 +640,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                               <div className="h-16 bg-gray-50 rounded-2xl border-2 border-dashed flex items-center justify-center relative hover:bg-gray-100 transition-colors"><Camera size={20} className="text-gray-400" /><span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest ml-2">Agregar fotos</span><input type="file" multiple className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { Array.from(e.target.files || []).slice(0, 5 - (newHotel.photos?.length || 0)).forEach((f: File) => { const r = new FileReader(); r.onloadend = async () => { const c = await compressImage(r.result as string, 1200, 800); setNewHotel(p => ({ ...p, photos: [...(p.photos || []), c] })); }; r.readAsDataURL(f); }); }} /></div>
                               {newHotel.photos && newHotel.photos.length > 0 && (
                                 <div className="grid grid-cols-5 gap-2">
-                                  {newHotel.photos.map((photo: any, idx: number) => (
+                                  {newHotel.photos.map((photo: string, idx: number) => (
                                     <div key={idx} className="relative h-10 bg-gray-50 rounded-xl overflow-hidden group">
                                       <img src={photo} className="w-full h-full object-cover" />
                                       <button onClick={() => setNewHotel(p => ({ ...p, photos: p.photos?.filter((_, i) => i !== idx) }))} className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"><X size={10} /></button>
@@ -885,7 +885,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                         discountAmount: discountAmount,
                         finalAmount: finalTotal,
                         totalAmount: finalTotal,
-                        status: 'Atendido',
+                        status: 'Atendido' as QuoteStatus,
                         pdfBase64 // <-- AQUÍ SE ENVÍA EL PDF
                       };
                       
@@ -895,7 +895,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                         throw new Error(errorData.error || 'Error del servidor al crear presupuesto con descuento');
                       }
 
-                      const updateRes = await api.updateQuote(selectedQuote.id, { status: 'Atendido' });
+                      const updateRes = await api.updateQuote(selectedQuote.id, { status: 'Atendido' as QuoteStatus });
                       if (!updateRes.ok) {
                         console.warn('No se pudo marcar la cotización original como Atendida, pero el descuento fue generado.');
                       }
@@ -916,8 +916,20 @@ export default function AdminDashboard({ user }: AdminProps) {
                 </button>
 
                 <button onClick={() => setShowPdfPreview(true)} className="w-full bg-red-500 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 transition-all flex items-center justify-center gap-2">
-                  Descargar PDF Oficial
+                  Previsualizar PDF (Actual)
                 </button>
+
+                {selectedQuote.pdfBase64 && (
+                  <button 
+                    onClick={() => {
+                      const folio = selectedQuote.id || selectedQuote.folio;
+                      window.open(`https://margaritaviajes-backend.render.com/api/public/quotes/${folio}/pdf`, '_blank');
+                    }} 
+                    className="w-full bg-teal-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-teal-700 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Globe size={16} /> Ver PDF Guardado en Servidor
+                  </button>
+                )}
 
                 <div className="bg-purple-50 p-6 rounded-[2rem] border border-purple-200 space-y-4">
                   <div className="flex items-center justify-between">
@@ -1008,7 +1020,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                     onClick={async () => {
                       const totalExpected = Number(selectedQuote.pax || 0) + Number(selectedQuote.children || 0) + Number(selectedQuote.infants || 0);
                       const currentCompanions = selectedQuote.companions || companions || [];
-                      const hasEmptyNames = currentCompanions.some((c: any) => !c.name || c.name.trim() === '');
+                      const hasEmptyNames = currentCompanions.some((c: { name: string }) => !c.name || c.name.trim() === '');
 
                       // 3. Validación estricta antes de pasar a reserva
                       if (currentCompanions.length !== totalExpected || hasEmptyNames || (!selectedQuote.technicalSheet && !technicalSheetSaved)) {
@@ -1049,15 +1061,15 @@ export default function AdminDashboard({ user }: AdminProps) {
                           discountAmount: selectedQuote.discountAmount || null,
                           companions: currentCompanions,
                           technicalSheet: selectedQuote.technicalSheet || { savedAt: new Date().toISOString(), passengers: currentCompanions },
-                          status: 'Confirmada'
+                          status: 'Confirmada' as ReservationStatus
                         };
 
-                        const resCreate = await api.createReservation(reservationData);
+                        const resCreate = await api.createReservation(reservationData as Partial<Reservation>);
 
                         if (!resCreate.ok) throw new Error('Error al crear la reserva');
 
                         // 5. Actualizar el estado de la cotización
-                        const resUpdate = await api.updateQuote(selectedQuote.id, { status: 'Reserva' });
+                        const resUpdate = await api.updateQuote(selectedQuote.id, { status: 'Reserva' as QuoteStatus });
 
                         if (!resUpdate.ok) throw new Error('Error al actualizar cotización');
 
@@ -1155,7 +1167,7 @@ export default function AdminDashboard({ user }: AdminProps) {
 
                   <div className="grid grid-cols-2 gap-x-12 gap-y-5 mb-10">
                     <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-400 text-xs uppercase">Hotel</span> <span className="font-black text-sm uppercase text-[#0B132B] text-right">{selectedQuote.hotelName || selectedQuote.hotel_name}</span></div>
-                    <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-400 text-xs uppercase">Plan</span> <span className="font-black text-sm uppercase text-orange-600 text-right">{selectedQuote.plan || (hotel as any)?.plan || 'No especificado'}</span></div>
+                    <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-400 text-xs uppercase">Plan</span> <span className="font-black text-sm uppercase text-orange-600 text-right">{selectedQuote.plan || hotel?.plan || 'No especificado'}</span></div>
                     <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Habitación:</span> <span className="font-black text-sm uppercase text-[#0B132B] text-right">{selectedQuote.roomType || selectedQuote.room_type}</span></div>
                     <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Ubicación:</span> <span className="font-black text-sm uppercase text-[#0B132B] text-right">{hotel?.location || '-'}</span></div>
                     <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Entrada:</span> <span className="font-black text-sm text-[#0B132B] text-right">{formatDateVisual(selectedQuote.checkIn || selectedQuote.check_in)}</span></div>
