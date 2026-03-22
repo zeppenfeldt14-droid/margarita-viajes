@@ -61,7 +61,7 @@ export const api = {
 
   // Hotels
   getHotels: async () => {
-    const response = await fetchWithAuth('/public/hotels');
+    const response = await fetchWithAuth('/hotels');
     return response.json();
   },
 
