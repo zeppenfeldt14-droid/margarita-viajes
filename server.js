@@ -6,11 +6,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 console.log('--- MARGARITA VIAJES: FORZANDO POSTGRESQL ---');
-console.log('Iniciando backend desde /backend/src/index.ts...');
+console.log('Iniciando backend desde /backend/dist/src/index.js...');
 
-const backendPath = path.join(__dirname, 'backend', 'src', 'index.ts');
+const backendPath = path.join(__dirname, 'backend', 'dist', 'src', 'index.js');
 
-const child = spawn('npx', ['tsx', backendPath], {
+const child = spawn('node', [backendPath], {
   stdio: 'inherit',
   shell: true,
   env: { ...process.env, NODE_ENV: 'production' }
