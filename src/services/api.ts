@@ -48,7 +48,7 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
 export const api = {
   // Config
   getConfig: async () => {
-    const response = await fetchWithAuth('/admin/config');
+    const response = await fetchWithAuth('/public/config');
     return response.json();
   },
 

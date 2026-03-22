@@ -110,8 +110,12 @@ export default function Home({ onAdminClick }: HomeProps) {
               )}
             </div>
             <div className="flex flex-col">
-              <h1 className="text-[32px] font-black italic text-[#ea580c] leading-[0.75] tracking-tighter uppercase">MARGARITA</h1>
-              <span className="text-[12px] font-bold text-[#0B132B] uppercase tracking-[0.1em] mt-1">Viajes y Turismo</span>
+              <h1 className="text-[32px] font-black italic text-[#ea580c] leading-[0.75] tracking-tighter uppercase">
+                {config?.agencyName || 'MARGARITA'}
+              </h1>
+              <span className="text-[12px] font-bold text-[#0B132B] uppercase tracking-[0.1em] mt-1">
+                {config?.agencySlogan || 'Viajes y Turismo'}
+              </span>
             </div>
           </div>
         </div>
@@ -133,11 +137,13 @@ export default function Home({ onAdminClick }: HomeProps) {
         </div>
       </header>
       {/* HERO SECTION CON BANNER Y BUSCADOR DROPDOWN */}
-      <div className="w-full h-[500px] bg-cover bg-center relative" style={{ backgroundImage: `url(${config.bannerImage})` }}>
+      <div className="w-full h-[500px] bg-cover bg-center relative" style={{ backgroundImage: `url(${config?.bannerImage || '/assets/img/hero-bg.jpg'})` }}>
         <div className="absolute inset-0 bg-blue-900/40 backdrop-blur-[1px]"></div>
 
         <div className="absolute inset-0 flex flex-col items-center pt-12 text-center px-6">
-          <span className="text-orange-400 font-extrabold tracking-[0.4em] text-[10px] uppercase mb-4 animate-in fade-in slide-in-from-top-4 duration-700">Explora la Perla del Caribe</span>
+          <span className="text-orange-400 font-extrabold tracking-[0.4em] text-[10px] uppercase mb-4 animate-in fade-in slide-in-from-top-4 duration-700">
+            {config?.subtituloHero || 'Explora la Perla del Caribe'}
+          </span>
 
           {/* 3 CARDS SOBREPUESTAS EN BANNER - PAQUETES, FULL DAYS, HOTELES */}
           <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl px-4 animate-in fade-in zoom-in duration-1000 delay-300">
@@ -331,10 +337,12 @@ export default function Home({ onAdminClick }: HomeProps) {
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-16 mb-20">
           <div className="space-y-6">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-black italic text-[#ea580c] leading-none uppercase">{config.agencyName || 'MARGARITA'}</h1>
+              <h1 className="text-2xl font-black italic text-[#ea580c] leading-none uppercase">
+                {config?.agencyName || 'MARGARITA'}
+              </h1>
             </div>
             <p className="text-xs font-bold text-gray-400 uppercase leading-relaxed tracking-wider">
-              {config.direccion}
+              {config?.direccion || 'Isla de Margarita, Venezuela'}
               <br /><br />
               RIF: J-40156646-4 | RTN: 13314
             </p>
@@ -343,11 +351,11 @@ export default function Home({ onAdminClick }: HomeProps) {
           <div className="space-y-6">
             <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">Contacto Directo</h4>
             <div className="space-y-4">
-              <a href={`tel:${config.telefono}`} className="flex items-center gap-3 text-sm font-bold hover:text-orange-400 transition-colors">
-                <Phone size={18} className="text-orange-500" /> {config.telefono}
+              <a href={`tel:${config?.telefono}`} className="flex items-center gap-3 text-sm font-bold hover:text-orange-400 transition-colors">
+                <Phone size={18} className="text-orange-500" /> {config?.telefono || '+58 000-0000'}
               </a>
-              <a href={`mailto:${config.correo}`} className="flex items-center gap-3 text-sm font-bold hover:text-orange-400 transition-colors underline decoration-orange-500/20 underline-offset-4">
-                <Mail size={18} className="text-orange-500" /> {config.correo}
+              <a href={`mailto:${config?.correo}`} className="flex items-center gap-3 text-sm font-bold hover:text-orange-400 transition-colors underline decoration-orange-500/20 underline-offset-4">
+                <Mail size={18} className="text-orange-500" /> {config?.correo || 'correo@ejemplo.com'}
               </a>
             </div>
           </div>
