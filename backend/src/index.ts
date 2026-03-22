@@ -100,13 +100,18 @@ const adminController = new AdminController(
 );
 const authController = new AuthController(userRepository);
 
-// Rutas
+// --- RUTAS DE LA API ---
+// IMPORTANTE: Registrar las rutas ANTES de cualquier manejador general de 404
 app.use('/api', createRouter(quoteController, adminController, authController));
 
-// Manejador global de 404 para la API (Evita devolver el index.html en errores de ruta api)
+// Manejador global de 404 para la API  ...
+// Debe ir AL FINAL de todas las definiciones de ruta de la API
 app.use('/api/*', (req, res) => {
   res.status(404).json({ error: `Ruta API no encontrada: ${req.originalUrl}` });
 });
+
+
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
