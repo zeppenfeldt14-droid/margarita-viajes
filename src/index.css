@@ -19,6 +19,46 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
   }
+
+/* Custom Scrollbar Global y Específico */
+.custom-scrollbar::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 6px !important;
+  height: 0px !important; /* Ocultar horizontal por defecto */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 10px !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Ocultar botones de flecha en Webkit */
+.custom-scrollbar::-webkit-scrollbar-button,
+*::-webkit-scrollbar-button {
+  display: none !important;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent !important;
+}
+
+/* Específicos para scroll horizontal si es necesario */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 6px !important;
+}
 }
 
 @media print {

@@ -138,7 +138,7 @@ export default function ReservationsList({ hotels }: {
         )}
       </div>
         {selectedReservation && (
-          <div className="fixed inset-0 bg-[#0B132B]/60 backdrop-blur-md z-[60] flex items-center justify-center p-4 print:p-0 print:block">
+          <div className="fixed inset-0 bg-[#0B132B]/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 print:p-0 print:block">
             <div className="bg-white w-full max-w-5xl max-h-[95vh] rounded-[3rem] shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in duration-300 print-card print:rounded-none print:max-h-none print:shadow-none print:w-full print:block">
 
             <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 print-hidden">

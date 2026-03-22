@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, AlertCircle, Clock, CheckCircle, History, X, Edit3, Trash2, Save } from 'lucide-react';
 import { Card, SectionTitle } from './Common';
 import { showToast } from '../Toast';
+import api from '../../services/api';
 
 interface MarketingProps {
   quotes: any[];
@@ -17,20 +18,17 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
   const [editCoupon, setEditCoupon] = useState<any>(null);
 
   useEffect(() => {
-    let savedCoupons = JSON.parse(localStorage.getItem('app_marketing_coupons') || '[]');
-    let changed = false;
-    const migrated = savedCoupons.map((c: any) => {
-      if (!c.id) {
-        c.id = Math.random().toString(36).substr(2, 9) + Date.now();
-        changed = true;
-      }
-      return c;
-    });
-    if (changed) {
-      localStorage.setItem('app_marketing_coupons', JSON.stringify(migrated));
-    }
-    setCoupons(migrated);
+    loadCoupons();
   }, []);
+
+  const loadCoupons = async () => {
+    try {
+      const data = await api.getAdminCoupons();
+      setCoupons(data || []);
+    } catch (e) {
+      console.error('Error loading coupons:', e);
+    }
+  };
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -95,7 +93,7 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
               </div>
 
               <button 
-                onClick={() => {
+                onClick={async () => {
                   if (!coupon.code || !coupon.discount || !coupon.expiry) {
                     if (typeof showToast === 'function') showToast('⚠️ Por favor completa todos los campos del cupón');
                     else alert('⚠️ Por favor completa todos los campos del cupón');
@@ -103,16 +101,14 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
                   }
                   
                   try {
-                    const existing = JSON.parse(localStorage.getItem('app_marketing_coupons') || '[]');
-                    const newC = { ...coupon, active: true, id: Math.random().toString(36).substr(2, 9) + Date.now() };
-                    const updated = [...existing, newC];
-                    localStorage.setItem('app_marketing_coupons', JSON.stringify(updated));
-                    setCoupons(updated);
+                    await api.saveCoupon({ ...coupon, active: true });
+                    loadCoupons();
                     if (typeof showToast === 'function') showToast('✅ Cupón activado exitosamente');
                     else alert('✅ Cupón activado exitosamente');
                     setCoupon({ code: '', discount: '', expiry: '' });
                   } catch (e) {
                     console.error('Error:', e);
+                    if (typeof showToast === 'function') showToast('❌ Error al activar cupón');
                   }
                 }} 
                 className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:shadow-orange-500/30 transition-all active:scale-95"
@@ -343,15 +339,17 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
               <div className="pt-4 space-y-3">
                 {isEditingDetail ? (
                   <button 
-                    onClick={() => {
-                      setCoupons(prev => {
-                        const updated = prev.map(c => c.id === selectedDetailCoupon.id ? { ...editCoupon } : c);
-                        localStorage.setItem('app_marketing_coupons', JSON.stringify(updated));
-                        return updated;
-                      });
-                      setSelectedDetailCoupon(null);
-                      setIsEditingDetail(false);
-                      if (typeof showToast === 'function') showToast('✅ Cambios guardados');
+                    onClick={async () => {
+                      try {
+                        await api.saveCoupon(editCoupon); // API handles ID
+                        loadCoupons();
+                        setSelectedDetailCoupon(null);
+                        setIsEditingDetail(false);
+                        if (typeof showToast === 'function') showToast('✅ Cambios guardados');
+                      } catch (e) {
+                        console.error(e);
+                        if (typeof showToast === 'function') showToast('❌ Error al guardar');
+                      }
                     }}
                     className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-md flex items-center justify-center gap-2"
                   >
@@ -360,14 +358,16 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
                 ) : (
                   <>
                     <button 
-                      onClick={() => {
-                        setCoupons(prev => {
-                          const updated = prev.map(c => c.id === selectedDetailCoupon.id ? { ...c, active: !c.active } : c);
-                          localStorage.setItem('app_marketing_coupons', JSON.stringify(updated));
-                          return updated;
-                        });
-                        setSelectedDetailCoupon(null);
-                        if (typeof showToast === 'function') showToast('✅ Estado actualizado');
+                      onClick={async () => {
+                        try {
+                          const updated = { ...selectedDetailCoupon, active: !selectedDetailCoupon.active };
+                          await api.saveCoupon(updated);
+                          loadCoupons();
+                          setSelectedDetailCoupon(null);
+                          if (typeof showToast === 'function') showToast('✅ Estado actualizado');
+                        } catch (e) {
+                          console.error(e);
+                        }
                       }}
                       className={`w-full py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-sm ${selectedDetailCoupon.active ? 'bg-red-50 text-red-500 hover:bg-red-500 hover:text-white' : 'bg-green-50 text-green-600 hover:bg-green-600 hover:text-white'}`}
                     >
@@ -375,20 +375,17 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
                     </button>
                     
                     <button 
-                      onClick={() => {
+                      onClick={async () => {
                         if (!window.confirm('¿Estás seguro de que deseas eliminar este cupón permanentemente?')) return;
                         
-                        setCoupons(prevCoupons => {
-                          const updated = prevCoupons.filter(c => {
-                            if (c.id && selectedDetailCoupon.id) return c.id !== selectedDetailCoupon.id;
-                            return !(c.code === selectedDetailCoupon.code && c.expiry === selectedDetailCoupon.expiry);
-                          });
-                          localStorage.setItem('app_marketing_coupons', JSON.stringify(updated));
-                          return updated;
-                        });
-                        
-                        setSelectedDetailCoupon(null);
-                        if (typeof showToast === 'function') showToast('🗑️ Cupón eliminado');
+                        try {
+                          await api.deleteCoupon(selectedDetailCoupon.id);
+                          loadCoupons();
+                          setSelectedDetailCoupon(null);
+                          if (typeof showToast === 'function') showToast('🗑️ Cupón eliminado');
+                        } catch (e) {
+                          console.error(e);
+                        }
                       }}
                       className="w-full bg-gray-50 text-gray-400 py-3 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center gap-2"
                     >

@@ -7,6 +7,8 @@ import { IQuoteRepository } from '../../../domain/repositories/IQuoteRepository.
 import { IWebConfigRepository } from '../../../domain/repositories/IWebConfigRepository.js';
 import { IOperationRepository } from '../../../domain/repositories/IOperationRepository.js';
 import { IReservationRepository } from '../../../domain/repositories/IReservationRepository.js';
+import { ICouponRepository } from '../../../domain/repositories/ICouponRepository.js';
+import { NotificationService } from '../../services/NotificationService.js';
 
 export class AdminController {
   constructor(
@@ -17,7 +19,9 @@ export class AdminController {
     private quoteRepo: IQuoteRepository,
     private configRepo: IWebConfigRepository,
     private operationRepo: IOperationRepository,
-    private reservationRepo: IReservationRepository
+    private reservationRepo: IReservationRepository,
+    private couponRepo: ICouponRepository,
+    private notificationService: NotificationService
   ) {}
 
   async getHotels(req: Request, res: Response) {
@@ -153,10 +157,22 @@ export class AdminController {
   async updateQuote(req: Request, res: Response) {
     try {
       const quote = await this.quoteRepo.update(req.params['id'] as string, req.body);
+      const pdfBase64 = req.body.pdfBase64;
+      
+      // Lanzar proceso de notificación en segundo plano
+      this.processQuoteNotifications(quote, pdfBase64).catch(err => 
+        console.error('[AdminController] Error en notificación de fondo:', err)
+      );
+
       return res.json(quote);
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }
+  }
+
+  private async processQuoteNotifications(quote: any, pdfBase64?: string) {
+    console.log(`[AdminController] Iniciando proceso de notificación para cotización ${quote.id}`);
+    await this.notificationService.processAndSend(quote, pdfBase64);
   }
 
   // --- CONFIG ---
@@ -255,6 +271,62 @@ export class AdminController {
     try {
       const reservation = await this.reservationRepo.update(req.params['id'] as string, req.body);
       return res.json(reservation);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  // --- COUPONS ---
+  async getCoupons(req: Request, res: Response) {
+    try {
+      const coupons = await this.couponRepo.findAll();
+      return res.json(coupons);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async createCoupon(req: Request, res: Response) {
+    try {
+      const coupon = await this.couponRepo.create(req.body);
+      await this.auditRepo.log({
+        action: 'CREATE',
+        tableName: 'coupons',
+        recordId: coupon.id?.toString() || '',
+        newValue: JSON.stringify(coupon)
+      });
+      return res.status(201).json(coupon);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async updateCoupon(req: Request, res: Response) {
+    try {
+      const id = req.params['id'] as string;
+      await this.couponRepo.update(id, req.body);
+      await this.auditRepo.log({
+        action: 'UPDATE',
+        tableName: 'coupons',
+        recordId: id,
+        newValue: JSON.stringify(req.body)
+      });
+      return res.status(200).json({ message: 'Coupon updated' });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async deleteCoupon(req: Request, res: Response) {
+    try {
+      const id = req.params['id'] as string;
+      await this.couponRepo.delete(id);
+      await this.auditRepo.log({
+        action: 'DELETE',
+        tableName: 'coupons',
+        recordId: id
+      });
+      return res.status(204).send();
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }

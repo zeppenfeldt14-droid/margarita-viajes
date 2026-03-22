@@ -23,6 +23,15 @@ const config: { [key: string]: Knex.Config } = {
       filename: "./dev.sqlite3"
     },
     useNullAsDefault: true
+  },
+  production: {
+    client: "postgresql",
+    connection: process.env.DATABASE_URL,
+    pool: {
+      min: 2,
+      max: 10
+    },
+    ssl: { rejectUnauthorized: false }
   }
 };
 

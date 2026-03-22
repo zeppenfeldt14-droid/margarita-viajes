@@ -56,5 +56,12 @@ export function createRouter(
   router.post('/admin/reservations', (req, res) => adminController.createReservation(req, res));
   router.put('/admin/reservations/:id', (req, res) => adminController.updateReservation(req, res));
 
+  // Coupons
+  router.get('/coupons', (req, res) => adminController.getCoupons(req, res));
+  router.get('/admin/coupons', (req, res) => adminController.getCoupons(req, res));
+  router.post('/admin/coupons', (req, res) => adminController.createCoupon(req, res));
+  router.put('/admin/coupons/:id', (req, res) => adminController.updateCoupon(req, res));
+  router.delete('/admin/coupons/:id', (req, res) => adminController.deleteCoupon(req, res));
+
   return router;
 }

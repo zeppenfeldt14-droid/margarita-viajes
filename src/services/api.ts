@@ -1,4 +1,4 @@
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api';
+const API_BASE = 'https://margarita-viajes.onrender.com/api';
 
 /**
  * Interceptor/Wrapper base para la función fetch
@@ -57,7 +57,7 @@ export const api = {
 
   saveHotel: async (hotel: any, id?: string | null) => {
     const method = id ? 'PUT' : 'POST';
-    const url = id ? `/hotels/${id}` : `/hotels`;
+    const url = id ? `/admin/hotels/${id}` : `/admin/hotels`;
     return fetchWithAuth(url, {
       method,
       body: JSON.stringify(hotel)
@@ -65,7 +65,7 @@ export const api = {
   },
 
   deleteHotel: async (id: string) => {
-    return fetchWithAuth(`/hotels/${id}`, {
+    return fetchWithAuth(`/admin/hotels/${id}`, {
       method: 'DELETE'
     });
   },
@@ -78,7 +78,7 @@ export const api = {
 
   saveTransfer: async (transfer: any, id?: string | null) => {
     const method = id ? 'PUT' : 'POST';
-    const url = id ? `/transfers/${id}` : `/transfers`;
+    const url = id ? `/admin/transfers/${id}` : `/admin/transfers`;
     return fetchWithAuth(url, {
       method,
       body: JSON.stringify(transfer)
@@ -86,7 +86,7 @@ export const api = {
   },
 
   deleteTransfer: async (id: string) => {
-    return fetchWithAuth(`/transfers/${id}`, {
+    return fetchWithAuth(`/admin/transfers/${id}`, {
       method: 'DELETE'
     });
   },
@@ -103,7 +103,8 @@ export const api = {
   },
 
   createQuote: async (quoteData: any) => {
-    return fetchWithAuth('/admin/quotes', {
+    // El backend tiene /api/quotes como POST público
+    return fetchWithAuth('/quotes', {
       method: 'POST',
       body: JSON.stringify(quoteData)
     });
@@ -168,14 +169,17 @@ export const api = {
     });
   },
   
-  // Soporte para funciones ad-hoc que hayan quedado en otros componentes
   getOperation: async (quoteId: string) => {
     return fetchWithAuth(`/admin/operations/by-quote/${quoteId}`);
+  },
+
+  getOperationSequence: async () => {
+    return fetchWithAuth(`/admin/operation`);
   },
   
   saveOperation: async (id: string | null, operationData: any) => {
     const method = id ? 'PUT' : 'POST';
-    const url = id ? `/admin/operations/${id}` : `/admin/operations`;
+    const url = id ? `/admin/operation/${id}` : `/admin/operation`;
     return fetchWithAuth(url, {
       method,
       body: JSON.stringify(operationData)
@@ -214,6 +218,39 @@ export const api = {
     return fetchWithAuth(`/admin/users/${userId}/connection-log`, {
       method: 'POST',
       body: JSON.stringify(data)
+    });
+  },
+
+  // Auth
+  login: async (credentials: any) => {
+    return fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials)
+    });
+  },
+
+  // Coupons
+  getCoupons: async () => {
+    const response = await fetchWithAuth('/coupons');
+    return response.json();
+  },
+
+  getAdminCoupons: async () => {
+    const response = await fetchWithAuth('/admin/coupons');
+    return response.json();
+  },
+
+  saveCoupon: async (coupon: any) => {
+    return fetchWithAuth('/admin/coupons', {
+      method: 'POST',
+      body: JSON.stringify(coupon)
+    });
+  },
+
+  deleteCoupon: async (id: string) => {
+    return fetchWithAuth(`/admin/coupons/${id}`, {
+      method: 'DELETE'
     });
   }
 };

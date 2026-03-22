@@ -12,11 +12,15 @@ import { PostgresWebConfigRepository } from './infrastructure/database/PostgresW
 import { PostgresUserRepository } from './infrastructure/database/PostgresUserRepository.js';
 import { PostgresOperationRepository } from './infrastructure/database/PostgresOperationRepository.js';
 import { PostgresReservationRepository } from './infrastructure/database/PostgresReservationRepository.js';
+import { PostgresCouponRepository } from './infrastructure/database/PostgresCouponRepository.js';
+import { initDatabase } from './infrastructure/database/initDb.js';
 import { CalculateQuotePrice } from './application/use-cases/CalculateQuotePrice.js';
 import { QuoteController } from './infrastructure/webserver/controllers/QuoteController.js';
 import { AdminController } from './infrastructure/webserver/controllers/AdminController.js';
 import { AuthController } from './infrastructure/webserver/controllers/AuthController.js';
 import { createRouter } from './infrastructure/webserver/routes/api.js';
+
+import { NotificationService } from './infrastructure/services/NotificationService.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -26,12 +30,30 @@ app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+
+// CORS configurable y unificado
+app.use(cors({
+  origin: '*', // Permitir todos los orígenes en esta etapa para asegurar acceso desde Vercel
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: false // Cambiado a false para permitir origin '*'
+}));
+
+app.use(express.json({ limit: '50mb' }));
+
+// Health check para monitorear el backend en Render
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Inyección de Dependencias
-const env = process.env.DB_TYPE || 'local';
+const isProd = !!process.env.DATABASE_URL;
+const env = isProd ? 'production' : (process.env.DB_TYPE || 'local');
 const dbConfig = knexConfig[env];
 if (!dbConfig) throw new Error(`Database configuration for "${env}" not found`);
 const db = knex(dbConfig);
@@ -47,21 +69,33 @@ const configRepository = new PostgresWebConfigRepository(db);
 const userRepository = new PostgresUserRepository(db);
 const operationRepository = new PostgresOperationRepository(db);
 const reservationRepository = new PostgresReservationRepository(db);
+const couponRepository = new PostgresCouponRepository(db);
 
 // Casos de Uso
 const calculateQuotePrice = new CalculateQuotePrice(seasonRepository);
 
+// Servicios
+const notificationService = new NotificationService();
+
 // Controladores
-const quoteController = new QuoteController(calculateQuotePrice, quoteRepository);
+const quoteController = new QuoteController(
+  calculateQuotePrice,
+  quoteRepository,
+  configRepository,
+  hotelRepository,
+  notificationService
+);
 const adminController = new AdminController(
-  hotelRepository, 
-  roomRepository, 
+  hotelRepository,
+  roomRepository,
   auditRepository,
   transferRepository,
   quoteRepository,
   configRepository,
   operationRepository,
-  reservationRepository
+  reservationRepository,
+  couponRepository,
+  notificationService
 );
 const authController = new AuthController(userRepository);
 
@@ -72,6 +106,9 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
   console.log(`🚀 Margarita Viajes Backend corriendo en http://localhost:${PORT}`);
   try {
+    // Inicializar tablas y esquema
+    await initDatabase(db);
+    
     await db.raw('SELECT 1');
     console.log(`✅ Base de Datos [${env.toUpperCase()}] conectada correctamente.`);
   } catch (err: any) {

@@ -1,7 +1,8 @@
+import React from "react";
 import { useLocation } from "wouter";
 import { LayoutDashboard, Inbox, Hotel, FileText, Settings, Users, LogOut } from "lucide-react";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({ children, onLogout }: { children: React.ReactNode, onLogout?: () => void }) {
   const [location, setLocation] = useLocation();
 
   const NAV_ITEMS = [
@@ -12,6 +13,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { title: "VENTAS (OPERACIONES)", path: "/admin/sales", icon: <FileText size={16} /> },
     { title: "USUARIOS", path: "/admin/users", icon: <Users size={16} /> },
     { title: "CLIENTES", path: "/admin/customers", icon: <Users size={16} /> },
+    { title: "MARKETING", path: "/admin/marketing", icon: <FileText size={16} /> },
+    { title: "ADMINISTRACIÓN", path: "/admin/administration", icon: <Settings size={16} /> },
     { title: "CONFIG. WEB", path: "/admin/webconfig", icon: <Settings size={16} /> },
   ];
 
@@ -68,7 +71,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Footer Sidebar (Salir) */}
         <div className="p-6">
            <button 
-             onClick={() => setLocation("/")}
+             onClick={() => { if(onLogout) onLogout(); else setLocation("/"); }}
              className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-xs tracking-widest font-bold text-gray-400 hover:bg-white/5 hover:text-white transition-all border border-white/10"
            >
               <LogOut size={16} />

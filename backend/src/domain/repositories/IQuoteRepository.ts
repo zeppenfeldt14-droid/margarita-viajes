@@ -28,4 +28,5 @@ export interface IQuoteRepository {
   findById(id: string): Promise<Quote | null>;
   create(quote: Quote): Promise<Quote>;
   update(id: string, quote: Partial<Quote>): Promise<Quote>;
+  findByClientAndHotel(client: string, hotel: string, checkIn: string): Promise<Quote[]>;
 }

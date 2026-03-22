@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Camera, Plus, ShieldCheck, Target, X } from 'lucide-react';
 import { api } from '../../services/api';
 import { Card, SectionTitle } from './Common';
@@ -27,7 +27,7 @@ export default function UsersList() {
 
   const handleSaveUser = async () => {
     if (!newUser.name || !newUser.alias || !newUser.email || (!newUser.id && !newUser.password)) {
-      return alert('Completa los campos obligatorios. La contraseña es requerida al crear un nuevo perfil.');
+      return alert('Completa los campos obligatorios. La contraseÃ±a es requerida al crear un nuevo perfil.');
     }
 
     try {
@@ -49,7 +49,7 @@ export default function UsersList() {
       }
     } catch (error: any) {
       console.error('Error:', error);
-      alert(`Error de conexión: ${error.message || 'Error desconocido'}`);
+      alert(`Error de conexiÃ³n: ${error.message || 'Error desconocido'}`);
     }
   };
 
@@ -58,7 +58,7 @@ export default function UsersList() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <SectionTitle>Gestión de Perfiles y Accesos</SectionTitle>
+        <SectionTitle>GestiÃ³n de Perfiles y Accesos</SectionTitle>
         <button onClick={() => {
           setNewUser({ name: '', alias: '', email: '', password: '', role: 'Vendedor 1', dailyQuota: 20, active: true, level: 3, photo: '', inRoulette: true, modules: defaultModules });
           setShowUserModal(true);
@@ -94,7 +94,7 @@ export default function UsersList() {
                   <span className="text-xs font-black text-blue-600">{u.level || 3}</span>
                 </div>
                 <div className="bg-orange-50 p-2 rounded-xl text-center">
-                  <span className="block text-[8px] font-black text-orange-400 uppercase tracking-widest">META / DÍA</span>
+                  <span className="block text-[8px] font-black text-orange-400 uppercase tracking-widest">META / DÃA</span>
                   <span className="text-xs font-black text-orange-600">{u.dailyQuota || 0}</span>
                 </div>
               </div>
@@ -108,7 +108,7 @@ export default function UsersList() {
                     setActiveLogTab('operaciones');
                     setShowLogsModal(u);
                   }} className="bg-blue-600 text-white px-3 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-md">
-                    BITÁCORA
+                    BITÃCORA
                   </button>
                   <button onClick={() => {
                     setNewUser({ ...u, password: '', modules: u.modules || defaultModules });
@@ -158,8 +158,8 @@ export default function UsersList() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField name="email" label="CORREO ELECTRÓNICO" type="email" placeholder="ejemplo@margaritaviajes.com" value={newUser.email} onChange={(e: any) => setNewUser({...newUser, email: e.target.value})} />
-                <InputField name="password" label={newUser.id ? "CONTRASEÑA (Dejar en blanco para no cambiar)" : "CONTRASEÑA (OBLIGATORIA)"} type="password" placeholder="********" value={newUser.password || ''} onChange={(e: any) => setNewUser({...newUser, password: e.target.value})} />
+                <InputField name="email" label="CORREO ELECTRÃ“NICO" type="email" placeholder="ejemplo@margaritaviajes.com" value={newUser.email} onChange={(e: any) => setNewUser({...newUser, email: e.target.value})} />
+                <InputField name="password" label={newUser.id ? "CONTRASEÃ‘A (Dejar en blanco para no cambiar)" : "CONTRASEÃ‘A (OBLIGATORIA)"} type="password" placeholder="********" value={newUser.password || ''} onChange={(e: any) => setNewUser({...newUser, password: e.target.value})} />
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-blue-50/50 p-6 rounded-3xl border border-blue-50">
@@ -183,7 +183,7 @@ export default function UsersList() {
                   <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">NIVEL DE ACCESO</label>
                   <select value={newUser.level} onChange={(e) => setNewUser({...newUser, level: Number(e.target.value)})} className="w-full bg-white border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-500/20 shadow-sm">
                     <option value={1}>Nivel 1 (Total)</option>
-                    <option value={2}>Nivel 2 (Supervisión)</option>
+                    <option value={2}>Nivel 2 (SupervisiÃ³n)</option>
                     <option value={3}>Nivel 3 (Ventas)</option>
                     <option value={4}>Nivel 4 (Soporte/Otros)</option>
                   </select>
@@ -192,7 +192,7 @@ export default function UsersList() {
               </div>
 
               <div className="bg-purple-50/50 p-6 rounded-3xl border border-purple-100 space-y-4">
-                <h4 className="text-[10px] font-black text-purple-600 uppercase tracking-widest flex items-center gap-2"><ShieldCheck size={14}/> Módulos Autorizados</h4>
+                <h4 className="text-[10px] font-black text-purple-600 uppercase tracking-widest flex items-center gap-2"><ShieldCheck size={14}/> MÃ³dulos Autorizados</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
                     { id: 'inventory', label: 'Inventario' },
@@ -202,7 +202,7 @@ export default function UsersList() {
                     { id: 'users', label: 'Usuarios' },
                     { id: 'customers', label: 'Clientes' },
                     { id: 'marketing', label: 'Marketing' },
-                    { id: 'settings', label: 'Configuración' }
+                    { id: 'settings', label: 'ConfiguraciÃ³n' }
                   ].map(mod => {
                     const isAuthorized = newUser.modules?.[mod.id] !== false;
                     return (
@@ -218,7 +218,7 @@ export default function UsersList() {
               </div>
 
               <div className="bg-orange-50/50 p-6 rounded-3xl border border-orange-50 space-y-4">
-                <h4 className="text-[10px] font-black text-orange-600 uppercase tracking-widest flex items-center gap-2"><Target size={14}/> Asignación y Ruleta</h4>
+                <h4 className="text-[10px] font-black text-orange-600 uppercase tracking-widest flex items-center gap-2"><Target size={14}/> AsignaciÃ³n y Ruleta</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center justify-between bg-white p-3 rounded-xl shadow-sm border border-gray-50">
                     <span className="text-[10px] font-bold text-gray-600 uppercase">Estado del Perfil:</span>
@@ -230,7 +230,7 @@ export default function UsersList() {
                   <div className="flex items-center justify-between bg-white p-3 rounded-xl shadow-sm border border-gray-50">
                     <span className="text-[10px] font-bold text-gray-600 uppercase">Recibir Leads (Ruleta):</span>
                     <select value={newUser.inRoulette !== false ? 'true' : 'false'} onChange={(e) => setNewUser({...newUser, inRoulette: e.target.value === 'true'})} className="bg-gray-50 rounded-lg px-3 py-1.5 text-[10px] font-black uppercase outline-none border-none focus:ring-2 focus:ring-orange-500/20">
-                      <option value="true">Sí, Asignar</option>
+                      <option value="true">SÃ­, Asignar</option>
                       <option value="false">No Asignar</option>
                     </select>
                   </div>
@@ -247,11 +247,11 @@ export default function UsersList() {
       )}
 
       {showLogsModal && (
-        <div className="fixed inset-0 bg-[#0B132B]/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#0B132B]/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-3xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
               <div>
-                <h3 className="text-xl font-black italic text-[#0B132B] uppercase tracking-tighter">Bitácora de Usuario</h3>
+                <h3 className="text-xl font-black italic text-[#0B132B] uppercase tracking-tighter">BitÃ¡cora de Usuario</h3>
                 <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">Perfil: {showLogsModal.name} | Alias: {showLogsModal.alias || 'N/A'}</p>
               </div>
               <button onClick={() => setShowLogsModal(null)} className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gray-400 hover:text-red-500 shadow-sm border border-gray-100 transition-colors"><X size={18}/></button>
@@ -259,7 +259,7 @@ export default function UsersList() {
             
             <div className="p-8 space-y-6 bg-white overflow-y-auto custom-scrollbar">
               
-              {/* TABS DE BITÁCORA */}
+              {/* TABS DE BITÃCORA */}
               <div className="flex gap-4 border-b border-gray-100 pb-4">
                 <button 
                   onClick={() => setActiveLogTab('operaciones')} 
@@ -310,7 +310,7 @@ export default function UsersList() {
                     <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">Estado Actual</p>
                     <p className="text-sm font-bold text-blue-900 flex items-center gap-2">
                       {isUserConnected ? (
-                        <><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Conectado (Sesión Activa)</>
+                        <><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Conectado (SesiÃ³n Activa)</>
                       ) : (
                         <><span className="w-2 h-2 rounded-full bg-gray-400"></span> Desconectado</>
                       )}
@@ -320,14 +320,14 @@ export default function UsersList() {
                   <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100 pb-2">Registro de Accesos</h4>
                   <div className="space-y-3">
                     {(!showLogsModal.connectionLogs || showLogsModal.connectionLogs.length === 0) ? (
-                      <p className="text-center py-6 text-gray-400 text-[10px] font-bold uppercase tracking-widest">El usuario aún no ha iniciado sesión.</p>
+                      <p className="text-center py-6 text-gray-400 text-[10px] font-bold uppercase tracking-widest">El usuario aÃºn no ha iniciado sesiÃ³n.</p>
                     ) : (
                       showLogsModal.connectionLogs.map((log: any, idx: number) => (
                         <div key={idx} className={`flex gap-4 items-start p-4 rounded-xl border ${log.success !== false ? 'bg-gray-50 border-gray-100' : 'bg-red-50 border-red-100'}`}>
                           <span className={`text-[10px] font-black w-24 pt-0.5 ${log.success !== false ? 'text-gray-400' : 'text-red-400'}`}>{new Date(log.date || new Date()).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                           <div className="flex-1">
                             <p className={`text-xs font-bold ${log.success !== false ? 'text-green-600' : 'text-red-600'}`}>{log.action}</p>
-                            <p className={`text-[9px] uppercase mt-1 ${log.success !== false ? 'text-gray-500' : 'text-red-400'}`}>IP: {log.ip || 'Desconocida'} • Dispositivo: {log.device || 'Desconocido'}</p>
+                            <p className={`text-[9px] uppercase mt-1 ${log.success !== false ? 'text-gray-500' : 'text-red-400'}`}>IP: {log.ip || 'Desconocida'} â€¢ Dispositivo: {log.device || 'Desconocido'}</p>
                           </div>
                         </div>
                       ))
@@ -339,7 +339,7 @@ export default function UsersList() {
             
             <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end shrink-0">
               <button onClick={() => setShowLogsModal(null)} className="bg-white border-2 border-gray-200 text-gray-600 px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all">
-                Cerrar Bitácora
+                Cerrar BitÃ¡cora
               </button>
             </div>
           </div>

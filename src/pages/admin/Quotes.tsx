@@ -169,7 +169,7 @@ export default function Quotes() {
 
       {/* MODAL DE VISTA PREVIA (POP-UP) */}
       {showPreview && selectedQuote && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0B132B]/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0B132B]/80 backdrop-blur-sm">
            <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
               
               <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50">

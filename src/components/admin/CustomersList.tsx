@@ -167,7 +167,7 @@ export default function CustomersList({ quotes }: { quotes: any[] }) {
 
       {/* MODAL DE HISTORIAL DEL CLIENTE */}
       {selectedClientHistory && (
-        <div className="fixed inset-0 bg-[#0B132B]/60 backdrop-blur-md z-[50] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#0B132B]/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl max-h-[80vh] rounded-[2.5rem] shadow-2xl flex flex-col animate-in fade-in zoom-in duration-300">
             <div className="p-8 border-b border-gray-100 flex items-center justify-between">
               <div>

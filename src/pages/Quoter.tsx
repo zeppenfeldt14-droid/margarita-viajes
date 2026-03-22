@@ -12,13 +12,39 @@ import {
   Plane,
   X
 } from 'lucide-react';
-import { 
-  calculateOccupancyDetails, 
-  calculateTotalQuotePrice, 
-  calculateDiscountedPrice, 
-  calculateChildAgesArray 
+import {
+  calculateOccupancyDetails,
+  calculateTotalQuotePrice,
+  calculateDiscountedPrice,
+  calculateChildAgesArray
 } from "../utils/pricingEngine";
 import { useGlobalData } from "../context/GlobalContext";
+import { api } from "../services/api";
+import { showToast, ToastContainer } from "../components/Toast";
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+
+// Helper for PDF capture
+const generatePdfBase64 = async (elementId: string): Promise<string> => {
+  const element = document.getElementById(elementId);
+  if (!element) throw new Error('Element not found');
+  
+  const canvas = await html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    logging: false,
+    windowWidth: 1000
+  });
+  
+  const imgData = canvas.toDataURL('image/png');
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const imgProps = pdf.getImageProperties(imgData);
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+  
+  pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+  return pdf.output('datauristring');
+};
 
 export default function Quoter() {
   const [, setLocation] = useLocation();
@@ -31,8 +57,7 @@ export default function Quoter() {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const response = await fetch('http://https://margarita-viajes-api.onrender.com/api/config');
-        const data = await response.json();
+        const data = await api.getConfig();
         setActiveConfig(data);
       } catch (err) {
         console.error('Error fetching config:', err);
@@ -85,11 +110,7 @@ export default function Quoter() {
   useEffect(() => {
     const generateQuoteId = async () => {
       try {
-        const token = localStorage.getItem("staff_token");
-        const response = await fetch('https://margarita-viajes-api.onrender.com/api/admin/quotes', {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        });
-        const data = await response.json();
+        const data = await api.getQuotes();
         let nextNum = 100001;
         if (Array.isArray(data) && data.length > 0) {
           const cIds = data
@@ -114,15 +135,20 @@ export default function Quoter() {
   const [couponCode, setCouponCode] = useState('');
   const [discountPercent, setDiscountPercent] = useState(0);
 
-  const applyCoupon = () => {
-    const coupons = JSON.parse(localStorage.getItem('app_marketing_coupons') || '[]');
-    const valid = coupons.find((c: any) => c.code === couponCode.toUpperCase() && new Date(c.expiry) >= new Date());
-    if (valid) {
-      setDiscountPercent(Number(valid.discount));
-      alert(`🎉 ¡Cupón aplicado! ${valid.discount}% de descuento.`);
-    } else {
-      alert('❌ Cupón inválido o expirado.');
-      setDiscountPercent(0);
+  const applyCoupon = async () => {
+    try {
+      const coupons = await api.getCoupons();
+      const valid = coupons.find((c: any) => c.code === couponCode.toUpperCase() && c.active && new Date(c.expiry) >= new Date());
+      if (valid) {
+        setDiscountPercent(Number(valid.discount));
+        alert(`🎉 ¡Cupón aplicado! ${valid.discount}% de descuento.`);
+      } else {
+        alert('❌ Cupón inválido o expirado.');
+        setDiscountPercent(0);
+      }
+    } catch (e) {
+      console.error(e);
+      alert('❌ Error al validar cupón.');
     }
   };
 
@@ -154,57 +180,58 @@ export default function Quoter() {
     }
 
     try {
-        let assignedSeller = 'Sin Asignar';
-        try {
-          const allPerms = JSON.parse(localStorage.getItem('app_permissions') || '{}');
-          const sellers = Object.keys(allPerms).filter(alias => allPerms[alias].level === 3);
+      // --- GENERACIÓN DE PDF EN EL CLIENTE ---
+      showToast('Generando Cotización Digital...');
+      const pdfBase64 = await generatePdfBase64('pdf-content');
 
-          if (sellers.length > 0) {
-            let lastIndex = parseInt(localStorage.getItem('last_assigned_index') || '-1');
-            let nextIndex = (lastIndex + 1) % sellers.length;
-            
-            assignedSeller = sellers[nextIndex];
-            localStorage.setItem('last_assigned_index', nextIndex.toString());
-          }
-        } catch (error) {
-          console.error('Error en la ruleta de asignación:', error);
+      let assignedSeller = 'Sin Asignar';
+      try {
+        const allPerms = JSON.parse(localStorage.getItem('app_permissions') || '{}');
+        const sellers = Object.keys(allPerms).filter(alias => allPerms[alias].level === 3);
+
+        if (sellers.length > 0) {
+          let lastIndex = parseInt(localStorage.getItem('last_assigned_index') || '-1');
+          let nextIndex = (lastIndex + 1) % sellers.length;
+
+          assignedSeller = sellers[nextIndex];
+          localStorage.setItem('last_assigned_index', nextIndex.toString());
         }
+      } catch (error) {
+        console.error('Error en la ruleta de asignación:', error);
+      }
 
-        const newQuote = {
-          id: quoteId,
-          date: new Date().toISOString(),
-          clientName: formData.name,
-          email: formData.email,
-          whatsapp: formData.whatsapp,
-          hotelId: selectedHotel?.id || '',
-          hotelName: selectedHotel?.name || '',
-          month: new Date(formData.checkIn).toLocaleString('es-ES', { month: 'long' }).toUpperCase(),
-          checkIn: formData.checkIn,
-          checkOut: formData.checkOut,
-          roomType: selectedHotel?.type === 'full-day' ? 'SERVICIO FULL DAY' : (selectedHotel?.rooms.find(r => r.id === formData.roomType)?.name || formData.roomType),
-          pax: formData.pax,
-          children: formData.children,
-          infants: formData.infants,
-          totalAmount: finalPrice,
-          status: 'Nuevo',
-          assignedTo: assignedSeller,
-          plan: selectedHotel?.plan || null
-        };
+      const newQuote = {
+        id: quoteId,
+        date: new Date().toISOString(),
+        clientName: formData.name,
+        email: formData.email,
+        whatsapp: formData.whatsapp,
+        hotelId: selectedHotel?.id || '',
+        hotelName: selectedHotel?.name || '',
+        month: new Date(formData.checkIn).toLocaleString('es-ES', { month: 'long' }).toUpperCase(),
+        checkIn: formData.checkIn,
+        checkOut: formData.checkOut,
+        roomType: selectedHotel?.type === 'full-day' ? 'SERVICIO FULL DAY' : (selectedHotel?.rooms.find(r => r.id === formData.roomType)?.name || formData.roomType),
+        pax: formData.pax,
+        children: formData.children,
+        infants: formData.infants,
+        totalAmount: finalPrice,
+        status: 'Nuevo',
+        assignedTo: assignedSeller,
+        plan: selectedHotel?.plan || null,
+        pdfBase64 // <-- SE ENVÍA AL BACKEND
+      };
 
-      const response = await fetch('https://margarita-viajes-api.onrender.com/api/admin/quotes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newQuote)
-      });
+      const response = await api.createQuote(newQuote);
 
       if (!response.ok) throw new Error('El servidor rechazó la petición');
 
-      alert(`¡Cotización ${quoteId} guardada con éxito!\nTotal a Pagar: $ ${totalPrice.toLocaleString()}`);
+      alert(`¡Cotización ${quoteId} enviada con éxito!\nRevisa tu correo electrónico.`);
       setLocation("/");
 
     } catch (error) {
       console.error('Error de conexión:', error);
-      alert("Error al conectar con el servidor. Por favor, verifica que tu backend en el puerto 3000 esté encendido.");
+      alert("Error al procesar la cotización. Intente nuevamente.");
     }
   };
 
@@ -322,9 +349,9 @@ export default function Quoter() {
             <div className="grid grid-cols-3 gap-6">
               <div className="space-y-2">
                 <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">ADULTOS (13+)</label>
-                <select 
-                  value={formData.pax} 
-                  onChange={e => setFormData({ ...formData, pax: e.target.value })} 
+                <select
+                  value={formData.pax}
+                  onChange={e => setFormData({ ...formData, pax: e.target.value })}
                   className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold ring-2 ring-gray-100 outline-none focus:ring-orange-500/20 transition-all uppercase"
                 >
                   <option value="1">1</option>
@@ -338,9 +365,9 @@ export default function Quoter() {
 
               <div className="space-y-2">
                 <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">NIÑOS (4-{childAgeLimit})</label>
-                <select 
-                  value={formData.children} 
-                  onChange={e => setFormData({ ...formData, children: e.target.value })} 
+                <select
+                  value={formData.children}
+                  onChange={e => setFormData({ ...formData, children: e.target.value })}
                   className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold ring-2 ring-gray-100 outline-none focus:ring-orange-500/20 transition-all uppercase"
                 >
                   <option value="0">0</option>
@@ -352,9 +379,9 @@ export default function Quoter() {
 
               <div className="space-y-2">
                 <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">INFANTES (0-3)</label>
-                <select 
-                  value={formData.infants} 
-                  onChange={e => setFormData({ ...formData, infants: e.target.value })} 
+                <select
+                  value={formData.infants}
+                  onChange={e => setFormData({ ...formData, infants: e.target.value })}
                   className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold ring-2 ring-gray-100 outline-none focus:ring-orange-500/20 transition-all uppercase"
                 >
                   <option value="0">0</option>
@@ -494,7 +521,7 @@ export default function Quoter() {
                 <div className="flex flex-col items-start">
                   {selectedHotel.plan && (
                     <span className="bg-orange-50 text-orange-600 text-[10px] px-3 py-1 rounded-full font-black uppercase border border-orange-100 mb-2">
-                       PLAN: {selectedHotel.plan}
+                      PLAN: {selectedHotel.plan}
                     </span>
                   )}
                 </div>
@@ -541,9 +568,74 @@ export default function Quoter() {
         </div>
       </main>
 
+      {/* --- CONTENEDOR OCULTO PARA CAPTURA DE PDF --- */}
+      <div id="pdf-capture-zone" style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '800px' }}>
+        <div id="pdf-content" className="bg-white p-12 text-[#0B132B] text-sm relative" style={{ width: '800px' }}>
+          {/* ENCABEZADO */}
+          <div className="flex items-center justify-between border-b-2 border-gray-200 pb-6 mb-6">
+            <div className="w-32 h-20 flex items-center justify-start">
+              {activeConfig.logoImage ? <img src={activeConfig.logoImage} alt="Logo" className="max-h-full max-w-full object-contain" /> : <span className="font-black text-orange-500 text-xl italic uppercase">Margarita Viajes</span>}
+            </div>
+            <div className="flex-1 text-center px-4">
+              <h2 className="font-black text-lg uppercase">{activeConfig.agencyName || 'Margarita Viajes'}</h2>
+              <p className="font-bold text-xs text-gray-600 mt-1">RIF: {activeConfig.rif || 'J-40156646-4'} | RTN: {activeConfig.rtn || '13314'}</p>
+              <p className="text-[10px] text-gray-500 italic mt-2 leading-tight">{activeConfig.direccion || 'Calle La Ceiba, Sector El Otro Lado del Río, La Asunción, Edo. Nueva Esparta'}</p>
+            </div>
+            <div className="w-32 h-20 flex items-center justify-end">
+              {(selectedHotel as any).logo || (selectedHotel as any).logoImage ? (
+                <img src={(selectedHotel as any).logo || (selectedHotel as any).logoImage} alt="Hotel" className="max-h-full max-w-full object-contain rounded-lg" />
+              ) : <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-[8px] text-gray-400 font-bold">HOTEL</div>}
+            </div>
+          </div>
+
+          {/* DATOS CLIENTE */}
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+              <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Estimado Sr./a:</p>
+              <p className="font-black uppercase text-base">{formData.name}</p>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-right">
+              <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Fecha de Emisión:</p>
+              <p className="font-black uppercase text-base">{new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+            </div>
+          </div>
+
+          {/* DETALLES VIAJE */}
+          <div className="grid grid-cols-2 gap-x-12 gap-y-4 mb-10">
+            <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-400 text-xs uppercase">Hotel</span> <span className="font-black text-sm uppercase">{selectedHotel.name}</span></div>
+            <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-400 text-xs uppercase">Plan</span> <span className="font-black text-sm uppercase text-orange-600">{selectedHotel.plan || 'No especificado'}</span></div>
+            <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Habitación:</span> <span className="font-black text-sm uppercase">{selectedHotel.rooms.find(r => r.id === formData.roomType)?.name || formData.roomType}</span></div>
+            <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Ubicación:</span> <span className="font-black text-sm uppercase">{selectedHotel.location}</span></div>
+            <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Entrada:</span> <span className="font-black text-sm">{formData.checkIn}</span></div>
+            <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Salida:</span> <span className="font-black text-sm">{formData.checkOut}</span></div>
+            <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Adultos:</span> <span className="font-black text-sm">{formData.pax}</span></div>
+            <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Niños/Infantes:</span> <span className="font-black text-sm">{Number(formData.children) + Number(formData.infants)}</span></div>
+          </div>
+
+          {/* TOTAL */}
+          <div className="bg-[#0B132B] text-white p-8 rounded-[2rem] flex items-center justify-between mb-10">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.3em] text-orange-400 mb-1">TOTAL A PAGAR</p>
+              {discountPercent > 0 && <p className="text-sm text-green-400 font-bold italic">Cupón de Descuento Aplicado</p>}
+            </div>
+            <p className="text-5xl font-black italic tracking-tighter">$ {finalPrice.toLocaleString()}</p>
+          </div>
+
+          <div className="text-[10px] bg-gray-50 p-6 rounded-2xl space-y-2">
+            <p className="font-black uppercase tracking-widest text-[#0B132B] mb-2">Canales de Atención:</p>
+            <p className="flex justify-between max-w-xs"><span className="font-bold text-gray-500">WHATSAPP:</span> <span className="font-black text-green-600">{activeConfig.telefono || '+58 424 6861748'}</span></p>
+            <p className="flex justify-between max-w-xs"><span className="font-bold text-gray-500">CORREO:</span> <span className="font-black text-blue-600">{activeConfig.correo || 'margaritaviaje@gmail.com'}</span></p>
+            <div className="pt-4 mt-4 border-t border-gray-200 text-center">
+              <p className="text-[8px] font-black text-red-500 uppercase tracking-widest">Precios sujetos a disponibilidad al momento de reservar.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <footer className="py-20 bg-[#0B132B] text-center text-white/20 font-black uppercase tracking-[0.5em] text-xs">
         Margarita Viajes C.A.
       </footer>
+      <ToastContainer />
     </div>
   );
 }

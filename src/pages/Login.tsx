@@ -27,10 +27,9 @@ export default function Login({ onLogin, onBack }: LoginProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://https://margarita-viajes-api.onrender.com/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ alias: loginData.alias, password: loginData.password })
+      const response = await api.login({ 
+        username: loginData.alias, 
+        password: loginData.password 
       });
 
       if (!response.ok) {
@@ -46,7 +45,7 @@ export default function Login({ onLogin, onBack }: LoginProps) {
         localStorage.setItem("logged_user_id", data.user?.id || '');
         localStorage.setItem('user_level', (data.user?.level || 3).toString());
         localStorage.setItem('user_modules', JSON.stringify(data.user.modules || {}));
-        
+
         // Registrar bitácora de conexión
         try {
           await api.saveConnectionLog(data.user.id, {
@@ -59,7 +58,7 @@ export default function Login({ onLogin, onBack }: LoginProps) {
         } catch (logErr) {
           console.error("Error al registrar bitácora:", logErr);
         }
-        
+
         onLogin(data.user?.name || 'Administrador');
       } else {
         setError("Error de servidor: No se recibió token.");
@@ -76,14 +75,14 @@ export default function Login({ onLogin, onBack }: LoginProps) {
     <div className="min-h-screen bg-[#0B132B] flex flex-col items-center justify-center p-6 relative overflow-hidden">
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-[#ea580c]/10 rounded-full blur-[100px]"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-500/10 rounded-full blur-[100px]"></div>
-      
+
       <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-[420px] shadow-2xl relative z-10 text-center">
         <div className="w-20 h-20 bg-[#ea580c] rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-lg shadow-orange-500/40">
           <Lock size={36} className="text-white" />
         </div>
-        
+
         <h2 className="text-3xl font-black italic tracking-tight text-[#0B132B] mb-8 uppercase">Acceso Staff</h2>
-        
+
         {error && (
           <div className="mb-6 p-4 bg-red-50 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-red-100 italic animate-pulse">
             {error}
@@ -101,7 +100,7 @@ export default function Login({ onLogin, onBack }: LoginProps) {
               className="w-full bg-[#F8F9FB] text-[#0B132B] font-bold text-sm px-5 py-4 rounded-2xl outline-none focus:ring-2 focus:ring-[#ea580c]/50 transition-all border-none"
             />
           </div>
-          
+
           <input
             type="password"
             name="password"
@@ -110,7 +109,7 @@ export default function Login({ onLogin, onBack }: LoginProps) {
             onChange={handleLoginChange}
             className="w-full bg-[#F8F9FB] text-[#0B132B] font-bold text-sm px-5 py-4 rounded-2xl outline-none focus:ring-2 focus:ring-[#ea580c]/50 transition-all border-none"
           />
-          
+
           <button
             type="submit"
             disabled={isLoading}
