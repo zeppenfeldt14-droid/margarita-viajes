@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { QuoteController } from '../controllers/QuoteController.js';
 import { AdminController } from '../controllers/AdminController.js';
 import { AuthController } from '../controllers/AuthController.js';
@@ -12,60 +12,60 @@ export function createRouter(
   const router = express.Router();
 
   // Auth
-  router.post('/auth/login', (req, res) => authController.login(req, res));
+  router.post('/auth/login', (req: Request, res: Response) => authController.login(req, res));
 
   // Public Endpoints
-  router.get('/hotels', (req, res) => adminController.getHotels(req, res));
-  router.get('/public/hotels', (req, res) => adminController.getHotels(req, res));
-  router.get('/transfers', (req, res) => adminController.getTransfers(req, res));
-  router.get('/public/transfers', (req, res) => adminController.getTransfers(req, res));
-  router.get('/config', (req, res) => adminController.getConfig(req, res));
-  router.get('/public/config', (req, res) => adminController.getConfig(req, res));
-  router.post('/quotes/calculate', (req, res) => quoteController.calculatePrice(req, res));
-  router.post('/quotes', (req, res) => quoteController.saveQuote(req, res));
+  router.get('/hotels', (req: Request, res: Response) => adminController.getHotels(req, res));
+  router.get('/public/hotels', (req: Request, res: Response) => adminController.getHotels(req, res));
+  router.get('/transfers', (req: Request, res: Response) => adminController.getTransfers(req, res));
+  router.get('/public/transfers', (req: Request, res: Response) => adminController.getTransfers(req, res));
+  router.get('/config', (req: Request, res: Response) => adminController.getConfig(req, res));
+  router.get('/public/config', (req: Request, res: Response) => adminController.getConfig(req, res));
+  router.post('/quotes/calculate', (req: Request, res: Response) => quoteController.calculatePrice(req, res));
+  router.post('/quotes', (req: Request, res: Response) => quoteController.saveQuote(req, res));
 
   // Admin Endpoints (Protected)
   router.use('/admin', authMiddleware(['LEVEL_1', 'LEVEL_2', 'LEVEL_3']));
   
-  router.get('/admin/hotels', (req, res) => adminController.getHotels(req, res));
-  router.post('/admin/hotels', (req, res) => adminController.createHotel(req, res));
-  router.put('/admin/hotels/:id', (req, res) => adminController.updateHotel(req, res));
-  router.delete('/admin/hotels/:id', (req, res) => adminController.deleteHotel(req, res));
-  router.get('/admin/hotels/:hotelId/rooms', (req, res) => adminController.getRoomsByHotel(req, res));
-  router.post('/admin/rooms', (req, res) => adminController.createRoom(req, res));
-  router.get('/admin/users', (req, res) => adminController.getUsers(req, res));
+  router.get('/admin/hotels', (req: Request, res: Response) => adminController.getHotels(req, res));
+  router.post('/admin/hotels', (req: Request, res: Response) => adminController.createHotel(req, res));
+  router.put('/admin/hotels/:id', (req: Request, res: Response) => adminController.updateHotel(req, res));
+  router.delete('/admin/hotels/:id', (req: Request, res: Response) => adminController.deleteHotel(req, res));
+  router.get('/admin/hotels/:hotelId/rooms', (req: Request, res: Response) => adminController.getRoomsByHotel(req, res));
+  router.post('/admin/rooms', (req: Request, res: Response) => adminController.createRoom(req, res));
+  router.get('/admin/users', (req: Request, res: Response) => adminController.getUsers(req, res));
 
   // Transfers
-  router.get('/admin/transfers', (req, res) => adminController.getTransfers(req, res));
-  router.post('/admin/transfers', (req, res) => adminController.createTransfer(req, res));
-  router.put('/admin/transfers/:id', (req, res) => adminController.updateTransfer(req, res));
-  router.delete('/admin/transfers/:id', (req, res) => adminController.deleteTransfer(req, res));
+  router.get('/admin/transfers', (req: Request, res: Response) => adminController.getTransfers(req, res));
+  router.post('/admin/transfers', (req: Request, res: Response) => adminController.createTransfer(req, res));
+  router.put('/admin/transfers/:id', (req: Request, res: Response) => adminController.updateTransfer(req, res));
+  router.delete('/admin/transfers/:id', (req: Request, res: Response) => adminController.deleteTransfer(req, res));
 
   // Quotes
-  router.get('/admin/quotes', (req, res) => adminController.getQuotes(req, res));
-  router.get('/quotes/check', (req, res) => quoteController.checkDuplicate(req, res));
-  router.put('/admin/quotes/:id', (req, res) => adminController.updateQuote(req, res));
+  router.get('/admin/quotes', (req: Request, res: Response) => adminController.getQuotes(req, res));
+  router.get('/quotes/check', (req: Request, res: Response) => quoteController.checkDuplicate(req, res));
+  router.put('/admin/quotes/:id', (req: Request, res: Response) => adminController.updateQuote(req, res));
 
   // Config
-  router.get('/admin/config', (req, res) => adminController.getConfig(req, res));
-  router.post('/admin/config', (req, res) => adminController.updateConfig(req, res));
+  router.get('/admin/config', (req: Request, res: Response) => adminController.getConfig(req, res));
+  router.post('/admin/config', (req: Request, res: Response) => adminController.updateConfig(req, res));
 
   // Operations
-  router.get('/admin/operation', (req, res) => adminController.getOperationSequence(req, res));
-  router.get('/admin/operations', (req, res) => adminController.getOperations(req, res));
-  router.post('/admin/operation', (req, res) => adminController.createOperation(req, res));
+  router.get('/admin/operation', (req: Request, res: Response) => adminController.getOperationSequence(req, res));
+  router.get('/admin/operations', (req: Request, res: Response) => adminController.getOperations(req, res));
+  router.post('/admin/operation', (req: Request, res: Response) => adminController.createOperation(req, res));
 
   // Reservations
-  router.get('/admin/reservations', (req, res) => adminController.getReservations(req, res));
-  router.post('/admin/reservations', (req, res) => adminController.createReservation(req, res));
-  router.put('/admin/reservations/:id', (req, res) => adminController.updateReservation(req, res));
+  router.get('/admin/reservations', (req: Request, res: Response) => adminController.getReservations(req, res));
+  router.post('/admin/reservations', (req: Request, res: Response) => adminController.createReservation(req, res));
+  router.put('/admin/reservations/:id', (req: Request, res: Response) => adminController.updateReservation(req, res));
 
   // Coupons
-  router.get('/coupons', (req, res) => adminController.getCoupons(req, res));
-  router.get('/admin/coupons', (req, res) => adminController.getCoupons(req, res));
-  router.post('/admin/coupons', (req, res) => adminController.createCoupon(req, res));
-  router.put('/admin/coupons/:id', (req, res) => adminController.updateCoupon(req, res));
-  router.delete('/admin/coupons/:id', (req, res) => adminController.deleteCoupon(req, res));
+  router.get('/coupons', (req: Request, res: Response) => adminController.getCoupons(req, res));
+  router.get('/admin/coupons', (req: Request, res: Response) => adminController.getCoupons(req, res));
+  router.post('/admin/coupons', (req: Request, res: Response) => adminController.createCoupon(req, res));
+  router.put('/admin/coupons/:id', (req: Request, res: Response) => adminController.updateCoupon(req, res));
+  router.delete('/admin/coupons/:id', (req: Request, res: Response) => adminController.deleteCoupon(req, res));
 
   return router;
 }

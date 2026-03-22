@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import knex from 'knex';
 import knexConfig from '../knexfile.js';
@@ -26,7 +26,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
@@ -42,7 +42,7 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 
 // Health check para monitorear el backend en Render
-app.get('/health', (req, res) => {
+app.get('/health', (req: Request, res: Response) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
@@ -106,7 +106,7 @@ app.use('/api', createRouter(quoteController, adminController, authController));
 
 // Manejador global de 404 para la API  ...
 // Debe ir AL FINAL de todas las definiciones de ruta de la API
-app.use('/api', (req, res) => {
+app.use('/api', (req: Request, res: Response) => {
   res.status(404).json({ error: `Ruta API no encontrada: ${req.originalUrl}` });
 });
 
