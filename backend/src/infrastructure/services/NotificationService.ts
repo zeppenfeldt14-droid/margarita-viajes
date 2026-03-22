@@ -93,7 +93,8 @@ export class NotificationService {
       clientPhone = clientPhone.startsWith('0') ? `+58${clientPhone.slice(1)}` : `+58${clientPhone}`;
     }
 
-    const message = `Hola ${quote.clientName || quote.client_name}! Te enviamos tu cotización para *${quote.hotelName || quote.hotel_name}* a tu correo electrónico. Quedamos atentos ante cualquier duda. 🌴☀️`;
+    const pdfLink = `${process.env.BACKEND_URL || 'https://margaritaviajes-backend.render.com'}/api/public/quotes/${quote.id || quote.folio}/pdf`;
+    const message = `Hola ${quote.clientName || quote.client_name}! Te enviamos tu cotización para *${quote.hotelName || quote.hotel_name}*.\n\nPuedes descargar el PDF aquí: ${pdfLink}\n\nQuedamos atentos ante cualquier duda. 🌴☀️`;
 
     try {
       await this.twilioClient.messages.create({
@@ -101,9 +102,10 @@ export class NotificationService {
         from: `whatsapp:${fromPhone}`,
         to: `whatsapp:${clientPhone}`
       });
-      console.log(`[NotificationService] WhatsApp enviado con éxito a ${clientPhone}`);
+      console.log(`[NotificationService] WhatsApp enviado con éxito a ${clientPhone} con link: ${pdfLink}`);
     } catch (error) {
       console.error('[NotificationService] Error enviando WhatsApp:', error);
     }
   }
 }
+
