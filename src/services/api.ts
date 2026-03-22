@@ -48,7 +48,7 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
 export const api = {
   // Config
   getConfig: async () => {
-    const response = await fetchWithAuth('/public/config');
+    const response = await fetchWithAuth('/config');
     return response.json();
   },
 
@@ -82,7 +82,7 @@ export const api = {
 
   // Transfers
   getTransfers: async () => {
-    const response = await fetchWithAuth('/public/transfers');
+    const response = await fetchWithAuth('/transfers');
     return response.json();
   },
 
