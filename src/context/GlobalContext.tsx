@@ -27,17 +27,36 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
   const fetchInitialData = async () => {
     setLoading(true);
     try {
-      const [hotelsData, transfersData, quotesData, usersData] = await Promise.all([
+      const token = localStorage.getItem('staff_token');
+      
+      // Peticiones públicas
+      const [hotelsData, transfersData] = await Promise.all([
         api.getHotels(),
-        api.getTransfers(),
-        api.getQuotes(),
-        api.getUsers()
+        api.getTransfers()
       ]);
 
       setHotels(Array.isArray(hotelsData) ? hotelsData : []);
       setTransfers(Array.isArray(transfersData) ? transfersData : []);
-      setQuotes(Array.isArray(quotesData) ? quotesData : []);
-      setUsers(Array.isArray(usersData) ? usersData : []);
+
+      // Peticiones administrativas (solo si hay token)
+      if (token) {
+        try {
+          const [quotesData, usersData] = await Promise.all([
+            api.getQuotes(),
+            api.getUsers()
+          ]);
+          setQuotes(Array.isArray(quotesData) ? quotesData : []);
+          setUsers(Array.isArray(usersData) ? usersData : []);
+        } catch (adminError) {
+          console.error('Error fetching admin data:', adminError);
+          // Si falla la parte administrativa (ej. token expirado), no matamos toda la app
+          setQuotes([]);
+          setUsers([]);
+        }
+      } else {
+        setQuotes([]);
+        setUsers([]);
+      }
     } catch (error) {
       console.error('Error fetching global data:', error);
     } finally {

@@ -22,14 +22,24 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
 
   // Intercepción global de errores 401 (Unauthorized / Token expirado o inválido)
   if (response.status === 401) {
-    console.error('Sesión expirada o token inválido (401). Cerrando sesión...');
-    localStorage.removeItem('staff_token');
-    localStorage.removeItem('logged_user_id');
-    localStorage.removeItem('admin_active_tab');
+    const isLoginPage = window.location.pathname === '/login';
+    const isHomePage = window.location.pathname === '/';
+    const hasToken = !!localStorage.getItem('staff_token');
+
+    console.error('Sesión expirada o token inválido (401).');
     
-    // Forzar la recarga de página para redirigir al Login estricto
-    window.location.href = '/'; 
-    return Promise.reject(new Error('Unauthorized - Session Expired'));
+    if (hasToken) {
+      localStorage.removeItem('staff_token');
+      localStorage.removeItem('staff_auth');
+      localStorage.removeItem('staff_user');
+      
+      // Solo redirigir si no estamos ya en login o home
+      if (!isLoginPage && !isHomePage) {
+        window.location.href = '/login';
+      }
+    }
+    
+    return Promise.reject(new Error('Unauthorized'));
   }
 
   return response;
