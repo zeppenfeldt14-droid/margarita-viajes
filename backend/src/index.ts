@@ -106,7 +106,7 @@ app.use('/api', createRouter(quoteController, adminController, authController));
 
 // Manejador global de 404 para la API  ...
 // Debe ir AL FINAL de todas las definiciones de ruta de la API
-app.use('/api/*', (req, res) => {
+app.use('/api', (req, res) => {
   res.status(404).json({ error: `Ruta API no encontrada: ${req.originalUrl}` });
 });
 
