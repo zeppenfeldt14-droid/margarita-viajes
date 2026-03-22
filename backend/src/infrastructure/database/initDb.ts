@@ -2,7 +2,23 @@ import { Knex } from 'knex';
 import bcrypt from 'bcrypt';
 
 export async function initDatabase(db: Knex) {
+  const isProd = db.client.config.client === 'postgresql' || !!process.env.DATABASE_URL;
   console.log('[Database] Iniciando verificación de esquema...');
+
+  // Tabla: audit_trail (Prioridad CRÍTICA para auditoría)
+  if (!(await db.schema.hasTable('audit_trail'))) {
+    await db.schema.createTable('audit_trail', table => {
+      table.increments('id').primary();
+      table.string('action');
+      table.string('table_name');
+      table.string('record_id');
+      table.jsonb('old_data').nullable();
+      table.jsonb('new_data').nullable();
+      table.string('user_id').nullable();
+      table.timestamp('created_at').defaultTo(db.fn.now());
+    });
+    console.log('[Database] Tabla "audit_trail" creada.');
+  }
 
   // Tabla: web_config
   if (!(await db.schema.hasTable('web_config'))) {
@@ -11,29 +27,59 @@ export async function initDatabase(db: Knex) {
       table.text('value');
     });
     console.log('[Database] Tabla "web_config" creada.');
+  } else {
+    // Saneamiento: Eliminar valores corruptos que causan invisibilidad en la web pública
+    await db('web_config').where('value', '[object Object]').del();
+    console.log('[Database] Saneamiento de "web_config" completado.');
   }
 
   // Tabla: users
+  if (await db.schema.hasTable('users')) {
+    const columnInfo: any = await db('users').columnInfo('id');
+    const isInteger = columnInfo.type.includes('int') || columnInfo.type.includes('serial');
+    if (isInteger) {
+      console.log('[Database] Migrando tabla "users" a UUID...');
+      await db.schema.dropTable('users');
+    }
+  }
+
   if (!(await db.schema.hasTable('users'))) {
     await db.schema.createTable('users', table => {
-      table.increments('id').primary();
+      table.uuid('id').primary().defaultTo(db.raw(isProd ? 'uuid_generate_v4()' : 'NULL')); // SQLite doesn't have uuid_generate_v4
       table.string('email').unique().notNullable();
       table.string('password_hash').notNullable();
       table.string('role').notNullable(); // LEVEL_1, LEVEL_2, LEVEL_3
       table.string('full_name').notNullable();
       table.timestamp('created_at').defaultTo(db.fn.now());
     });
-    console.log('[Database] Tabla "users" creada.');
+    console.log('[Database] Tabla "users" creada con formato UUID.');
 
     // Seed admin user
     const hashedPass = await bcrypt.hash('admin123', 10);
     await db('users').insert({
+      id: isProd ? undefined : '00000000-0000-0000-0000-000000000000', // Static UUID for admin in local
       email: 'margaritaviaje@gmail.com',
       password_hash: hashedPass,
       role: 'LEVEL_1',
       full_name: 'Administrador Margarita Viajes'
     });
     console.log('[Database] Usuario administrador inicial creado: margaritaviaje@gmail.com / admin123');
+  }
+
+  // Saneamiento de Inventario: Hotels, Rooms, Seasons (Deben ser UUID)
+  const inventoryTables = ['hotels', 'rooms', 'seasons'];
+  for (const t of inventoryTables) {
+    if (await db.schema.hasTable(t)) {
+      const info: any = await db(t).columnInfo('id');
+      if (info.type.includes('int') || info.type.includes('serial')) {
+        console.log(`[Database] Detectada tabla "${t}" con IDs enteros. Recreando para UUID...`);
+        // Debemos soltar en orden inverso si hay FKs, o soltamos todos
+        await db.schema.dropTableIfExists('seasons');
+        await db.schema.dropTableIfExists('rooms');
+        await db.schema.dropTableIfExists('hotels');
+        break;
+      }
+    }
   }
 
   // Tabla: hotels
@@ -76,15 +122,25 @@ export async function initDatabase(db: Knex) {
   }
 
   // Tabla: transfers
+  // Ajuste: Cambiado de increments a uuid para consistencia con el frontend y evitar fallas de tipado
+  if (await db.schema.hasTable('transfers')) {
+    const columnInfo: any = await db('transfers').columnInfo('id');
+    const isInteger = columnInfo.type.includes('int') || columnInfo.type.includes('serial');
+    if (isInteger) {
+      console.log('[Database] Migrando tabla "transfers" a UUID para corregir error de tipos...');
+      await db.schema.dropTable('transfers'); // Drop and recreate for schema alignment
+    }
+  }
+
   if (!(await db.schema.hasTable('transfers'))) {
     await db.schema.createTable('transfers', table => {
-      table.increments('id').primary();
+      table.uuid('id').primary();
       table.string('route');
       table.string('operator');
       table.decimal('net_cost');
       table.decimal('sale_price');
     });
-    console.log('[Database] Tabla "transfers" creada.');
+    console.log('[Database] Tabla "transfers" creada con formato UUID.');
   }
 
   // Tabla: quotations
@@ -179,6 +235,7 @@ export async function initDatabase(db: Knex) {
     });
     console.log('[Database] Tabla "coupons" creada.');
   }
+
 
   console.log('[Database] Esquema verificado/creado con éxito.');
 }
