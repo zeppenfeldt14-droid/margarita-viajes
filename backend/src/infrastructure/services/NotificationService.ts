@@ -93,7 +93,7 @@ export class NotificationService {
       clientPhone = clientPhone.startsWith('0') ? `+58${clientPhone.slice(1)}` : `+58${clientPhone}`;
     }
 
-    const pdfLink = `${process.env.BACKEND_URL || 'https://margaritaviajes-backend.render.com'}/api/public/quotes/${quote.id || quote.folio}/pdf`;
+    const pdfLink = `${process.env.BACKEND_URL || 'https://margarita-viajes.onrender.com'}/api/public/quotes/${quote.id || quote.folio}/pdf`;
     const message = `Hola ${quote.clientName || quote.client_name}! Te enviamos tu cotización para *${quote.hotelName || quote.hotel_name}*.\n\nPuedes descargar el PDF aquí: ${pdfLink}\n\nQuedamos atentos ante cualquier duda. 🌴☀️`;
 
     try {
