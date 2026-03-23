@@ -1,5 +1,5 @@
 import { ISeasonRepository, Season } from '../../domain/repositories/ISeasonRepository.js';
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 
 export class PostgresSeasonRepository implements ISeasonRepository {
   constructor(private db: Knex) {}
@@ -16,7 +16,7 @@ export class PostgresSeasonRepository implements ISeasonRepository {
       .where('start_date', '<=', checkOut)
       .where('end_date', '>=', checkIn);
 
-    return results.map(row => {
+    return results.map((row: any) => {
       let prices = row.room_prices;
       if (typeof prices === 'string') {
         try { prices = JSON.parse(prices); } catch (e) { prices = {}; }

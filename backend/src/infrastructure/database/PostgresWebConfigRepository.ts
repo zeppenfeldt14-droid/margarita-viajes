@@ -1,4 +1,4 @@
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import { IWebConfigRepository } from '../../domain/repositories/IWebConfigRepository.js';
 
 export class PostgresWebConfigRepository implements IWebConfigRepository {
@@ -7,7 +7,7 @@ export class PostgresWebConfigRepository implements IWebConfigRepository {
   async getConfig(): Promise<Record<string, string>> {
     const rows = await this.db('web_config').select('key', 'value');
     const config: Record<string, string> = {};
-    rows.forEach(row => {
+    rows.forEach((row: any) => {
       config[row.key] = row.value;
     });
     return config;

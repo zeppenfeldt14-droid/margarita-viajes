@@ -1,4 +1,4 @@
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import { ITransferRepository, Transfer } from '../../domain/repositories/ITransferRepository.js';
 
 export class PostgresTransferRepository implements ITransferRepository {
@@ -6,7 +6,7 @@ export class PostgresTransferRepository implements ITransferRepository {
 
   async findAll(): Promise<Transfer[]> {
     const results = await this.db('transfers').select('*');
-    return results.map(row => ({
+    return results.map((row: any) => ({
       ...row,
       netCost: row.net_cost,
       salePrice: row.sale_price

@@ -1,4 +1,4 @@
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import { IUserRepository, User } from '../../domain/repositories/IUserRepository.js';
 
 export class PostgresUserRepository implements IUserRepository {
@@ -18,7 +18,7 @@ export class PostgresUserRepository implements IUserRepository {
 
   async findAll(): Promise<User[]> {
     const rows = await this.db('users').select('*');
-    return rows.map(row => ({
+    return rows.map((row: any) => ({
       id: row.id,
       username: row.email,
       passwordHash: row.password_hash,
