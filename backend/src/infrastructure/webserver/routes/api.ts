@@ -1,4 +1,5 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
+import type { Request, Response } from 'express';
 import { QuoteController } from '../controllers/QuoteController.js';
 import { AdminController } from '../controllers/AdminController.js';
 import { AuthController } from '../controllers/AuthController.js';

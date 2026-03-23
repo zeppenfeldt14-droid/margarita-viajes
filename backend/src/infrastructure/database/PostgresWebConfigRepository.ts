@@ -1,12 +1,12 @@
 import type { Knex } from 'knex';
-import { IWebConfigRepository } from '../../domain/repositories/IWebConfigRepository.js';
+import type { IWebConfigRepository } from '../../../domain/repositories/IWebConfigRepository.js';
 
 export class PostgresWebConfigRepository implements IWebConfigRepository {
   constructor(private db: Knex) {}
 
-  async getConfig(): Promise<Record<string, string>> {
-    const rows = await this.db('web_config').select('key', 'value');
-    const config: Record<string, string> = {};
+  async getConfig(): Promise<any> {
+    const rows = await this.db('web_config').select('*');
+    const config: any = {};
     rows.forEach((row: any) => {
       config[row.key] = row.value;
     });
@@ -14,9 +14,11 @@ export class PostgresWebConfigRepository implements IWebConfigRepository {
   }
 
   async updateConfig(key: string, value: string): Promise<void> {
-    await this.db('web_config')
-      .insert({ key, value })
-      .onConflict('key')
-      .merge();
+    const exists = await this.db('web_config').where('key', key).first();
+    if (exists) {
+      await this.db('web_config').where('key', key).update({ value });
+    } else {
+      await this.db('web_config').insert({ key, value });
+    }
   }
 }

@@ -236,6 +236,5 @@ export async function initDatabase(db: Knex) {
     console.log('[Database] Tabla "coupons" creada.');
   }
 
-
   console.log('[Database] Esquema verificado/creado con éxito.');
 }

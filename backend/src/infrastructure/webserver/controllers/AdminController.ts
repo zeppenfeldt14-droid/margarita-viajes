@@ -352,4 +352,3 @@ export class AdminController {
     }
   }
 }
-创新管理

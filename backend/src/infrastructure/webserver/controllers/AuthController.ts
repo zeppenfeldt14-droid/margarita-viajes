@@ -44,4 +44,3 @@ export class AuthController {
     }
   }
 }
-创新管理

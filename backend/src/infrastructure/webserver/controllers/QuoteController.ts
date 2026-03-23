@@ -70,4 +70,16 @@ export class QuoteController {
       return res.status(500).json({ error: error.message });
     }
   }
+
+  async checkDuplicate(req: Request, res: Response) {
+    try {
+      const { folio } = req.query;
+      if (!folio) return res.json({ duplicate: false });
+      
+      const quote = await this.quoteRepo.findById(folio as string);
+      return res.json({ duplicate: !!quote });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
 }
