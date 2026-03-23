@@ -1,6 +1,7 @@
 import knex from 'knex';
 type Knex = any;
 import bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function initDatabase(db: Knex) {
   const isProd = db.client.config.client === 'postgresql' || !!process.env.DATABASE_URL;
@@ -46,7 +47,8 @@ export async function initDatabase(db: Knex) {
 
   if (!(await db.schema.hasTable('users'))) {
     await db.schema.createTable('users', (table: any) => {
-      table.uuid('id').primary().defaultTo(db.raw(isProd ? 'uuid_generate_v4()' : 'NULL')); // SQLite doesn't have uuid_generate_v4
+      // Removemos la dependencia de uuid_generate_v4() de Postgres
+      table.uuid('id').primary(); 
       table.string('email').unique().notNullable();
       table.string('password_hash').notNullable();
       table.string('role').notNullable(); // LEVEL_1, LEVEL_2, LEVEL_3
@@ -54,17 +56,32 @@ export async function initDatabase(db: Knex) {
       table.timestamp('created_at').defaultTo(db.fn.now());
     });
     console.log('[Database] Tabla "users" creada con formato UUID.');
+  }
 
-    // Seed admin user
+  // Seed admin user if none exist (Robust check)
+  const userCount = await db('users').count('id as count').first();
+  const count = parseInt(userCount?.count?.toString() || '0');
+
+  if (count === 0) {
     const hashedPass = await bcrypt.hash('admin123', 10);
-    await db('users').insert({
-      id: isProd ? undefined : '00000000-0000-0000-0000-000000000000', // Static UUID for admin in local
-      email: 'margaritaviaje@gmail.com',
-      password_hash: hashedPass,
-      role: 'LEVEL_1',
-      full_name: 'Administrador Margarita Viajes'
-    });
-    console.log('[Database] Usuario administrador inicial creado: margaritaviaje@gmail.com / admin123');
+    // Insert both singular and plural (Generamos IDs en Node para evitar errores de Postgres)
+    await db('users').insert([
+      {
+        id: uuidv4(),
+        email: 'margaritaviaje@gmail.com',
+        password_hash: hashedPass,
+        role: 'LEVEL_1',
+        full_name: 'Administrador Margarita Viaje'
+      },
+      {
+        id: uuidv4(),
+        email: 'margaritaviajes@gmail.com',
+        password_hash: hashedPass,
+        role: 'LEVEL_1',
+        full_name: 'Administrador Margarita Viajes'
+      }
+    ]);
+    console.log('[Database] Usuarios administrador creados exitosamente (Node-generated UUID).');
   }
 
   // Saneamiento de Inventario: Hotels, Rooms, Seasons (Deben ser UUID)

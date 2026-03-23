@@ -27,7 +27,8 @@ export class AuthController {
 
       return res.json({ token, user: { id: user.id, name: user.fullName, role: user.role, email: user.email } });
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      console.error('[Auth] Error en login:', error);
+      return res.status(500).json({ error: 'Error interno del servidor', details: error.message });
     }
   }
 
