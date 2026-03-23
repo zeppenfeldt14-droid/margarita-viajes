@@ -1,8 +1,8 @@
-import type Knex from 'knex';
+import type * as KnexModule from 'knex';
 import type { IUserRepository, User } from '../../domain/repositories/IUserRepository.js';
 
 export class PostgresUserRepository implements IUserRepository {
-  constructor(private db: Knex.Knex) {}
+  constructor(private db: KnexModule.Knex) {}
 
   async findByEmail(email: string): Promise<User | null> {
     const row = await this.db('users').where('email', email).first();

@@ -1,8 +1,8 @@
-import type Knex from 'knex';
+import type * as KnexModule from 'knex';
 import type { ITransferRepository, Transfer } from '../../domain/repositories/ITransferRepository.js';
 
 export class PostgresTransferRepository implements ITransferRepository {
-  constructor(private db: Knex.Knex) {}
+  constructor(private db: KnexModule.Knex) {}
 
   async findAll(): Promise<Transfer[]> {
     const results = await this.db('transfers').select('*');

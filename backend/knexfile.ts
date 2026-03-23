@@ -1,9 +1,9 @@
-import type Knex from "knex";
+import type * as KnexModule from "knex";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const config: { [key: string]: Knex.Knex.Config } = {
+const config: { [key: string]: KnexModule.Knex.Config } = {
   production: {
     client: "postgresql",
     connection: {

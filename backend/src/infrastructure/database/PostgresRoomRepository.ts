@@ -1,8 +1,8 @@
 import type { IRoomRepository, Room } from '../../domain/repositories/IRoomRepository.js';
-import type Knex from 'knex';
+import type * as KnexModule from 'knex';
 
 export class PostgresRoomRepository implements IRoomRepository {
-  constructor(private db: Knex.Knex) {}
+  constructor(private db: KnexModule.Knex) {}
 
   async findByHotelId(hotelId: string): Promise<Room[]> {
     return await this.db('rooms').where('hotel_id', hotelId).select('*');

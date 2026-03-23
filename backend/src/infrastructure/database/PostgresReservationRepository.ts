@@ -1,8 +1,8 @@
-import type Knex from 'knex';
+import type * as KnexModule from 'knex';
 import type { IReservationRepository, Reservation } from '../../domain/repositories/IReservationRepository.js';
 
 export class PostgresReservationRepository implements IReservationRepository {
-  constructor(private db: Knex.Knex) {}
+  constructor(private db: KnexModule.Knex) {}
 
   async findAll(): Promise<Reservation[]> {
     return await this.db('reservations').select('*').orderBy('created_at', 'desc');

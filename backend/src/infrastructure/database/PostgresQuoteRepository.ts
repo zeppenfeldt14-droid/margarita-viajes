@@ -1,8 +1,8 @@
-import type Knex from 'knex';
+import type * as KnexModule from 'knex';
 import type { IQuoteRepository, Quote } from '../../domain/repositories/IQuoteRepository.js';
 
 export class PostgresQuoteRepository implements IQuoteRepository {
-  constructor(private db: Knex.Knex) {}
+  constructor(private db: KnexModule.Knex) {}
 
   private mapToDomain(dbQuote: any): Quote {
     if (!dbQuote) return dbQuote;
