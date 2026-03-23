@@ -46,6 +46,8 @@ export class PostgresQuoteRepository implements IQuoteRepository {
       check_out: quote.checkOut,
       room_type: quote.roomType,
       total_amount: quote.totalAmount,
+      discount_amount: quote.discountAmount || 0,
+      final_amount: quote.finalAmount || quote.totalAmount,
       status: quote.status || 'Nuevo',
       pax: quote.pax,
       children: quote.children,

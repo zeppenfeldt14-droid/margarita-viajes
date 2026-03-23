@@ -189,7 +189,9 @@ export default function Quoter() {
         pax: formData.pax,
         children: formData.children,
         infants: formData.infants,
-        totalAmount: finalPrice,
+        totalAmount: totalPrice,
+        discountAmount: totalPrice - finalPrice,
+        finalAmount: finalPrice,
         status: 'Nuevo' as QuoteStatus,
         assignedTo: assignedSeller,
         plan: selectedHotel?.plan || null
