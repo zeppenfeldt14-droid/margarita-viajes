@@ -28,9 +28,11 @@ export default function Login({ onLogin, onBack }: LoginProps) {
 
     try {
       const response = await api.login({ 
+        email: loginData.alias,
         username: loginData.alias, 
         password: loginData.password 
       });
+
 
       if (!response.ok) {
         setError("Credenciales incorrectas");

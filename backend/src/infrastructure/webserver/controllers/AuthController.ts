@@ -7,12 +7,21 @@ export class AuthController {
   constructor(private userRepo: IUserRepository) {}
 
   async login(req: Request, res: Response) {
-    const { email, password } = req.body;
+    const { email, username, password } = req.body;
+    const identity = email || username;
+
+    if (!identity) {
+      return res.status(400).json({ error: 'Se requiere email o nombre de usuario' });
+    }
+
+
+
     try {
-      const user = await this.userRepo.findByEmail(email);
+      const user = await this.userRepo.findByEmail(identity);
       if (!user) {
         return res.status(401).json({ error: 'Credenciales inválidas' });
       }
+
 
       const match = await bcrypt.compare(password, user.passwordHash);
       if (!match) {

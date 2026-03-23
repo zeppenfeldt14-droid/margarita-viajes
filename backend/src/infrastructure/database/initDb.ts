@@ -59,30 +59,35 @@ export async function initDatabase(db: Knex) {
   }
 
   // Seed admin user if none exist (Robust check)
-  const userCount = await db('users').count('id as count').first();
-  const count = parseInt(userCount?.count?.toString() || '0');
+  const usersToSeed = [
+    {
+      email: 'margaritaviaje@gmail.com',
+      full_name: 'Administrador Margarita Viaje',
+      role: 'LEVEL_1'
+    },
+    {
+      email: 'margaritaviajes@gmail.com',
+      full_name: 'Administrador Margarita Viajes',
+      role: 'LEVEL_1'
+    }
+  ];
 
-  if (count === 0) {
-    const hashedPass = await bcrypt.hash('admin123', 10);
-    // Insert both singular and plural (Generamos IDs en Node para evitar errores de Postgres)
-    await db('users').insert([
-      {
+  const hashedPass = await bcrypt.hash('admin123', 10);
+  
+  for (const userData of usersToSeed) {
+    const existing = await db('users').where('email', userData.email).first();
+    if (!existing) {
+      await db('users').insert({
         id: uuidv4(),
-        email: 'margaritaviaje@gmail.com',
+        email: userData.email,
         password_hash: hashedPass,
-        role: 'LEVEL_1',
-        full_name: 'Administrador Margarita Viaje'
-      },
-      {
-        id: uuidv4(),
-        email: 'margaritaviajes@gmail.com',
-        password_hash: hashedPass,
-        role: 'LEVEL_1',
-        full_name: 'Administrador Margarita Viajes'
-      }
-    ]);
-    console.log('[Database] Usuarios administrador creados exitosamente (Node-generated UUID).');
+        role: userData.role,
+        full_name: userData.full_name
+      });
+      console.log(`[Database] Usuario ${userData.email} creado.`);
+    }
   }
+
 
   // Saneamiento de Inventario: Hotels, Rooms, Seasons (Deben ser UUID)
   const inventoryTables = ['hotels', 'rooms', 'seasons'];

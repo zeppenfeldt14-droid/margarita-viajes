@@ -15,6 +15,8 @@ export function createRouter(
   // Auth
   router.post('/auth/login', (req: Request, res: Response) => authController.login(req, res));
 
+
+
   // Public Endpoints
   router.get('/hotels', (req: Request, res: Response) => adminController.getHotels(req, res));
   router.get('/public/hotels', (req: Request, res: Response) => adminController.getHotels(req, res));
