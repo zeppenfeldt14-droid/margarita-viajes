@@ -3,7 +3,7 @@ import type { Transporter } from 'nodemailer';
 import twilio from 'twilio';
 
 export class NotificationService {
-  private transporter: Transporter;
+  private transporter: any;
   private twilioClient?: twilio.Twilio;
 
   constructor() {

@@ -1,11 +1,11 @@
 import knex from 'knex';
-import knexConfig from '../knexfile';
+import knexConfig from '../knexfile.js';
 
 // Datos estáticos que estaban en localStorage/inventory.ts
 // Aquí podríamos importar de inventory.ts si el entorno lo permite, 
 // pero para asegurar la ejecución crearemos el mapeo base.
 
-const db = knex(knexConfig.development);
+const db = knex(process.env.DATABASE_URL ? knexConfig.production : knexConfig.development);
 
 async function migrateData() {
   console.log('--- Iniciando Migración de Datos ---');
@@ -40,7 +40,7 @@ async function migrateData() {
       name: h.name,
       location: h.location,
       description: h.description,
-      tipo: 'hotel'
+      type: 'hotel'
     }).returning('*');
 
     console.log(`Hotel insertado: ${hotel.name}`);

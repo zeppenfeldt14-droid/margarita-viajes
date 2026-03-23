@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import type { IWebConfigRepository } from '../../../domain/repositories/IWebConfigRepository.js';
+import type { IWebConfigRepository } from '../../domain/repositories/IWebConfigRepository.js';
 
 export class PostgresWebConfigRepository implements IWebConfigRepository {
   constructor(private db: Knex) {}
