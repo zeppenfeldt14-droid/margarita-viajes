@@ -62,7 +62,8 @@ export default function Quoter() {
     childAges: [] as number[]
   });
 
-  const childAgeLimit = (selectedHotel as Hotel | undefined)?.childAgeLimit || 12; // Wait, Hotel type doesn't have childAgeLimit? Let's check types/index.ts. I'll use any with a comment if it's dynamic.
+  const childAgeLimit = (selectedHotel as any)?.childAgeLimit || 12;
+ // Wait, Hotel type doesn't have childAgeLimit? Let's check types/index.ts. I'll use any with a comment if it's dynamic.
 
   const occupancy = calculateOccupancyDetails(formData.pax, formData.children, formData.childAges);
 
@@ -88,17 +89,10 @@ export default function Quoter() {
   useEffect(() => {
     const generateQuoteId = async () => {
       try {
-        const data = await api.getQuotes();
-        let nextNum = 100001;
-        if (Array.isArray(data) && data.length > 0) {
-          const cIds = data
-            .map((q: any) => q.id?.toString() || '')
-            .filter((id: string) => id.startsWith('C') && !id.includes('-'))
-            .map((id: string) => parseInt(id.replace(/\D/g, '')) || 0);
-          if (cIds.length > 0) nextNum = Math.max(...cIds) + 1;
-        }
-        setQuoteId('C' + nextNum.toString().padStart(10, '0'));
-      } catch {
+        const { nextFolio } = await api.getNextFolio();
+        setQuoteId(nextFolio);
+      } catch (err) {
+        console.error('Error generating quote ID:', err);
         setQuoteId('C0000100001');
       }
     };

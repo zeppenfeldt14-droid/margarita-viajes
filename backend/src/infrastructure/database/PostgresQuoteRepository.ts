@@ -1,5 +1,5 @@
-import { Knex } from 'knex';
-import { IQuoteRepository, Quote } from '../../domain/repositories/IQuoteRepository.js';
+import type { Knex } from 'knex';
+import type { IQuoteRepository, Quote } from '../../domain/repositories/IQuoteRepository.js';
 
 export class PostgresQuoteRepository implements IQuoteRepository {
   constructor(private db: Knex) {}
@@ -20,7 +20,8 @@ export class PostgresQuoteRepository implements IQuoteRepository {
       finalAmount: dbQuote.final_amount,
       pdfBase64: dbQuote.pdf_base64,
       technicalSheet: typeof dbQuote.technical_sheet === 'string' ? JSON.parse(dbQuote.technical_sheet) : dbQuote.technical_sheet,
-      companions: typeof dbQuote.companions === 'string' ? JSON.parse(dbQuote.companions) : dbQuote.companions
+      companions: typeof dbQuote.companions === 'string' ? JSON.parse(dbQuote.companions) : dbQuote.companions,
+      assignedTo: dbQuote.assigned_to
     };
   }
 
@@ -54,6 +55,7 @@ export class PostgresQuoteRepository implements IQuoteRepository {
       infants: quote.infants,
       month: quote.month,
       pdf_base64: quote.pdfBase64,
+      assigned_to: quote.assignedTo,
       companions: quote.companions ? JSON.stringify(quote.companions) : null,
       technical_sheet: quote.technicalSheet ? JSON.stringify(quote.technicalSheet) : null
     }).returning('*');
@@ -70,6 +72,7 @@ export class PostgresQuoteRepository implements IQuoteRepository {
     if (quote.totalAmount !== undefined) updateData.total_amount = quote.totalAmount;
     if (quote.id !== undefined) updateData.folio = quote.id;
     if (quote.pdfBase64 !== undefined) updateData.pdf_base64 = quote.pdfBase64;
+    if (quote.assignedTo !== undefined) updateData.assigned_to = quote.assignedTo;
     
     if (quote.companions !== undefined) {
       updateData.companions = typeof quote.companions === 'string' ? quote.companions : JSON.stringify(quote.companions);

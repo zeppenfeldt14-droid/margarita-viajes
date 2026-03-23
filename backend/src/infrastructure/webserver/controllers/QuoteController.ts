@@ -82,4 +82,28 @@ export class QuoteController {
       return res.status(500).json({ error: error.message });
     }
   }
+
+  async getNextFolio(req: Request, res: Response) {
+    try {
+      const quotes = await this.quoteRepo.findAll();
+      let nextNum = 100001;
+      
+      if (Array.isArray(quotes) && quotes.length > 0) {
+        const cIds = quotes
+          .map((q: any) => q.id?.toString() || '')
+          .filter((id: string) => id.startsWith('C') && !id.includes('-'))
+          .map((id: string) => parseInt(id.replace(/\D/g, '')) || 0);
+          
+        if (cIds.length > 0) {
+          nextNum = Math.max(...cIds) + 1;
+        }
+      }
+      
+      const nextFolio = 'C' + nextNum.toString().padStart(10, '0');
+      return res.json({ nextFolio });
+    } catch (error: any) {
+      console.error('[QuoteController] Error generating next folio:', error);
+      return res.status(500).json({ error: error.message });
+    }
+  }
 }

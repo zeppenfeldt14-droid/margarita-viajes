@@ -1,4 +1,4 @@
-import { ISeasonRepository, Season } from '../../domain/repositories/ISeasonRepository.js';
+import type { ISeasonRepository, Season } from '../../domain/repositories/ISeasonRepository.js';
 import type { Knex } from 'knex';
 
 export class PostgresSeasonRepository implements ISeasonRepository {

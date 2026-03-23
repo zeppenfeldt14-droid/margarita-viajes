@@ -22,6 +22,7 @@ export function createRouter(
   router.get('/public/transfers', (req: Request, res: Response) => adminController.getTransfers(req, res));
   router.get('/config', (req: Request, res: Response) => adminController.getConfig(req, res));
   router.get('/public/config', (req: Request, res: Response) => adminController.getConfig(req, res));
+  router.get('/public/quotes/next-folio', (req: Request, res: Response) => quoteController.getNextFolio(req, res));
   router.post('/quotes/calculate', (req: Request, res: Response) => quoteController.calculatePrice(req, res));
   router.post('/quotes', (req: Request, res: Response) => quoteController.saveQuote(req, res));
 
@@ -44,6 +45,7 @@ export function createRouter(
 
   // Quotes
   router.get('/admin/quotes', (req: Request, res: Response) => adminController.getQuotes(req, res));
+  router.get('/quotes/next-folio', (req: Request, res: Response) => quoteController.getNextFolio(req, res));
   router.get('/quotes/check', (req: Request, res: Response) => quoteController.checkDuplicate(req, res));
   router.put('/admin/quotes/:id', (req: Request, res: Response) => adminController.updateQuote(req, res));
 

@@ -1,5 +1,5 @@
-import { Knex } from 'knex';
-import { ICouponRepository, Coupon } from '../../domain/repositories/ICouponRepository.js';
+import type { Knex } from 'knex';
+import type { ICouponRepository, Coupon } from '../../domain/repositories/ICouponRepository.js';
 
 export class PostgresCouponRepository implements ICouponRepository {
   constructor(private db: Knex) {}

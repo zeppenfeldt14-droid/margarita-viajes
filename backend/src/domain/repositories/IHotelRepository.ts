@@ -24,6 +24,8 @@ export interface Hotel {
   type: 'hotel' | 'package' | 'full-day';
   rooms?: Room[];
   seasons?: SeasonRate[];
+  email?: string;
+  plan?: string;
   createdAt?: Date;
 }
 

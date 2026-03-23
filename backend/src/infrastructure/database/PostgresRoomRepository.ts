@@ -1,4 +1,4 @@
-import { IRoomRepository, Room } from '../../domain/repositories/IRoomRepository.js';
+import type { IRoomRepository, Room } from '../../domain/repositories/IRoomRepository.js';
 import type { Knex } from 'knex';
 
 export class PostgresRoomRepository implements IRoomRepository {

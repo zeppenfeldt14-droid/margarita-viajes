@@ -1,5 +1,5 @@
-import { QuoteRequestDTO } from '../dtos/QuoteRequestDTO.js';
-import { ISeasonRepository, Season } from '../../domain/repositories/ISeasonRepository.js';
+import type { QuoteRequestDTO } from '../dtos/QuoteRequestDTO.js';
+import type { ISeasonRepository, Season } from '../../domain/repositories/ISeasonRepository.js';
 
 export class CalculateQuotePrice {
   constructor(private seasonRepository: ISeasonRepository) {}

@@ -1,5 +1,5 @@
-import { Knex } from 'knex';
-import { IOperationRepository, Operation, OperationSequence } from '../../domain/repositories/IOperationRepository.js';
+import type { Knex } from 'knex';
+import type { IOperationRepository, Operation, OperationSequence } from '../../domain/repositories/IOperationRepository.js';
 
 export class PostgresOperationRepository implements IOperationRepository {
   constructor(private db: Knex) {}

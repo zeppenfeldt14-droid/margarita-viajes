@@ -1,5 +1,5 @@
-import { IHotelRepository, Hotel, Room, SeasonRate } from '../../domain/repositories/IHotelRepository.js';
-import { Knex } from 'knex';
+import type { IHotelRepository, Hotel, Room, SeasonRate } from '../../domain/repositories/IHotelRepository.js';
+import type { Knex } from 'knex';
 import crypto from 'crypto';
 
 export class PostgresHotelRepository implements IHotelRepository {
@@ -59,7 +59,9 @@ export class PostgresHotelRepository implements IHotelRepository {
         description: hotel.description,
         logo: hotel.logo,
         photos: JSON.stringify(hotel.photos || []),
-        type: hotel.type || 'hotel'
+        type: hotel.type || 'hotel',
+        email: hotel.email,
+        plan: hotel.plan
       }).returning('*');
 
       const idMapping: Record<string, string> = {};
@@ -115,7 +117,7 @@ export class PostgresHotelRepository implements IHotelRepository {
 
       // 1. Actualizar datos básicos
       const updateData: any = {};
-      const validColumns = ['name', 'location', 'description', 'logo', 'type'];
+      const validColumns = ['name', 'location', 'description', 'logo', 'type', 'email', 'plan'];
       for (const col of validColumns) {
         if (basicData[col as keyof typeof basicData] !== undefined) {
           updateData[col] = basicData[col as keyof typeof basicData];

@@ -1,5 +1,5 @@
-import { IAuditRepository, AuditLog } from '../../domain/repositories/IAuditRepository.js';
-import { Knex } from 'knex';
+import type { IAuditRepository, AuditLog } from '../../domain/repositories/IAuditRepository.js';
+import type { Knex } from 'knex';
 
 export class PostgresAuditRepository implements IAuditRepository {
   constructor(private db: Knex) {}

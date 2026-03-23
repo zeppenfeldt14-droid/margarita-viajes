@@ -92,9 +92,21 @@ export async function initDatabase(db: Knex) {
       table.text('logo');
       table.text('photos'); // JSON string
       table.string('type').defaultTo('hotel');
+      table.string('email');
+      table.string('plan');
       table.timestamp('created_at').defaultTo(db.fn.now());
     });
     console.log('[Database] Tabla "hotels" creada.');
+  } else {
+    // Verificar y agregar columnas faltantes
+    const hasEmail = await db.schema.hasColumn('hotels', 'email');
+    const hasPlan = await db.schema.hasColumn('hotels', 'plan');
+
+    await db.schema.alterTable('hotels', (table: any) => {
+      if (!hasEmail) table.string('email').nullable();
+      if (!hasPlan) table.string('plan').nullable();
+    });
+    console.log('[Database] Verificación de columnas en "hotels" completada.');
   }
 
   // Tabla: rooms
@@ -152,21 +164,42 @@ export async function initDatabase(db: Knex) {
       table.string('email');
       table.string('whatsapp');
       table.string('hotel_name');
+      table.uuid('hotel_id').nullable();
       table.string('check_in');
       table.string('check_out');
       table.string('room_type');
       table.decimal('total_amount');
       table.string('status');
       table.string('pax');
+      table.string('children').nullable();
+      table.string('infants').nullable();
       table.string('month');
       table.decimal('discount').defaultTo(0);
       table.decimal('discount_amount').defaultTo(0);
       table.decimal('final_amount').defaultTo(0);
+      table.text('pdf_base64').nullable();
+      table.string('assigned_to').nullable();
       table.text('companions'); // JSON
       table.text('technical_sheet'); // JSON
       table.timestamp('created_at').defaultTo(db.fn.now());
     });
     console.log('[Database] Tabla "quotations" creada.');
+  } else {
+    // Verificar y agregar columnas faltantes para evitar fallas en el repositorio
+    const hasHotelId = await db.schema.hasColumn('quotations', 'hotel_id');
+    const hasChildren = await db.schema.hasColumn('quotations', 'children');
+    const hasInfants = await db.schema.hasColumn('quotations', 'infants');
+    const hasPdfBase64 = await db.schema.hasColumn('quotations', 'pdf_base64');
+    const hasAssignedTo = await db.schema.hasColumn('quotations', 'assigned_to');
+
+    await db.schema.alterTable('quotations', (table: any) => {
+      if (!hasHotelId) table.uuid('hotel_id').nullable();
+      if (!hasChildren) table.string('children').nullable();
+      if (!hasInfants) table.string('infants').nullable();
+      if (!hasPdfBase64) table.text('pdf_base64').nullable();
+      if (!hasAssignedTo) table.string('assigned_to').nullable();
+    });
+    console.log('[Database] Verificación de columnas en "quotations" completada.');
   }
 
   // Tabla: reservations

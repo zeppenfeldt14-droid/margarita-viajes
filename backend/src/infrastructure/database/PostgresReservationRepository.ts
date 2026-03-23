@@ -1,5 +1,5 @@
-import { Knex } from 'knex';
-import { IReservationRepository, Reservation } from '../../domain/repositories/IReservationRepository.js';
+import type { Knex } from 'knex';
+import type { IReservationRepository, Reservation } from '../../domain/repositories/IReservationRepository.js';
 
 export class PostgresReservationRepository implements IReservationRepository {
   constructor(private db: Knex) {}
