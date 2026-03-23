@@ -7,7 +7,7 @@ export async function initDatabase(db: Knex) {
 
   // Tabla: audit_trail (Prioridad CRÍTICA para auditoría)
   if (!(await db.schema.hasTable('audit_trail'))) {
-    await db.schema.createTable('audit_trail', table => {
+    await db.schema.createTable('audit_trail', (table: any) => {
       table.increments('id').primary();
       table.string('action');
       table.string('table_name');
@@ -22,7 +22,7 @@ export async function initDatabase(db: Knex) {
 
   // Tabla: web_config
   if (!(await db.schema.hasTable('web_config'))) {
-    await db.schema.createTable('web_config', table => {
+    await db.schema.createTable('web_config', (table: any) => {
       table.string('key').primary();
       table.text('value');
     });
@@ -44,7 +44,7 @@ export async function initDatabase(db: Knex) {
   }
 
   if (!(await db.schema.hasTable('users'))) {
-    await db.schema.createTable('users', table => {
+    await db.schema.createTable('users', (table: any) => {
       table.uuid('id').primary().defaultTo(db.raw(isProd ? 'uuid_generate_v4()' : 'NULL')); // SQLite doesn't have uuid_generate_v4
       table.string('email').unique().notNullable();
       table.string('password_hash').notNullable();
@@ -84,7 +84,7 @@ export async function initDatabase(db: Knex) {
 
   // Tabla: hotels
   if (!(await db.schema.hasTable('hotels'))) {
-    await db.schema.createTable('hotels', table => {
+    await db.schema.createTable('hotels', (table: any) => {
       table.uuid('id').primary();
       table.string('name').notNullable();
       table.string('location');
@@ -99,7 +99,7 @@ export async function initDatabase(db: Knex) {
 
   // Tabla: rooms
   if (!(await db.schema.hasTable('rooms'))) {
-    await db.schema.createTable('rooms', table => {
+    await db.schema.createTable('rooms', (table: any) => {
       table.uuid('id').primary();
       table.uuid('hotel_id').references('id').inTable('hotels').onDelete('CASCADE');
       table.string('name').notNullable();
@@ -110,7 +110,7 @@ export async function initDatabase(db: Knex) {
 
   // Tabla: seasons
   if (!(await db.schema.hasTable('seasons'))) {
-    await db.schema.createTable('seasons', table => {
+    await db.schema.createTable('seasons', (table: any) => {
       table.uuid('id').primary();
       table.uuid('hotel_id').references('id').inTable('hotels').onDelete('CASCADE');
       table.string('type');
@@ -133,7 +133,7 @@ export async function initDatabase(db: Knex) {
   }
 
   if (!(await db.schema.hasTable('transfers'))) {
-    await db.schema.createTable('transfers', table => {
+    await db.schema.createTable('transfers', (table: any) => {
       table.uuid('id').primary();
       table.string('route');
       table.string('operator');
@@ -145,7 +145,7 @@ export async function initDatabase(db: Knex) {
 
   // Tabla: quotations
   if (!(await db.schema.hasTable('quotations'))) {
-    await db.schema.createTable('quotations', table => {
+    await db.schema.createTable('quotations', (table: any) => {
       table.increments('id').primary();
       table.string('folio').unique();
       table.string('client_name');
@@ -171,7 +171,7 @@ export async function initDatabase(db: Knex) {
 
   // Tabla: reservations
   if (!(await db.schema.hasTable('reservations'))) {
-    await db.schema.createTable('reservations', table => {
+    await db.schema.createTable('reservations', (table: any) => {
       table.increments('id').primary();
       table.string('quote_id');
       table.string('client_name');
@@ -199,7 +199,7 @@ export async function initDatabase(db: Knex) {
 
   // Tabla: operations
   if (!(await db.schema.hasTable('operations'))) {
-    await db.schema.createTable('operations', table => {
+    await db.schema.createTable('operations', (table: any) => {
       table.string('id').primary(); // V123...
       table.string('quote_id');
       table.string('client_name');
@@ -225,7 +225,7 @@ export async function initDatabase(db: Knex) {
 
   // Tabla: coupons
   if (!(await db.schema.hasTable('coupons'))) {
-    await db.schema.createTable('coupons', table => {
+    await db.schema.createTable('coupons', (table: any) => {
       table.increments('id').primary();
       table.string('code').unique().notNullable();
       table.decimal('discount').notNullable();
