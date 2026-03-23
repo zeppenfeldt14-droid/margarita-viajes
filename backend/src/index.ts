@@ -30,12 +30,28 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-app.use(cors({
-  origin: ['https://margarita-viajes.vercel.app', 'http://localhost:5173'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  credentials: true
-}));
+// Definitive CORS bypass for production (Vercel -> Render)
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = ['https://margarita-viajes.vercel.app', 'http://localhost:5173'];
+  
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  } else if (!origin) {
+    // Permitir peticiones sin origen (como curl o tools internas)
+    res.header('Access-Control-Allow-Origin', '*');
+  }
+
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Max-Age', '86400'); // Cache preflight for 24h
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 app.use(express.json({ limit: '50mb' }));
 

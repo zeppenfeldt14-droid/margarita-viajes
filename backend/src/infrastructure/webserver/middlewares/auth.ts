@@ -3,6 +3,11 @@ import jwt from 'jsonwebtoken';
 
 export const authMiddleware = (roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
+    // Definitive bypass for preflight requests
+    if (req.method === 'OPTIONS') {
+      return next();
+    }
+
     const authHeader = req.headers.authorization;
     if (!authHeader) {
       return res.status(401).json({ error: 'No se proporcionó token' });
