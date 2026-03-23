@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import knex from 'knex';
+import { knex } from 'knex';
 import knexConfig from '../knexfile.js';
 import { PostgresSeasonRepository } from './infrastructure/database/PostgresSeasonRepository.js';
 import { PostgresHotelRepository } from './infrastructure/database/PostgresHotelRepository.js';
