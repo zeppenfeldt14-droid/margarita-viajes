@@ -4,6 +4,8 @@ export interface Transfer {
   operator: string;
   netCost: number;
   salePrice: number;
+  email?: string;
+  whatsapp?: string;
 }
 
 export interface ITransferRepository {

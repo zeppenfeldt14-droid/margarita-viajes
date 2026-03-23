@@ -172,10 +172,22 @@ export async function initDatabase(db: Knex) {
       table.uuid('id').primary();
       table.string('route');
       table.string('operator');
+      table.string('email').nullable();
+      table.string('whatsapp').nullable();
       table.decimal('net_cost');
       table.decimal('sale_price');
     });
     console.log('[Database] Tabla "transfers" creada con formato UUID.');
+  } else {
+    // Verificar y agregar columnas faltantes
+    const hasEmail = await db.schema.hasColumn('transfers', 'email');
+    const hasWhatsapp = await db.schema.hasColumn('transfers', 'whatsapp');
+
+    await db.schema.alterTable('transfers', (table: any) => {
+      if (!hasEmail) table.string('email').nullable();
+      if (!hasWhatsapp) table.string('whatsapp').nullable();
+    });
+    console.log('[Database] Verificación de columnas en "transfers" completada.');
   }
 
   // Tabla: quotations
