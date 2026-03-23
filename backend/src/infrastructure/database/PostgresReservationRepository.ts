@@ -5,16 +5,44 @@ import type { IReservationRepository, Reservation } from '../../domain/repositor
 export class PostgresReservationRepository implements IReservationRepository {
   constructor(private db: Knex) {}
 
+  private mapRowToReservation(row: any): Reservation {
+    return {
+      id: String(row.id),
+      quoteId: row.quote_id,
+      clientName: row.client_name,
+      email: row.email,
+      whatsapp: row.whatsapp,
+      hotelId: row.hotel_id,
+      hotelName: row.hotel_name,
+      hotelEmail: row.hotel_email,
+      checkIn: row.check_in,
+      checkOut: row.check_out,
+      roomType: row.room_type,
+      pax: row.pax,
+      children: row.children,
+      infants: row.infants,
+      totalAmount: Number(row.total_amount),
+      companions: typeof row.companions === 'string' ? JSON.parse(row.companions) : (row.companions || []),
+      technicalSheet: typeof row.technical_sheet === 'string' ? JSON.parse(row.technical_sheet) : (row.technical_sheet || {}),
+      hotelResponseImage: row.hotel_response_image,
+      paymentProofImage: row.payment_proof_image,
+      status: row.status,
+      createdAt: row.created_at
+    };
+  }
+
   async findAll(): Promise<Reservation[]> {
-    return await this.db('reservations').select('*').orderBy('created_at', 'desc');
+    const rows = await this.db('reservations').select('*').orderBy('created_at', 'desc');
+    return rows.map(row => this.mapRowToReservation(row));
   }
 
   async findById(id: string): Promise<Reservation | null> {
-    const result = await this.db('reservations').where('id', id).first();
-    return result || null;
+    const row = await this.db('reservations').where('id', id).first();
+    if (!row) return null;
+    return this.mapRowToReservation(row);
   }
 
-  async create(reservation: any): Promise<any> {
+  async create(reservation: any): Promise<Reservation> {
     const [result] = await this.db('reservations').insert({
       quote_id: reservation.quoteId,
       client_name: reservation.clientName,
@@ -36,10 +64,10 @@ export class PostgresReservationRepository implements IReservationRepository {
       payment_proof_image: reservation.paymentProofImage,
       status: reservation.status || 'Confirmada'
     }).returning('*');
-    return result;
+    return this.mapRowToReservation(result);
   }
 
-  async update(id: string, reservation: any): Promise<any> {
+  async update(id: string, reservation: any): Promise<Reservation> {
     const updateData: any = {};
 
     if (reservation.status !== undefined) updateData.status = reservation.status;
@@ -53,6 +81,6 @@ export class PostgresReservationRepository implements IReservationRepository {
       .where('id', id)
       .update(updateData)
       .returning('*');
-    return result;
+    return this.mapRowToReservation(result);
   }
 }

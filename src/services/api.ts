@@ -94,6 +94,28 @@ export const api = {
       body: JSON.stringify(data),
     });
   },
+  updateReservation: async (id: string, data: any) => {
+    return fetchWithAuth(`/admin/reservations/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Operations
+  getOperations: async () => {
+    const res = await fetchWithAuth('/admin/operations');
+    return res.json();
+  },
+  getOperation: async (quoteId: string) => {
+    return fetchWithAuth(`/admin/operations/${quoteId}`);
+  },
+  saveOperation: async (id: string | null, data: any) => {
+    const url = id ? `/admin/operations/${id}` : '/admin/operations';
+    return fetchWithAuth(url, {
+      method: id ? 'PUT' : 'POST',
+      body: JSON.stringify(data),
+    });
+  },
 
   // Coupons
   getCoupons: async () => {
