@@ -22,40 +22,7 @@ import { useGlobalData } from "../context/GlobalContext";
 import type { Hotel, Quotation, QuoteStatus } from "../types";
 import { api } from "../services/api";
 import { showToast, ToastContainer } from "../components/Toast";
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 
-// Helper for PDF capture
-const generatePdfBase64 = async (elementId: string): Promise<string> => {
-  const element = document.getElementById(elementId);
-  if (!element) throw new Error('Element not found');
-  
-  const canvas = await html2canvas(element, {
-    scale: 2,
-    useCORS: true,
-    logging: false,
-    windowWidth: 1000,
-    onclone: (clonedDoc) => {
-      // Forzar que el documento clonado use estilos base que no dependan de variables oklch de Tailwind v4
-      const style = clonedDoc.createElement('style');
-      style.innerHTML = `
-        * { color-scheme: light !important; }
-        :root { --color-orange-500: #f97316 !important; --color-orange-600: #ea580c !important; }
-        [style*="oklch"] { color: #000 !important; border-color: #ddd !important; }
-      `;
-      clonedDoc.head.appendChild(style);
-    }
-  });
-  
-  const imgData = canvas.toDataURL('image/png');
-  const pdf = new jsPDF('p', 'mm', 'a4');
-  const imgProps = pdf.getImageProperties(imgData);
-  const pdfWidth = pdf.internal.pageSize.getWidth();
-  const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-  
-  pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-  return pdf.output('datauristring');
-};
 
 export default function Quoter() {
   const [, setLocation] = useLocation();
@@ -63,7 +30,7 @@ export default function Quoter() {
   const hotelName = queryParams.get('hotel') || '';
 
   const [activeConfig, setActiveConfig] = useState<Record<string, string>>({});
-  const { hotels, transfers: availableTransfers } = useGlobalData();
+  const { hotels, transfers: availableTransfers, users } = useGlobalData();
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -191,10 +158,6 @@ export default function Quoter() {
     }
 
     try {
-      // --- GENERACIÓN DE PDF EN EL CLIENTE ---
-      showToast('Generando Cotización Digital...');
-      const pdfBase64 = await generatePdfBase64('pdf-content');
-
       let assignedSeller = 'Sin Asignar';
       try {
         const sellers = (users || []).filter(u => u.level === 3);
@@ -229,8 +192,7 @@ export default function Quoter() {
         totalAmount: finalPrice,
         status: 'Nuevo' as QuoteStatus,
         assignedTo: assignedSeller,
-        plan: selectedHotel?.plan || null,
-        pdfBase64 // <-- SE ENVÍA AL BACKEND
+        plan: selectedHotel?.plan || null
       };
 
       const response = await api.createQuote(newQuote);
@@ -579,69 +541,6 @@ export default function Quoter() {
         </div>
       </main>
 
-      {/* --- CONTENEDOR OCULTO PARA CAPTURA DE PDF --- */}
-      <div id="pdf-capture-zone" style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '800px' }}>
-        <div id="pdf-content" className="bg-white p-12 text-[#0B132B] text-sm relative" style={{ width: '800px' }}>
-          {/* ENCABEZADO */}
-          <div className="flex items-center justify-between border-b-2 border-gray-200 pb-6 mb-6">
-            <div className="w-32 h-20 flex items-center justify-start">
-              {activeConfig.logoImage ? <img src={activeConfig.logoImage} alt="Logo" className="max-h-full max-w-full object-contain" /> : <span className="font-black text-orange-500 text-xl italic uppercase">Margarita Viajes</span>}
-            </div>
-            <div className="flex-1 text-center px-4">
-              <h2 className="font-black text-lg uppercase">{activeConfig.agencyName || 'Margarita Viajes'}</h2>
-              <p className="font-bold text-xs text-gray-600 mt-1">RIF: {activeConfig.rif || 'J-40156646-4'} | RTN: {activeConfig.rtn || '13314'}</p>
-              <p className="text-[10px] text-gray-500 italic mt-2 leading-tight">{activeConfig.direccion || 'Calle La Ceiba, Sector El Otro Lado del Río, La Asunción, Edo. Nueva Esparta'}</p>
-            </div>
-            <div className="w-32 h-20 flex items-center justify-end">
-              {selectedHotel?.logo || (selectedHotel as any).logoImage ? (
-                <img src={selectedHotel?.logo || (selectedHotel as any).logoImage} alt="Hotel" className="max-h-full max-w-full object-contain rounded-lg" />
-              ) : <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-[8px] text-gray-400 font-bold">HOTEL</div>}
-            </div>
-          </div>
-
-          {/* DATOS CLIENTE */}
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Estimado Sr./a:</p>
-              <p className="font-black uppercase text-base">{formData.name}</p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-right">
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Fecha de Emisión:</p>
-              <p className="font-black uppercase text-base">{new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
-            </div>
-          </div>
-
-          {/* DETALLES VIAJE */}
-          <div className="grid grid-cols-2 gap-x-12 gap-y-4 mb-10">
-            <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-400 text-xs uppercase">Hotel</span> <span className="font-black text-sm uppercase">{selectedHotel.name}</span></div>
-            <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-400 text-xs uppercase">Plan</span> <span className="font-black text-sm uppercase text-orange-600">{selectedHotel.plan || 'No especificado'}</span></div>
-            <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Habitación:</span> <span className="font-black text-sm uppercase">{selectedHotel.rooms.find(r => r.id === formData.roomType)?.name || formData.roomType}</span></div>
-            <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Ubicación:</span> <span className="font-black text-sm uppercase">{selectedHotel.location}</span></div>
-            <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Entrada:</span> <span className="font-black text-sm">{formData.checkIn}</span></div>
-            <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Salida:</span> <span className="font-black text-sm">{formData.checkOut}</span></div>
-            <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Adultos:</span> <span className="font-black text-sm">{formData.pax}</span></div>
-            <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Niños/Infantes:</span> <span className="font-black text-sm">{Number(formData.children) + Number(formData.infants)}</span></div>
-          </div>
-
-          {/* TOTAL */}
-          <div className="bg-[#0B132B] text-white p-8 rounded-[2rem] flex items-center justify-between mb-10">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.3em] text-orange-400 mb-1">TOTAL A PAGAR</p>
-              {discountPercent > 0 && <p className="text-sm text-green-400 font-bold italic">Cupón de Descuento Aplicado</p>}
-            </div>
-            <p className="text-5xl font-black italic tracking-tighter">$ {finalPrice.toLocaleString()}</p>
-          </div>
-
-          <div className="text-[10px] bg-gray-50 p-6 rounded-2xl space-y-2">
-            <p className="font-black uppercase tracking-widest text-[#0B132B] mb-2">Canales de Atención:</p>
-            <p className="flex justify-between max-w-xs"><span className="font-bold text-gray-500">WHATSAPP:</span> <span className="font-black text-green-600">{activeConfig.telefono || '+58 424 6861748'}</span></p>
-            <p className="flex justify-between max-w-xs"><span className="font-bold text-gray-500">CORREO:</span> <span className="font-black text-blue-600">{activeConfig.correo || 'margaritaviaje@gmail.com'}</span></p>
-            <div className="pt-4 mt-4 border-t border-gray-200 text-center">
-              <p className="text-[8px] font-black text-red-500 uppercase tracking-widest">Precios sujetos a disponibilidad al momento de reservar.</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <footer className="py-20 bg-[#0B132B] text-center text-white/20 font-black uppercase tracking-[0.5em] text-xs">
         Margarita Viajes C.A.
