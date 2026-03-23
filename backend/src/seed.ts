@@ -1,11 +1,12 @@
-import { knex } from 'knex';
+import knex from 'knex';
 import knexConfig from '../knexfile.js';
 import dotenv from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
 
 dotenv.config({ path: 'backend/.env' });
 
-const db = knex(knexConfig.production);
+// @ts-ignore
+const db = (knex.default || knex)(knexConfig.production);
 
 async function seed() {
   console.log('--- Iniciando Seeding de Datos para Cotización ---');

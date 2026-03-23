@@ -1,8 +1,9 @@
-import { knex } from 'knex';
+import knex from 'knex';
 import bcrypt from 'bcrypt';
 import path from 'path';
 
-const db = knex({
+// @ts-ignore
+const db = (knex.default || knex)({
   client: 'sqlite3',
   connection: {
     filename: './dev.sqlite3'

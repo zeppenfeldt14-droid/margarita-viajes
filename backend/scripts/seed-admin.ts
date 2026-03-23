@@ -1,4 +1,4 @@
-import { knex } from 'knex';
+import knex from 'knex';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -7,7 +7,8 @@ dotenv.config();
 
 console.log(`Conectando a DB: ${process.env.DB_NAME} en ${process.env.DB_HOST}:${process.env.DB_PORT || 5432} con usuario ${process.env.DB_USER}`);
 
-const db = knex({
+// @ts-ignore
+const db = (knex.default || knex)({
   client: 'pg',
   connection: {
     host: process.env.DB_HOST || '127.0.0.1',

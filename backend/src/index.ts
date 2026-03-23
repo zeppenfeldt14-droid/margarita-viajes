@@ -1,6 +1,6 @@
 import express, { type Request, type Response, type NextFunction } from 'express';
 import cors from 'cors';
-import { knex } from 'knex';
+import knex from 'knex';
 import knexConfig from '../knexfile.js';
 import { PostgresSeasonRepository } from './infrastructure/database/PostgresSeasonRepository.js';
 import { PostgresHotelRepository } from './infrastructure/database/PostgresHotelRepository.js';
@@ -58,7 +58,8 @@ if (!databaseUrl) {
 
 const env = 'production';
 const dbConfig = knexConfig[env];
-const db = knex(dbConfig);
+// @ts-ignore
+const db = (knex.default || knex)(dbConfig);
 
 // Repositorios
 const seasonRepository = new PostgresSeasonRepository(db);
