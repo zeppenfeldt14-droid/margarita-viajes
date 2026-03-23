@@ -38,7 +38,7 @@ export class AdminController {
       return res.json(safeUsers);
     } catch (error: any) {
       console.error('[AdminController] Error en getUsers:', error);
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -70,7 +70,7 @@ export class AdminController {
       return res.status(201).json(safeUser);
     } catch (error: any) {
       console.error('[AdminController] Error en createUser:', error);
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -100,7 +100,7 @@ export class AdminController {
       return res.json(safeUser);
     } catch (error: any) {
       console.error('[AdminController] Error en updateUser:', error);
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -110,7 +110,7 @@ export class AdminController {
       await this.userRepo.delete(id);
       return res.status(204).send();
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -119,7 +119,7 @@ export class AdminController {
       const hotels = await this.hotelRepo.findAll();
       return res.json(hotels);
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -136,7 +136,7 @@ export class AdminController {
 
       return res.status(201).json(hotel);
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -153,7 +153,7 @@ export class AdminController {
 
       return res.status(204).send();
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -174,7 +174,7 @@ export class AdminController {
       return res.status(200).json({ message: 'Hotel updated' });
     } catch (error: any) {
       console.error('[AdminController] Error en updateHotel:', error);
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -183,7 +183,7 @@ export class AdminController {
       const rooms = await this.roomRepo.findByHotelId(req.params['hotelId'] as string);
       return res.json(rooms);
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -192,7 +192,7 @@ export class AdminController {
       const room = await this.roomRepo.create(req.body);
       return res.status(201).json(room);
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -202,7 +202,7 @@ export class AdminController {
       const transfers = await this.transferRepo.findAll();
       return res.json(transfers);
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -212,7 +212,7 @@ export class AdminController {
       await this.auditRepo.log({ action: 'CREATE', tableName: 'transfers', recordId: transfer.id, newValue: JSON.stringify(transfer) });
       return res.status(201).json(transfer);
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -223,7 +223,7 @@ export class AdminController {
       await this.auditRepo.log({ action: 'DELETE', tableName: 'transfers', recordId: id });
       return res.status(204).send();
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -233,7 +233,7 @@ export class AdminController {
       await this.transferRepo.update(id, req.body);
       return res.status(200).json({ message: 'Transfer updated' });
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -243,7 +243,7 @@ export class AdminController {
       const quotes = await this.quoteRepo.findAll();
       return res.json(quotes);
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -259,7 +259,7 @@ export class AdminController {
 
       return res.json(quote);
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -274,7 +274,7 @@ export class AdminController {
       const config = await this.configRepo.getConfig();
       return res.json(config);
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -297,7 +297,7 @@ export class AdminController {
       
       return res.status(204).send();
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -307,7 +307,7 @@ export class AdminController {
       const operations = await this.operationRepo.findAll();
       return res.json(operations);
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -316,7 +316,7 @@ export class AdminController {
       const seq = await this.operationRepo.getNextSequence();
       return res.json(seq);
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -331,7 +331,7 @@ export class AdminController {
       });
       return res.status(201).json(operation);
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -341,7 +341,7 @@ export class AdminController {
       const reservations = await this.reservationRepo.findAll();
       return res.json(reservations);
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -356,7 +356,7 @@ export class AdminController {
       });
       return res.status(201).json(reservation);
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -365,7 +365,7 @@ export class AdminController {
       const reservation = await this.reservationRepo.update(req.params['id'] as string, req.body);
       return res.json(reservation);
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -375,7 +375,7 @@ export class AdminController {
       const coupons = await this.couponRepo.findAll();
       return res.json(coupons);
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -390,7 +390,7 @@ export class AdminController {
       });
       return res.status(201).json(coupon);
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -406,7 +406,7 @@ export class AdminController {
       });
       return res.status(200).json({ message: 'Coupon updated' });
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 
@@ -421,7 +421,7 @@ export class AdminController {
       });
       return res.status(204).send();
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ message: error.message });
     }
   }
 }

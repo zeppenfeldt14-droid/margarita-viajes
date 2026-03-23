@@ -47,7 +47,7 @@ export class PostgresUserRepository implements IUserRepository {
     const [row] = await this.db('users').insert({
       id: id,
       email: user.email,
-      alias: user.alias,
+      alias: user.alias === '' ? null : user.alias,
       password_hash: user.passwordHash,
       role: user.role,
       full_name: user.fullName,
@@ -66,7 +66,7 @@ export class PostgresUserRepository implements IUserRepository {
   async update(id: string, user: Partial<User>): Promise<User> {
     const updateData: any = {};
     if (user.email) updateData.email = user.email;
-    if (user.alias !== undefined) updateData.alias = user.alias;
+    if (user.alias !== undefined) updateData.alias = user.alias === '' ? null : user.alias;
     if (user.passwordHash) updateData.password_hash = user.passwordHash;
     if (user.role) updateData.role = user.role;
     if (user.fullName) updateData.full_name = user.fullName;
