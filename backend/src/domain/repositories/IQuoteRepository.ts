@@ -21,6 +21,7 @@ export interface Quote {
   infants?: string;
   companions?: any;
   technicalSheet?: any;
+  pdfBase64?: string;
 }
 
 export interface IQuoteRepository {
