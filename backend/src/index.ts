@@ -51,11 +51,14 @@ app.get('/health', (req: Request, res: Response) => {
 });
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// Inyección de Dependencias
-const isProd = !!process.env.DATABASE_URL;
-const env = isProd ? 'production' : (process.env.DB_TYPE || 'local');
+// Configuración Estricta de Base de Datos para Persistencia Real
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  throw new Error('❌ ERROR CRÍTICO: La variable DATABASE_URL es necesaria para la persistencia real.');
+}
+
+const env = 'production';
 const dbConfig = knexConfig[env];
-if (!dbConfig) throw new Error(`Database configuration for "${env}" not found`);
 const db = knex(dbConfig);
 
 // Repositorios

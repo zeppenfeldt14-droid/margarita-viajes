@@ -10,7 +10,7 @@
     "build:frontend": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "node server.js"
+    "start": "node backend/dist/src/index.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
