@@ -128,6 +128,18 @@ export const api = {
     const res = await fetchWithAuth('/admin/users');
     return res.json();
   },
+  saveUser: async (data: any, id: string | null) => {
+    const url = id ? `/admin/users/${id}` : '/admin/users';
+    return fetchWithAuth(url, {
+      method: id ? 'PUT' : 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  deleteUser: async (id: string) => {
+    return fetchWithAuth(`/admin/users/${id}`, {
+      method: 'DELETE',
+    });
+  },
 
   // Auth
   login: async (credentials: any) => {

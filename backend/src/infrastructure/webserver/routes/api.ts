@@ -38,6 +38,9 @@ export function createRouter(
   router.get('/admin/hotels/:hotelId/rooms', (req: Request, res: Response) => adminController.getRoomsByHotel(req, res));
   router.post('/admin/rooms', (req: Request, res: Response) => adminController.createRoom(req, res));
   router.get('/admin/users', (req: Request, res: Response) => adminController.getUsers(req, res));
+  router.post('/admin/users', (req: Request, res: Response) => adminController.createUser(req, res));
+  router.put('/admin/users/:id', (req: Request, res: Response) => adminController.updateUser(req, res));
+  router.delete('/admin/users/:id', (req: Request, res: Response) => adminController.deleteUser(req, res));
 
   // Transfers
   router.get('/admin/transfers', (req: Request, res: Response) => adminController.getTransfers(req, res));

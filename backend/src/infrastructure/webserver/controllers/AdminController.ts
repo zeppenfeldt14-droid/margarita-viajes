@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import bcrypt from 'bcrypt';
 import type { IHotelRepository } from '../../../domain/repositories/IHotelRepository.js';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
 import type { IRoomRepository } from '../../../domain/repositories/IRoomRepository.js';
@@ -37,6 +38,78 @@ export class AdminController {
       return res.json(safeUsers);
     } catch (error: any) {
       console.error('[AdminController] Error en getUsers:', error);
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async createUser(req: Request, res: Response) {
+    try {
+      const { name, alias, email, password, role, dailyQuota, active, level, photo, inRoulette, modules } = req.body;
+      
+      if (!email || !password || !name) {
+        return res.status(400).json({ message: 'Nombre, Email y Password son obligatorios' });
+      }
+
+      const passwordHash = await bcrypt.hash(password, 10);
+      
+      const user = await this.userRepo.create({
+        fullName: name,
+        alias,
+        email,
+        passwordHash,
+        role: role || 'Vendedor 1',
+        dailyQuota: dailyQuota || 20,
+        active: active !== false,
+        level: level || 3,
+        photo,
+        inRoulette: inRoulette !== false,
+        modules: modules || {}
+      });
+
+      const { passwordHash: _, ...safeUser } = user;
+      return res.status(201).json(safeUser);
+    } catch (error: any) {
+      console.error('[AdminController] Error en createUser:', error);
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async updateUser(req: Request, res: Response) {
+    try {
+      const id = req.params['id'] as string;
+      const { name, alias, email, password, role, dailyQuota, active, level, photo, inRoulette, modules } = req.body;
+      
+      const updateData: any = {};
+      if (name) updateData.fullName = name;
+      if (alias !== undefined) updateData.alias = alias;
+      if (email) updateData.email = email;
+      if (role) updateData.role = role;
+      if (dailyQuota !== undefined) updateData.dailyQuota = dailyQuota;
+      if (active !== undefined) updateData.active = active;
+      if (level !== undefined) updateData.level = level;
+      if (photo !== undefined) updateData.photo = photo;
+      if (inRoulette !== undefined) updateData.inRoulette = inRoulette;
+      if (modules !== undefined) updateData.modules = modules;
+
+      if (password) {
+        updateData.passwordHash = await bcrypt.hash(password, 10);
+      }
+
+      const user = await this.userRepo.update(id, updateData);
+      const { passwordHash: _, ...safeUser } = user;
+      return res.json(safeUser);
+    } catch (error: any) {
+      console.error('[AdminController] Error en updateUser:', error);
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async deleteUser(req: Request, res: Response) {
+    try {
+      const id = req.params['id'] as string;
+      await this.userRepo.delete(id);
+      return res.status(204).send();
+    } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }
   }

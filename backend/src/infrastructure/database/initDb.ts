@@ -47,15 +47,47 @@ export async function initDatabase(db: Knex) {
 
   if (!(await db.schema.hasTable('users'))) {
     await db.schema.createTable('users', (table: any) => {
-      // Removemos la dependencia de uuid_generate_v4() de Postgres
       table.uuid('id').primary(); 
       table.string('email').unique().notNullable();
+      table.string('alias').unique().nullable();
       table.string('password_hash').notNullable();
-      table.string('role').notNullable(); // LEVEL_1, LEVEL_2, LEVEL_3
+      table.string('role').notNullable();
       table.string('full_name').notNullable();
+      table.integer('daily_quota').defaultTo(20);
+      table.boolean('active').defaultTo(true);
+      table.integer('level').defaultTo(3);
+      table.text('photo').nullable();
+      table.boolean('in_roulette').defaultTo(true);
+      table.text('modules').nullable(); // JSON string
+      table.text('connection_logs').nullable(); // JSON string
+      table.text('action_logs').nullable(); // JSON string
       table.timestamp('created_at').defaultTo(db.fn.now());
     });
-    console.log('[Database] Tabla "users" creada con formato UUID.');
+    console.log('[Database] Tabla "users" creada con formato extendido.');
+  } else {
+    // Verificar y agregar columnas faltantes
+    const hasAlias = await db.schema.hasColumn('users', 'alias');
+    const hasDailyQuota = await db.schema.hasColumn('users', 'daily_quota');
+    const hasActive = await db.schema.hasColumn('users', 'active');
+    const hasLevel = await db.schema.hasColumn('users', 'level');
+    const hasPhoto = await db.schema.hasColumn('users', 'photo');
+    const hasInRoulette = await db.schema.hasColumn('users', 'in_roulette');
+    const hasModules = await db.schema.hasColumn('users', 'modules');
+    const hasConnLogs = await db.schema.hasColumn('users', 'connection_logs');
+    const hasActionLogs = await db.schema.hasColumn('users', 'action_logs');
+
+    await db.schema.alterTable('users', (table: any) => {
+      if (!hasAlias) table.string('alias').unique().nullable();
+      if (!hasDailyQuota) table.integer('daily_quota').defaultTo(20);
+      if (!hasActive) table.boolean('active').defaultTo(true);
+      if (!hasLevel) table.integer('level').defaultTo(3);
+      if (!hasPhoto) table.text('photo').nullable();
+      if (!hasInRoulette) table.boolean('in_roulette').defaultTo(true);
+      if (!hasModules) table.text('modules').nullable();
+      if (!hasConnLogs) table.text('connection_logs').nullable();
+      if (!hasActionLogs) table.text('action_logs').nullable();
+    });
+    console.log('[Database] Verificación de columnas en "users" completada.');
   }
 
   // Seed admin user if none exist (Robust check)
