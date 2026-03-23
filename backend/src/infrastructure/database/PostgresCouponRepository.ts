@@ -1,5 +1,5 @@
-import knexPkg from 'knex';
-type Knex = knexPkg.Knex;
+import knex from 'knex';
+type Knex = any;
 import type { ICouponRepository, Coupon } from '../../domain/repositories/ICouponRepository.js';
 
 export class PostgresCouponRepository implements ICouponRepository {

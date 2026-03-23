@@ -1,6 +1,6 @@
 import type { IRoomRepository, Room } from '../../domain/repositories/IRoomRepository.js';
-import knexPkg from 'knex';
-type Knex = knexPkg.Knex;
+import knex from 'knex';
+type Knex = any;
 
 export class PostgresRoomRepository implements IRoomRepository {
   constructor(private db: Knex) {}

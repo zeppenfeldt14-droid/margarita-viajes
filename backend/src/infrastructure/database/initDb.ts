@@ -1,5 +1,5 @@
-import knexPkg from 'knex';
-type Knex = knexPkg.Knex;
+import knex from 'knex';
+type Knex = any;
 import bcrypt from 'bcrypt';
 
 export async function initDatabase(db: Knex) {

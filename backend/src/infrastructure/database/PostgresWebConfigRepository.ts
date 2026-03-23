@@ -1,5 +1,5 @@
-import knexPkg from 'knex';
-type Knex = knexPkg.Knex;
+import knex from 'knex';
+type Knex = any;
 import type { IWebConfigRepository } from '../../domain/repositories/IWebConfigRepository.js';
 
 export class PostgresWebConfigRepository implements IWebConfigRepository {

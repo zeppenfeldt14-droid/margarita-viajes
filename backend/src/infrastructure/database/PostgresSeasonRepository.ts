@@ -1,6 +1,6 @@
 import type { ISeasonRepository, Season } from '../../domain/repositories/ISeasonRepository.js';
-import knexPkg from 'knex';
-type Knex = knexPkg.Knex;
+import knex from 'knex';
+type Knex = any;
 
 export class PostgresSeasonRepository implements ISeasonRepository {
   constructor(private db: Knex) {}

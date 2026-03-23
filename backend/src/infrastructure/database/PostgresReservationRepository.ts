@@ -1,5 +1,5 @@
-import knexPkg from 'knex';
-type Knex = knexPkg.Knex;
+import knex from 'knex';
+type Knex = any;
 import type { IReservationRepository, Reservation } from '../../domain/repositories/IReservationRepository.js';
 
 export class PostgresReservationRepository implements IReservationRepository {

@@ -1,5 +1,5 @@
-import knexPkg from 'knex';
-type Knex = knexPkg.Knex;
+import knex from 'knex';
+type Knex = any;
 import type { IQuoteRepository, Quote } from '../../domain/repositories/IQuoteRepository.js';
 
 export class PostgresQuoteRepository implements IQuoteRepository {

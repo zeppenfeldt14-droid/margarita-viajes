@@ -1,5 +1,5 @@
-import knexPkg from 'knex';
-type Knex = knexPkg.Knex;
+import knex from 'knex';
+type Knex = any;
 import type { IOperationRepository, Operation, OperationSequence } from '../../domain/repositories/IOperationRepository.js';
 
 export class PostgresOperationRepository implements IOperationRepository {

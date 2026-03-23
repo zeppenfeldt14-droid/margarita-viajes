@@ -1,5 +1,5 @@
-import knexPkg from 'knex';
-type Knex = knexPkg.Knex;
+import knex from 'knex';
+type Knex = any;
 import type { ITransferRepository, Transfer } from '../../domain/repositories/ITransferRepository.js';
 
 export class PostgresTransferRepository implements ITransferRepository {
