@@ -1,4 +1,4 @@
-import { type Knex } from 'knex';
+import type { Knex } from 'knex';
 import type { IWebConfigRepository } from '../../domain/repositories/IWebConfigRepository.js';
 
 export class PostgresWebConfigRepository implements IWebConfigRepository {

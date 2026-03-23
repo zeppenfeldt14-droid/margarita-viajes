@@ -1,4 +1,4 @@
-import { type Knex } from 'knex';
+import type { Knex } from 'knex';
 import type { ICouponRepository, Coupon } from '../../domain/repositories/ICouponRepository.js';
 
 export class PostgresCouponRepository implements ICouponRepository {

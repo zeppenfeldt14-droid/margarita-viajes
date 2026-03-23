@@ -1,4 +1,4 @@
-import { type Knex } from 'knex';
+import type { Knex } from 'knex';
 import type { IUserRepository, User } from '../../domain/repositories/IUserRepository.js';
 
 export class PostgresUserRepository implements IUserRepository {

@@ -1,4 +1,4 @@
-import { type Knex } from 'knex';
+import type { Knex } from 'knex';
 import bcrypt from 'bcrypt';
 
 export async function initDatabase(db: Knex) {
