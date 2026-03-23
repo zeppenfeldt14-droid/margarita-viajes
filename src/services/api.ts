@@ -116,6 +116,12 @@ export const api = {
       body: JSON.stringify(data),
     });
   },
+  createOperation: async (data: any) => {
+    return fetchWithAuth('/admin/operations', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
 
   // Coupons
   getCoupons: async () => {

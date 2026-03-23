@@ -361,65 +361,49 @@ export default function ReservationsList({ hotels }: {
                               createdAt: new Date().toISOString()
                             };
 
-                            const updateRes = await api.updateReservation(selectedReservation.id, {
-                               status: 'Venta Cerrada',
-                               technicalSheet: technicalSheet,
-                               hotelResponseImage: hotelResponseImage,
-                               paymentProofImage: paymentProofImage
-                             });
+                            // Generación del Folio de Venta (V...) EXACTA
+                            let nextSaleNum = 1001;
+                            const opsData = await api.getOperations().catch(() => []);
 
-                            if (updateRes.ok) {
-                              // Generar ID V000
-                              let nextSaleNum = 100001;
-                              try {
-                                const ops = await api.getOperations();
-                                if (Array.isArray(ops) && ops.length > 0) {
-                                  const vIds = ops
+                            if (Array.isArray(opsData) && opsData.length > 0) {
+                                const vIds = opsData
                                     .map((o: any) => o.id?.toString() || '')
                                     .filter((id: string) => id.startsWith('V'))
                                     .map((id: string) => parseInt(id.replace(/\D/g, '')) || 0);
-                                  if (vIds.length > 0) nextSaleNum = Math.max(...vIds) + 1;
-                                }
-                              } catch (err) {
-                                console.error('Error generating sequential Sale ID:', err);
-                              }
 
-                              const nextSaleId = 'V' + nextSaleNum.toString().padStart(10, '0');
+                                if (vIds.length > 0) nextSaleNum = Math.max(...vIds) + 1;
+                            }
 
-                              const opCheck = await api.getOperation(selectedReservation.quoteId);
-                               const exists = opCheck.ok;
-                               let existingOp: any = null;
-                               if (exists) existingOp = await opCheck.json();
+                            const nextSaleId = 'V' + nextSaleNum.toString().padStart(6, '0');
 
-                              const operationData = {
-                                id: exists ? existingOp.id : nextSaleId,
-                                quoteId: (selectedReservation as any).originalQuoteId || selectedReservation.quoteId,
-                                clientName: selectedReservation.clientName,
-                                email: selectedReservation.email,
-                                whatsapp: selectedReservation.whatsapp,
-                                hotelId: selectedReservation.hotelId,
-                                hotelName: selectedReservation.hotelName,
-                                hotelEmail: (selectedReservation as any).hotelEmail || '',
-                                checkIn: selectedReservation.checkIn,
-                                checkOut: selectedReservation.checkOut,
-                                roomType: selectedReservation.roomType,
-                                pax: selectedReservation.pax,
-                                children: selectedReservation.children,
-                                infants: selectedReservation.infants,
-                                totalAmount: selectedReservation.totalAmount,
+                            // Crear el registro en Operaciones EXACTA
+                            const operationPayload = {
+                                ...selectedReservation, 
+                                id: nextSaleId,
+                                status: 'Confirmada',
                                 companions: passengers,
                                 technicalSheet: technicalSheet,
                                 hotelResponseImage: hotelResponseImage,
-                                status: 'Venta Cerrada'
-                              };
+                                paymentProofImage: paymentProofImage
+                            };
 
-                              await api.saveOperation(exists ? selectedReservation.quoteId : null, operationData);
+                            const createOpRes = await api.createOperation(operationPayload);
 
-                              showToast('✅ ¡Venta Cerrada con éxito!');
-                              setSelectedReservation(null);
-                              fetchReservations();
+                            if (createOpRes.ok) {
+                                // Actualizar el estado de la reserva original
+                                await api.updateReservation(selectedReservation.id, {
+                                  status: 'Venta Cerrada',
+                                  technicalSheet: technicalSheet,
+                                  hotelResponseImage: hotelResponseImage,
+                                  paymentProofImage: paymentProofImage
+                                });
+
+                                showToast('✅ ¡Venta Cerrada con éxito!');
+                                setSelectedReservation(null);
+                                fetchReservations();
                             } else {
-                              showToast('❌ Error al actualizar el estado de la reserva.');
+                                const errorData = await createOpRes.json().catch(() => ({}));
+                                showToast(`❌ Error al crear operación: ${errorData.message || 'No se pudo procesar la solicitud.'}`);
                             }
                           } catch (error) {
                             console.error('Error closing reservation:', error);
