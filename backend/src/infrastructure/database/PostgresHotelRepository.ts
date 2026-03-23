@@ -1,5 +1,5 @@
 import type { IHotelRepository, Hotel, Room, SeasonRate } from '../../domain/repositories/IHotelRepository.js';
-import type { Knex } from 'knex';
+import { type Knex } from 'knex';
 import crypto from 'crypto';
 
 export class PostgresHotelRepository implements IHotelRepository {

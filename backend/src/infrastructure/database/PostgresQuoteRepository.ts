@@ -1,4 +1,4 @@
-import type { Knex } from 'knex';
+import { type Knex } from 'knex';
 import type { IQuoteRepository, Quote } from '../../domain/repositories/IQuoteRepository.js';
 
 export class PostgresQuoteRepository implements IQuoteRepository {

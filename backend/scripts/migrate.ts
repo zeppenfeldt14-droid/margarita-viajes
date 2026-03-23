@@ -1,4 +1,4 @@
-import knex from 'knex';
+import { knex } from 'knex';
 import knexConfig from '../knexfile.js';
 
 // Datos estáticos que estaban en localStorage/inventory.ts

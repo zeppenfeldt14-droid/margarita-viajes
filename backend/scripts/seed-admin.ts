@@ -1,4 +1,4 @@
-import knex from 'knex';
+import { knex } from 'knex';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import path from 'path';

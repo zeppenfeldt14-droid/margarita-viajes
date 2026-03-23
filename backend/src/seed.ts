@@ -1,4 +1,4 @@
-import knex from 'knex';
+import { knex } from 'knex';
 import knexConfig from '../knexfile.js';
 import dotenv from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
