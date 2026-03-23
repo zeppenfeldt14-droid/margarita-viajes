@@ -1,8 +1,8 @@
-import nodemailer from 'nodemailer';
+import nodemailer, { type Transporter } from 'nodemailer';
 import twilio from 'twilio';
 
 export class NotificationService {
-  private transporter: nodemailer.Transporter;
+  private transporter: Transporter;
   private twilioClient?: twilio.Twilio;
 
   constructor() {
@@ -108,4 +108,3 @@ export class NotificationService {
     }
   }
 }
-

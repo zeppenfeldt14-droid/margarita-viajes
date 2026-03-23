@@ -1,14 +1,14 @@
-import { Request, Response } from 'express';
-import { IHotelRepository } from '../../../domain/repositories/IHotelRepository.js';
-import { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
-import { IRoomRepository } from '../../../domain/repositories/IRoomRepository.js';
-import { IAuditRepository } from '../../../domain/repositories/IAuditRepository.js';
-import { ITransferRepository } from '../../../domain/repositories/ITransferRepository.js';
-import { IQuoteRepository } from '../../../domain/repositories/IQuoteRepository.js';
-import { IWebConfigRepository } from '../../../domain/repositories/IWebConfigRepository.js';
-import { IOperationRepository } from '../../../domain/repositories/IOperationRepository.js';
-import { IReservationRepository } from '../../../domain/repositories/IReservationRepository.js';
-import { ICouponRepository } from '../../../domain/repositories/ICouponRepository.js';
+import type { Request, Response } from 'express';
+import type { IHotelRepository } from '../../../domain/repositories/IHotelRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { IRoomRepository } from '../../../domain/repositories/IRoomRepository.js';
+import type { IAuditRepository } from '../../../domain/repositories/IAuditRepository.js';
+import type { ITransferRepository } from '../../../domain/repositories/ITransferRepository.js';
+import type { IQuoteRepository } from '../../../domain/repositories/IQuoteRepository.js';
+import type { IWebConfigRepository } from '../../../domain/repositories/IWebConfigRepository.js';
+import type { IOperationRepository } from '../../../domain/repositories/IOperationRepository.js';
+import type { IReservationRepository } from '../../../domain/repositories/IReservationRepository.js';
+import type { ICouponRepository } from '../../../domain/repositories/ICouponRepository.js';
 import { NotificationService } from '../../services/NotificationService.js';
 
 export class AdminController {
@@ -352,3 +352,4 @@ export class AdminController {
     }
   }
 }
+创新管理

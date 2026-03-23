@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express, { type Request, type Response, type NextFunction } from 'express';
 import cors from 'cors';
 import { knex } from 'knex';
 import knexConfig from '../knexfile.js';
@@ -18,10 +18,9 @@ import { CalculateQuotePrice } from './application/use-cases/CalculateQuotePrice
 import { QuoteController } from './infrastructure/webserver/controllers/QuoteController.js';
 import { AdminController } from './infrastructure/webserver/controllers/AdminController.js';
 import { AuthController } from './infrastructure/webserver/controllers/AuthController.js';
-import { createRouter } from './infrastructure/webserver/routes/api.js';
-
-import { NotificationService } from './infrastructure/services/NotificationService.js';
 import dotenv from 'dotenv';
+import { createRouter } from './infrastructure/webserver/routes/api.js';
+import { NotificationService } from './infrastructure/services/NotificationService.js';
 
 dotenv.config();
 
