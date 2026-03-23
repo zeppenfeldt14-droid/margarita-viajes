@@ -1,8 +1,8 @@
-import type { Knex } from 'knex';
+import type Knex from 'knex';
 import type { IOperationRepository, Operation, OperationSequence } from '../../domain/repositories/IOperationRepository.js';
 
 export class PostgresOperationRepository implements IOperationRepository {
-  constructor(private db: Knex) {}
+  constructor(private db: Knex.Knex) {}
 
   async findAll(): Promise<Operation[]> {
     return await this.db('operations').select('*').orderBy('created_at', 'desc');

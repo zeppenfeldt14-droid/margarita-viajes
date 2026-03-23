@@ -1,7 +1,7 @@
-import type { Knex } from 'knex';
+import type Knex from 'knex';
 import bcrypt from 'bcrypt';
 
-export async function initDatabase(db: Knex) {
+export async function initDatabase(db: Knex.Knex) {
   const isProd = db.client.config.client === 'postgresql' || !!process.env.DATABASE_URL;
   console.log('[Database] Iniciando verificación de esquema...');
 

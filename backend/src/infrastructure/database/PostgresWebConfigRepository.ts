@@ -1,8 +1,8 @@
-import type { Knex } from 'knex';
+import type Knex from 'knex';
 import type { IWebConfigRepository } from '../../domain/repositories/IWebConfigRepository.js';
 
 export class PostgresWebConfigRepository implements IWebConfigRepository {
-  constructor(private db: Knex) {}
+  constructor(private db: Knex.Knex) {}
 
   async getConfig(): Promise<any> {
     const rows = await this.db('web_config').select('*');

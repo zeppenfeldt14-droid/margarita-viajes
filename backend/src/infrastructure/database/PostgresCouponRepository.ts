@@ -1,8 +1,8 @@
-import type { Knex } from 'knex';
+import type Knex from 'knex';
 import type { ICouponRepository, Coupon } from '../../domain/repositories/ICouponRepository.js';
 
 export class PostgresCouponRepository implements ICouponRepository {
-  constructor(private db: Knex) {}
+  constructor(private db: Knex.Knex) {}
 
   async findAll(): Promise<Coupon[]> {
     return await this.db('coupons').select('*');
