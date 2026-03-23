@@ -30,12 +30,13 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// CORS configurable y unificado
 app.use(cors({
-  origin: '*',
+  origin: ['https://margarita-viajes.vercel.app', 'http://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  credentials: true
 }));
+app.options('*', cors());
 
 app.use(express.json({ limit: '50mb' }));
 
