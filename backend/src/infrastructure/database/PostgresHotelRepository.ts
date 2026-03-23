@@ -1,9 +1,10 @@
 import type { IHotelRepository, Hotel, Room, SeasonRate } from '../../domain/repositories/IHotelRepository.js';
-import type * as KnexModule from 'knex';
+import knexPkg from 'knex';
+type Knex = knexPkg.Knex;
 import crypto from 'crypto';
 
 export class PostgresHotelRepository implements IHotelRepository {
-  constructor(private db: KnexModule.Knex) {}
+  constructor(private db: Knex) {}
 
   async findAll(): Promise<Hotel[]> {
     const hotels = await this.db('hotels').select('*').orderBy('name', 'asc');

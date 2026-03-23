@@ -1,8 +1,9 @@
 import type { IAuditRepository, AuditLog } from '../../domain/repositories/IAuditRepository.js';
-import type * as KnexModule from 'knex';
+import knexPkg from 'knex';
+type Knex = knexPkg.Knex;
 
 export class PostgresAuditRepository implements IAuditRepository {
-  constructor(private db: KnexModule.Knex) {}
+  constructor(private db: Knex) {}
 
   async log(audit: AuditLog): Promise<void> {
     await this.db('audit_trail').insert({

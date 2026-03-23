@@ -1,8 +1,9 @@
 import type { ISeasonRepository, Season } from '../../domain/repositories/ISeasonRepository.js';
-import type * as KnexModule from 'knex';
+import knexPkg from 'knex';
+type Knex = knexPkg.Knex;
 
 export class PostgresSeasonRepository implements ISeasonRepository {
-  constructor(private db: KnexModule.Knex) {}
+  constructor(private db: Knex) {}
 
   async findIntersecting(roomId: string, checkIn: string, checkOut: string): Promise<Season[]> {
     // 1. Encontrar a qué hotel pertenece la habitación
