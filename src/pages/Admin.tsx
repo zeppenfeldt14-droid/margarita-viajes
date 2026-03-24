@@ -326,7 +326,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                       className="bg-white border-2 border-gray-100 rounded-2xl pl-12 pr-6 py-4 text-[10px] font-black uppercase outline-none focus:border-orange-500 w-full" 
                     />
                   </div>
-                  <button onClick={() => setShowModal(true)} className="bg-[#0B132B] text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-orange-600 transition-all flex items-center gap-3 shrink-0"><Plus size={18} /> Nueva Carga</button>
+                  <button onClick={() => setShowModal(true)} className="bg-[#0B132B] text-white px-6 py-3 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-orange-600 transition-all flex items-center gap-3 shrink-0"><Plus size={18} /> Nueva Carga</button>
                 </div>
               </div>
               <div className="flex flex-col md:flex-row md:items-center gap-6">
@@ -391,9 +391,9 @@ export default function AdminDashboard({ user }: AdminProps) {
                 <SectionTitle>Gestión de Cotizaciones</SectionTitle>
                 <div className="flex flex-wrap items-center gap-4">
                   <div className="flex bg-gray-100 p-1.5 rounded-2xl overflow-hidden border border-gray-200">
-                    {(['original', 'discounted', 'unassigned', 'history'] as const).map(f => (
+                    {(['original', 'discounted', 'history'] as const).map(f => (
                       <button key={f} onClick={() => setQuoteFilter(f)} className={`px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${quoteFilter === f ? 'bg-[#0B132B] text-white shadow-lg' : 'text-gray-400 hover:text-[#0B132B]'}`}>
-                        {f === 'original' ? 'Originales' : f === 'discounted' ? 'Con Desc.' : f === 'unassigned' ? 'Sin Asignar' : 'Historial'}
+                        {f === 'original' ? 'Originales' : f === 'discounted' ? 'Con Desc.' : 'Historial'}
                       </button>
                     ))}
                   </div>
@@ -408,11 +408,10 @@ export default function AdminDashboard({ user }: AdminProps) {
                   <table className="w-full text-left">
                     <thead>
                       <tr className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">
-                        <th className="pb-6 px-4">FOLIO</th>
-                        <th className="pb-6 px-4">CLIENTE / HOTEL</th>
-                        <th className="pb-6 px-4">FECHAS</th>
-                        <th className="pb-6 px-4 text-center">TOTAL</th>
+                        <th className="pb-6 px-4">COTIZACIÓN / CLIENTE</th>
+                        <th className="pb-6 px-4 text-center">FECHAS / TOTAL</th>
                         <th className="pb-6 px-4">ESTADO</th>
+                        <th className="pb-6 px-4">ASESOR</th>
                         <th className="pb-6 px-4 text-right">ACCIONES</th>
                       </tr>
                     </thead>
@@ -431,22 +430,28 @@ export default function AdminDashboard({ user }: AdminProps) {
                           if (!matchesSearch) return false;
                           if (quoteFilter === 'original') return q.status === 'Nuevo' && !String(q.id).includes('-01');
                           if (quoteFilter === 'discounted') return String(q.id).includes('-01');
-                          if (quoteFilter === 'unassigned') return !q.assignedTo || q.assignedTo === '';
                           if (quoteFilter === 'history') return q.status === 'Atendido' || q.status === 'Reserva' || q.status === 'Nuevo';
                           return true;
                         })
                         .map((quote: Quotation) => (
                           <tr key={quote.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                            <td className="py-5 px-4">
+                            <td className="py-2.5 px-4 text-[10px] font-black uppercase">
                               <div className="flex flex-col">
-                                <span className="font-black italic text-orange-600">{quote.id}</span>
-                                <div className="text-[8px] text-gray-400 mt-1 font-bold">{formatDateTimeVisual(quote.date || quote.created_at)}</div>
+                                <span className="font-black italic text-orange-600 text-[11px] leading-tight">{quote.id}</span>
+                                <span className="font-black italic uppercase text-[#0B132B] truncate max-w-[200px]">{quote.clientName || quote.client_name}</span>
+                                <div className="flex items-center gap-1.5 opacity-60 overflow-hidden">
+                                  <span className="text-[8px] tracking-tight truncate">{quote.hotelName || quote.hotel_name}</span>
+                                  {quote.plan && <span className="bg-orange-50 text-orange-600 text-[7px] px-1 py-0.5 rounded font-black uppercase">{quote.plan}</span>}
+                                </div>
                               </div>
                             </td>
-                            <td className="py-5 px-4"><div className="flex flex-col"><span className="font-black italic uppercase text-[#0B132B]">{quote.clientName || quote.client_name}</span><div className="flex items-center gap-1.5"><span className="text-[9px] text-gray-400 uppercase font-bold">{quote.hotelName || quote.hotel_name}</span>{quote.plan && <span className="bg-orange-50 text-orange-600 text-[8px] px-1.5 py-0.5 rounded font-black uppercase">{quote.plan}</span>}</div></div></td>
-                            <td className="py-5 px-4 text-[10px] font-black uppercase"><div className="flex items-center gap-1"><Calendar size={10} className="text-orange-500" /> {formatDateVisual(quote.checkIn || quote.check_in)}</div><div className="flex items-center gap-1 opacity-50"><Calendar size={10} /> {formatDateVisual(quote.checkOut || quote.check_out)}</div></td>
-                            <td className="py-5 px-4 text-center font-black italic text-orange-600">$ {Number(quote.totalAmount || quote.total_amount).toLocaleString()}</td>
-                            <td className="py-5 px-4">
+                            <td className="py-2.5 px-4">
+                              <div className="flex flex-col gap-0.5">
+                                <div className="flex items-center gap-1 text-[9px] font-black uppercase"><Calendar size={10} className="text-orange-500" /> {formatDateVisual(quote.checkIn || quote.check_in)}</div>
+                                <div className="font-black italic text-orange-600 text-[11px]">$ {Number(quote.totalAmount || quote.total_amount).toLocaleString()}</div>
+                              </div>
+                            </td>
+                            <td className="py-2.5 px-4">
                               <select
                                 value={quote.status}
                                 onChange={async (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -544,7 +549,28 @@ export default function AdminDashboard({ user }: AdminProps) {
                                 <option value="Atendido" disabled={['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(quote.status)}>Atendido</option>
                               </select>
                             </td>
-                            <td className="py-5 px-4 text-right"><button onClick={() => setSelectedQuote(quote)} className="bg-[#0B132B] text-white px-6 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-orange-600 transition-all">VER</button></td>
+                            <td className="py-2.5 px-4">
+                              <select
+                                value={quote.assignedTo || ''}
+                                disabled={!isDataMaster}
+                                onChange={async (e) => {
+                                  try {
+                                    await api.updateQuote(quote.id, { assignedTo: e.target.value });
+                                    setQuotes(prev => prev.map(q => q.id === quote.id ? { ...q, assignedTo: e.target.value } : q));
+                                    showToast(`Asignado a ${e.target.value}`, 'success');
+                                  } catch (err: any) {
+                                    showToast(err.message, 'error');
+                                  }
+                                }}
+                                className="bg-gray-50 border-0 px-2 py-1.2 rounded-full text-[8px] font-black uppercase outline-none ring-1 ring-inset ring-gray-200 focus:ring-orange-500 w-full max-w-[100px] cursor-pointer"
+                              >
+                                <option value="">SIN ASIGNAR</option>
+                                {users.map(u => (
+                                  <option key={u.id} value={u.alias}>{u.alias}</option>
+                                ))}
+                              </select>
+                            </td>
+                            <td className="py-2.5 px-4 text-right"><button onClick={() => setSelectedQuote(quote)} className="bg-[#0B132B] text-white px-4 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-orange-600 transition-all border-0 ring-1 ring-inset ring-white/10">VER</button></td>
                           </tr>
                         ))
                       }
@@ -1047,11 +1073,26 @@ export default function AdminDashboard({ user }: AdminProps) {
                     </button>
                     <button 
                       onClick={() => {
+                        const folio = selectedQuote.id || selectedQuote.folio;
+                        const link = document.createElement('a');
+                        link.href = `https://margarita-viajes.onrender.com/api/public/quotes/${folio}/pdf`;
+                        link.download = `Cotizacion_${folio}.pdf`;
+                        link.target = '_blank';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }} 
+                      className="w-full bg-slate-700 text-white py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Download size={16} /> Descargar PDF
+                    </button>
+                    <button 
+                      onClick={() => {
                         const pdfLink = `https://margarita-viajes.onrender.com/api/public/quotes/${selectedQuote.id}/pdf`;
                         const whatsappText = encodeURIComponent(`Hola ${selectedQuote.clientName || selectedQuote.client_name}, aquí tienes tu cotización en PDF: ${pdfLink}`);
                         window.open(`https://wa.me/${(selectedQuote.whatsapp || '').replace(/\D/g, '')}?text=${whatsappText}`, '_blank');
                       }} 
-                      className="w-full bg-green-500 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-green-600 transition-all flex items-center justify-center gap-2 shadow-lg"
+                      className="w-full bg-green-500 text-white py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-green-600 transition-all flex items-center justify-center gap-2 shadow-lg"
                     >
                       <Briefcase size={16} /> Contactar por WhatsApp
                     </button>
@@ -1213,7 +1254,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                         showToast('❌ Error al procesar el pase a reserva.');
                       }
                     }}
-                    className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full bg-blue-600 text-white py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg"
                   >
                     <Briefcase size={16} /> Pasar a Reserva
                   </button>
@@ -1230,7 +1271,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                 </div>
               </div>
               <div className="p-8 border-t border-gray-100 flex gap-4">
-                <button onClick={() => { setSelectedQuote(null); setDiscount(0); setCustomDiscount(''); setCompanions([]); }} className="flex-1 bg-gray-100 text-[#0B132B] py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-200 transition-all">
+                <button onClick={() => { setSelectedQuote(null); setDiscount(0); setCustomDiscount(''); setCompanions([]); }} className="flex-1 bg-gray-100 text-[#0B132B] py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-200 transition-all border border-gray-200">
                   Cerrar
                 </button>
               </div>
