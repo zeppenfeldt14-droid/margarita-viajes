@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useLocation } from "wouter";
 import { LayoutDashboard, Inbox, Hotel, FileText, Settings, Users, LogOut } from "lucide-react";
+import { api } from "../services/api";
 
 export default function AdminLayout({ children, onLogout, userPermissions }: { children: React.ReactNode, onLogout?: () => void, userPermissions?: any }) {
   const [location, setLocation] = useLocation();
@@ -22,6 +23,39 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
     if (!userPermissions) return true; // Fallback
     return userPermissions[item.module] === true;
   });
+
+  // Tarea D: Inactivity Timeout (5 minutes)
+  useEffect(() => {
+    let timeout: any;
+    
+    const resetTimer = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(async () => {
+        // Log inactivity before clearing storage (to ensure we have the token/identity)
+        try {
+          await api.createLog({
+            action: 'LOGOUT_INACTIVITY',
+            details: 'Cierre de sesión automático tras 5 minutos de inactividad detectada.'
+          });
+        } catch (e) {
+          console.error("Error logging inactivity:", e);
+        }
+        
+        // Clear and redirect
+        localStorage.clear();
+        window.location.href = "/login";
+      }, 5 * 60 * 1000); // 5 minutes
+    };
+
+    const events = ['mousemove', 'keydown', 'click', 'scroll'];
+    events.forEach(e => window.addEventListener(e, resetTimer));
+    resetTimer();
+
+    return () => {
+      clearTimeout(timeout);
+      events.forEach(e => window.removeEventListener(e, resetTimer));
+    };
+  }, []);
 
   const userName = localStorage.getItem("staff_user") || "Admin";
   const userRole = localStorage.getItem("staff_user_role") || "Staff";

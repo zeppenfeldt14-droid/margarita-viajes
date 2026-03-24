@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Camera, Plus, ShieldCheck, Target, X } from 'lucide-react';
+import { Camera, Plus, Search, ShieldCheck, Target, Trash2, X } from 'lucide-react';
 import { api } from '../../services/api';
 import { Card, SectionTitle } from './Common';
 import { InputField } from './FormFields';
@@ -17,12 +17,15 @@ export default function UsersList() {
 
   const defaultModules = { inventory: true, quotes: true, bookings: true, operations: true, users: false, customers: true, marketing: false, settings: false };
   const [newUser, setNewUser] = useState<any>({ name: '', alias: '', email: '', password: '', role: '', dailyQuota: 20, active: true, level: 3, photo: '', inRoulette: true, modules: defaultModules });
+  const [searchTerm, setSearchTerm] = useState('');
   
   // BITACORA STATES
   const [allLogs, setAllLogs] = useState<any[]>([]);
   const [filterMonth, setFilterMonth] = useState('');
   const [filterStart, setFilterStart] = useState('');
   const [filterEnd, setFilterEnd] = useState('');
+  const [filterLogUser, setFilterLogUser] = useState('');
+  const [filterLogAction, setFilterLogAction] = useState('');
   const [isGlobalLog, setIsGlobalLog] = useState(false);
 
   const fetchUsers = async () => {
@@ -50,7 +53,7 @@ export default function UsersList() {
 
   const handleSaveUser = async () => {
     if (!newUser.name || !newUser.alias || !newUser.email || (!newUser.id && !newUser.password)) {
-      return alert('Completa los campos obligatorios. La contraseÃ±a es requerida al crear un nuevo perfil.');
+      return alert('Completa los campos obligatorios. La contraseña es requerida al crear un nuevo perfil.');
     }
 
     try {
@@ -72,7 +75,7 @@ export default function UsersList() {
       }
     } catch (error: any) {
       console.error('Error:', error);
-      alert(`Error de conexiÃ³n: ${error.message || 'Error desconocido'}`);
+      alert(`Error de conexión: ${error.message || 'Error desconocido'}`);
     }
   };
 
@@ -97,7 +100,7 @@ export default function UsersList() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <SectionTitle>GestiÃ³n de Perfiles y Accesos</SectionTitle>
+        <SectionTitle>Gestión de Perfiles y Accesos</SectionTitle>
         <div className="flex gap-4">
           <button onClick={() => {
             setIsGlobalLog(true);
@@ -115,13 +118,41 @@ export default function UsersList() {
         </div>
       </div>
 
+      <div className="relative">
+        <div className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400">
+          <Search size={18} />
+        </div>
+        <input 
+          type="text" 
+          placeholder="Buscar usuarios por nombre o alias..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full bg-white border-2 border-gray-100 rounded-2xl px-14 py-5 text-sm font-bold text-[#0B132B] outline-none focus:border-orange-500/50 transition-all shadow-sm"
+        />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {users.length === 0 ? (
-           <p className="text-gray-400 text-xs font-bold uppercase col-span-3 text-center py-10">No hay usuarios registrados</p>
+        {users.filter(u => 
+          (u.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+          (u.alias || '').toLowerCase().includes(searchTerm.toLowerCase())
+        ).length === 0 ? (
+           <p className="text-gray-400 text-xs font-bold uppercase col-span-3 text-center py-10">
+             {searchTerm ? 'No se encontraron usuarios para esta búsqueda' : 'No hay usuarios registrados'}
+           </p>
         ) : (
-          users.map((u: any) => (
+          users.filter(u => 
+            (u.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+            (u.alias || '').toLowerCase().includes(searchTerm.toLowerCase())
+          ).map((u: any) => (
             <Card key={u.id} className="relative overflow-hidden border-2 border-gray-50 shadow-sm hover:border-orange-200 transition-all flex flex-col justify-between">
-              <div className="flex items-center gap-4 mb-6">
+              {/* Tarea C: Status Badge at top right */}
+              <div className="absolute top-4 right-4 z-10">
+                <span className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest ${u.active ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-red-50 text-red-600 border border-red-100'}`}>
+                  {u.active ? 'ACTIVO' : 'INACTIVO'}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-4 mb-6 relative">
                 <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 font-black text-2xl uppercase shadow-inner overflow-hidden shrink-0">
                   {u.photo ? (
                     <img src={u.photo} alt={u.name} className="w-full h-full object-cover" />
@@ -142,40 +173,41 @@ export default function UsersList() {
                   <span className="text-xs font-black text-blue-600">{u.level || 3}</span>
                 </div>
                 <div className="bg-orange-50 p-2 rounded-xl text-center">
-                  <span className="block text-[8px] font-black text-orange-400 uppercase tracking-widest">META / DÃA</span>
+                  <span className="block text-[8px] font-black text-orange-400 uppercase tracking-widest">META / DÍA</span>
                   <span className="text-xs font-black text-orange-600">{u.dailyQuota || 0}</span>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-gray-50 flex justify-between items-center gap-2">
-                <span className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest ${u.active ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                  {u.active ? 'ACTIVO' : 'INACTIVO'}
-                </span>
-                <div className="flex gap-2">
-                  <button onClick={() => {
-                    setIsGlobalLog(false);
-                    setShowLogsModal(u);
-                    fetchLogs();
-                  }} className="bg-blue-600 text-white px-3 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-md">
-                    BITÁCORA
-                  </button>
-                  <button onClick={() => {
-                    setNewUser({ 
-                      ...u, 
-                      name: u.name || u.fullName, 
-                      password: '', 
-                      modules: u.modules || defaultModules 
-                    });
-                    setShowUserModal(true);
-                  }} className="bg-[#0B132B] text-white px-3 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-md">
-                    EDITAR
-                  </button>
+              <div className="pt-4 border-t border-gray-100 flex justify-between items-center gap-2">
+                <div className="flex gap-2 w-full justify-between items-center">
+                  <div className="flex gap-2">
+                    <button onClick={() => {
+                      setIsGlobalLog(false);
+                      setShowLogsModal(u);
+                      fetchLogs();
+                    }} className="bg-blue-600 text-white px-3 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-md">
+                      BITÁCORA
+                    </button>
+                    <button onClick={() => {
+                      setNewUser({ 
+                        ...u, 
+                        name: u.name || u.fullName, 
+                        password: '', 
+                        modules: u.modules || defaultModules 
+                      });
+                      setShowUserModal(true);
+                    }} className="bg-[#0B132B] text-white px-3 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-md">
+                      EDITAR
+                    </button>
+                  </div>
+                  
                   {isMasterAdmin && (
                     <button 
-                      onClick={() => handleDeleteUser(u.id, u.name || u.fullName)}
-                      className="bg-red-50 text-red-500 border border-red-100 px-3 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                      onClick={() => handleDeleteUser(u.id, u.name)}
+                      className="text-red-400 hover:text-red-600 p-2 transition-colors"
+                      title="Eliminar Perfil"
                     >
-                      ELIMINAR
+                      <Trash2 size={18} />
                     </button>
                   )}
                 </div>
@@ -220,8 +252,8 @@ export default function UsersList() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField name="email" label="CORREO ELECTRÃ“NICO" type="email" placeholder="ejemplo@margaritaviajes.com" value={newUser.email} onChange={(e: any) => setNewUser({...newUser, email: e.target.value})} />
-                <InputField name="password" label={newUser.id ? "CONTRASEÃ‘A (Dejar en blanco para no cambiar)" : "CONTRASEÃ‘A (OBLIGATORIA)"} type="password" placeholder="********" value={newUser.password || ''} onChange={(e: any) => setNewUser({...newUser, password: e.target.value})} />
+                <InputField name="email" label="CORREO ELECTRÓNICO" type="email" placeholder="ejemplo@margaritaviajes.com" value={newUser.email} onChange={(e: any) => setNewUser({...newUser, email: e.target.value})} />
+                <InputField name="password" label={newUser.id ? "CONTRASEÑA (Dejar en blanco para no cambiar)" : "CONTRASEÑA (OBLIGATORIA)"} type="password" placeholder="********" value={newUser.password || ''} onChange={(e: any) => setNewUser({...newUser, password: e.target.value})} />
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-blue-50/50 p-6 rounded-3xl border border-blue-50">
@@ -267,7 +299,7 @@ export default function UsersList() {
                   <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">NIVEL DE ACCESO</label>
                   <select value={newUser.level} onChange={(e) => setNewUser({...newUser, level: Number(e.target.value)})} className="w-full bg-white border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-500/20 shadow-sm">
                     <option value={1}>Nivel 1 (Total)</option>
-                    <option value={2}>Nivel 2 (SupervisiÃ³n)</option>
+                    <option value={2}>Nivel 2 (Supervisión)</option>
                     <option value={3}>Nivel 3 (Ventas)</option>
                     <option value={4}>Nivel 4 (Soporte/Otros)</option>
                   </select>
@@ -276,7 +308,7 @@ export default function UsersList() {
               </div>
 
               <div className="bg-purple-50/50 p-6 rounded-3xl border border-purple-100 space-y-4">
-                <h4 className="text-[10px] font-black text-purple-600 uppercase tracking-widest flex items-center gap-2"><ShieldCheck size={14}/> MÃ³dulos Autorizados</h4>
+                <h4 className="text-[10px] font-black text-purple-600 uppercase tracking-widest flex items-center gap-2"><ShieldCheck size={14}/> Módulos Autorizados</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
                     { id: 'inventory', label: 'Inventario' },
@@ -286,7 +318,7 @@ export default function UsersList() {
                     { id: 'users', label: 'Usuarios' },
                     { id: 'customers', label: 'Clientes' },
                     { id: 'marketing', label: 'Marketing' },
-                    { id: 'settings', label: 'ConfiguraciÃ³n' }
+                    { id: 'settings', label: 'Configuración' }
                   ].map(mod => {
                     const isAuthorized = newUser.modules?.[mod.id] !== false;
                     return (
@@ -302,7 +334,7 @@ export default function UsersList() {
               </div>
 
               <div className="bg-orange-50/50 p-6 rounded-3xl border border-orange-50 space-y-4">
-                <h4 className="text-[10px] font-black text-orange-600 uppercase tracking-widest flex items-center gap-2"><Target size={14}/> AsignaciÃ³n y Ruleta</h4>
+                <h4 className="text-[10px] font-black text-orange-600 uppercase tracking-widest flex items-center gap-2"><Target size={14}/> Asignación y Ruleta</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center justify-between bg-white p-3 rounded-xl shadow-sm border border-gray-50">
                     <span className="text-[10px] font-bold text-gray-600 uppercase">Estado del Perfil:</span>
@@ -314,7 +346,7 @@ export default function UsersList() {
                   <div className="flex items-center justify-between bg-white p-3 rounded-xl shadow-sm border border-gray-50">
                     <span className="text-[10px] font-bold text-gray-600 uppercase">Recibir Leads (Ruleta):</span>
                     <select value={newUser.inRoulette !== false ? 'true' : 'false'} onChange={(e) => setNewUser({...newUser, inRoulette: e.target.value === 'true'})} className="bg-gray-50 rounded-lg px-3 py-1.5 text-[10px] font-black uppercase outline-none border-none focus:ring-2 focus:ring-orange-500/20">
-                      <option value="true">SÃ­, Asignar</option>
+                      <option value="true">Sí, Asignar</option>
                       <option value="false">No Asignar</option>
                     </select>
                   </div>
@@ -341,7 +373,15 @@ export default function UsersList() {
                 </p>
               </div>
               <button 
-                onClick={() => { setShowLogsModal(null); setIsGlobalLog(false); setFilterMonth(''); setFilterStart(''); setFilterEnd(''); }} 
+                onClick={() => { 
+                  setShowLogsModal(null); 
+                  setIsGlobalLog(false); 
+                  setFilterMonth(''); 
+                  setFilterStart(''); 
+                  setFilterEnd(''); 
+                  setFilterLogUser('');
+                  setFilterLogAction('');
+                }} 
                 className="w-10 h-10 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-all"
               >
                 <X size={20} />
@@ -387,6 +427,37 @@ export default function UsersList() {
                 />
               </div>
 
+              {isGlobalLog && (
+                <div className="flex flex-col gap-1">
+                  <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Usuario</label>
+                  <select 
+                    value={filterLogUser} 
+                    onChange={(e) => setFilterLogUser(e.target.value)}
+                    className="bg-white border-2 border-gray-100 rounded-xl px-4 py-2 text-[10px] font-bold outline-none focus:border-blue-500 transition-all"
+                  >
+                    <option value="">Todos los usuarios</option>
+                    {Array.from(new Set(allLogs.map(l => l.user_name || l.alias || 'Sistema')))
+                      .filter(Boolean)
+                      .sort()
+                      .map(name => <option key={name} value={name}>{name}</option>)
+                    }
+                  </select>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-1">
+                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Tipo de Acción</label>
+                <select 
+                  value={filterLogAction} 
+                  onChange={(e) => setFilterLogAction(e.target.value)}
+                  className="bg-white border-2 border-gray-100 rounded-xl px-4 py-2 text-[10px] font-bold outline-none focus:border-blue-500 transition-all"
+                >
+                  <option value="">Todos los tipos</option>
+                  <option value="CONEXION">Conexión / Login</option>
+                  <option value="GESTION">Gestión / Operaciones</option>
+                </select>
+              </div>
+
               <button 
                 onClick={() => {
                   const filtered = allLogs.filter(log => {
@@ -397,6 +468,13 @@ export default function UsersList() {
                     if (filterMonth && !logDate.startsWith(filterMonth)) return false;
                     if (filterStart && logDate < filterStart) return false;
                     if (filterEnd && logDate > filterEnd + 'T23:59:59') return false;
+                    
+                    if (filterLogUser && (log.user_name || log.alias || 'Sistema') !== filterLogUser) return false;
+                    if (filterLogAction) {
+                      const isLogin = log.action_type === 'LOGIN' || log.action?.includes('LOGIN');
+                      if (filterLogAction === 'CONEXION' && !isLogin) return false;
+                      if (filterLogAction === 'GESTION' && isLogin) return false;
+                    }
                     
                     return true;
                   });
@@ -450,6 +528,13 @@ export default function UsersList() {
                     if (filterStart && logDate < filterStart) return false;
                     if (filterEnd && logDate > filterEnd + 'T23:59:59') return false;
                     
+                    if (filterLogUser && (log.user_name || log.alias || 'Sistema') !== filterLogUser) return false;
+                    if (filterLogAction) {
+                      const isLogin = log.action_type === 'LOGIN' || log.action?.includes('LOGIN');
+                      if (filterLogAction === 'CONEXION' && !isLogin) return false;
+                      if (filterLogAction === 'GESTION' && isLogin) return false;
+                    }
+
                     return true;
                   }).length === 0 ? (
                     <tr>
@@ -465,6 +550,13 @@ export default function UsersList() {
                       if (filterStart && logDate < filterStart) return false;
                       if (filterEnd && logDate > filterEnd + 'T23:59:59') return false;
                       
+                      if (filterLogUser && (log.user_name || log.alias || 'Sistema') !== filterLogUser) return false;
+                      if (filterLogAction) {
+                        const isLogin = log.action_type === 'LOGIN' || log.action?.includes('LOGIN');
+                        if (filterLogAction === 'CONEXION' && !isLogin) return false;
+                        if (filterLogAction === 'GESTION' && isLogin) return false;
+                      }
+
                       return true;
                     }).map((log: any, idx: number) => (
                       <tr key={idx} className="hover:bg-gray-50 transition-all group">
