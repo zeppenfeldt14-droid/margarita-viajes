@@ -18,10 +18,20 @@ export const authMiddleware = (roles: string[]) => {
       if (!token) throw new Error();
       const decoded: any = jwt.verify(token, process.env.JWT_SECRET || 'secret_key');
       
-      const isMaster = decoded.role === 'Gerente General' || decoded.role === 'Gerente Operaciones' || decoded.level === 1;
+      const userLevel = Number(decoded.level || 3);
+      const isMaster = userLevel === 1 || decoded.role === 'Gerente General' || decoded.role === 'Gerente Operaciones';
       
-      if (roles.length > 0 && !roles.includes(decoded.role) && !isMaster) {
-        return res.status(403).json({ error: 'Acceso denegado' });
+      // Determine required level from roles array (e.g., ['LEVEL_1', 'LEVEL_2', 'LEVEL_3'])
+      let requiredLevel = 3;
+      if (roles.includes('LEVEL_1')) requiredLevel = 1;
+      else if (roles.includes('LEVEL_2')) requiredLevel = 2;
+      else if (roles.includes('LEVEL_3')) requiredLevel = 3;
+
+      // Access granted if user is Master (Level 1) or has the specific role, or meets the level requirement
+      const hasAccess = isMaster || roles.includes(decoded.role) || userLevel <= requiredLevel;
+
+      if (roles.length > 0 && !hasAccess) {
+        return res.status(403).json({ error: 'Acceso denegado (Nivel insuficiente)' });
       }
 
       (req as any).user = decoded;

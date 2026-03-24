@@ -35,7 +35,7 @@ export function createRouter(
   router.use('/admin', authMiddleware(['LEVEL_1', 'LEVEL_2', 'LEVEL_3']));
   
   // SOLAMENTE NIVEL 1 (GERENTES)
-  const masterAuth = authMiddleware(['Gerente General', 'Gerente Operaciones']);
+  const masterAuth = authMiddleware(['LEVEL_1']);
 
   router.get('/admin/hotels', (req: Request, res: Response) => adminController.getHotels(req, res));
   router.post('/admin/hotels', (req: Request, res: Response) => adminController.createHotel(req, res));
@@ -44,7 +44,8 @@ export function createRouter(
   router.get('/admin/hotels/:hotelId/rooms', (req: Request, res: Response) => adminController.getRoomsByHotel(req, res));
   router.post('/admin/rooms', (req: Request, res: Response) => adminController.createRoom(req, res));
   
-  router.get('/admin/users', masterAuth, (req: Request, res: Response) => adminController.getUsers(req, res));
+  // Usuarios: Lectura permitida para Niveles 2 y 3 (para selectores de reasignación)
+  router.get('/admin/users', (req: Request, res: Response) => adminController.getUsers(req, res));
   router.post('/admin/users', masterAuth, (req: Request, res: Response) => adminController.createUser(req, res));
   router.put('/admin/users/:id', masterAuth, (req: Request, res: Response) => adminController.updateUser(req, res));
   router.delete('/admin/users/:id', masterAuth, (req: Request, res: Response) => adminController.deleteUser(req, res));
@@ -83,9 +84,9 @@ export function createRouter(
   router.put('/admin/coupons/:id', (req: Request, res: Response) => adminController.updateCoupon(req, res));
   router.delete('/admin/coupons/:id', (req: Request, res: Response) => adminController.deleteCoupon(req, res));
 
-  // Logs (NIVEL 1 SOLAMENTE)
+  // Logs: Lectura solo Master (Nivel 1), Escritura para TODOS (Nivel 1, 2, 3)
   router.get('/admin/logs', masterAuth, (req: Request, res: Response) => logController.getLogs(req, res));
-  router.post('/admin/logs', masterAuth, (req: Request, res: Response) => logController.createLog(req, res));
+  router.post('/admin/logs', (req: Request, res: Response) => logController.createLog(req, res));
 
   return router;
 }
