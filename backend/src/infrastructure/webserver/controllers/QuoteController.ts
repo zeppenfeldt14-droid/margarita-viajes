@@ -31,6 +31,11 @@ export class QuoteController {
 
   async saveQuote(req: Request, res: Response) {
     try {
+      // Registrar fecha y hora exacta si no viene en el body
+      if (!req.body.date) {
+        req.body.date = new Date().toISOString();
+      }
+
       // Lógica de Asignación Round-Robin (Backend)
       try {
         const users = await this.userRepo.findAll();

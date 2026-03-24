@@ -395,7 +395,12 @@ export default function AdminDashboard({ user }: AdminProps) {
                         })
                         .map((quote: Quotation) => (
                           <tr key={quote.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                            <td className="py-5 px-4"><span className="font-black italic text-orange-600">{quote.id}</span></td>
+                            <td className="py-5 px-4">
+                              <div className="flex flex-col">
+                                <span className="font-black italic text-orange-600">{quote.id}</span>
+                                <div className="text-[8px] text-gray-400 mt-1 font-bold">{formatDateTimeVisual(quote.date || quote.created_at)}</div>
+                              </div>
+                            </td>
                             <td className="py-5 px-4"><div className="flex flex-col"><span className="font-black italic uppercase text-[#0B132B]">{quote.clientName || quote.client_name}</span><div className="flex items-center gap-1.5"><span className="text-[9px] text-gray-400 uppercase font-bold">{quote.hotelName || quote.hotel_name}</span>{quote.plan && <span className="bg-orange-50 text-orange-600 text-[8px] px-1.5 py-0.5 rounded font-black uppercase">{quote.plan}</span>}</div></div></td>
                             <td className="py-5 px-4 text-[10px] font-black uppercase"><div className="flex items-center gap-1"><Calendar size={10} className="text-orange-500" /> {formatDateVisual(quote.checkIn || quote.check_in)}</div><div className="flex items-center gap-1 opacity-50"><Calendar size={10} /> {formatDateVisual(quote.checkOut || quote.check_out)}</div></td>
                             <td className="py-5 px-4 text-center font-black italic text-orange-600">$ {Number(quote.totalAmount || quote.total_amount).toLocaleString()}</td>
@@ -1146,7 +1151,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                     }`}>
                     {selectedQuote.status}
                   </span>
-                  <span className="text-[10px] font-bold text-gray-400">Fecha: {formatDateVisual(selectedQuote.date)}</span>
+                  <span className="text-[10px] font-bold text-gray-400">Fecha de solicitud: {formatDateTimeVisual(selectedQuote.date || selectedQuote.created_at)}</span>
                 </div>
               </div>
               <div className="p-8 border-t border-gray-100 flex gap-4">
