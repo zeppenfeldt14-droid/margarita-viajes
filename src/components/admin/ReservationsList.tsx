@@ -6,11 +6,12 @@ import { Card, SectionTitle } from './Common';
 import type { Reservation, Hotel as HotelType } from '../../types';
 import { formatDateVisual, compressImage } from '../../utils/helpers';
 
-export default function ReservationsList({ hotels, isDataMaster, userAlias, users }: { 
+export default function ReservationsList({ hotels, isDataMaster, userAlias, users, config }: { 
   hotels: HotelType[]; 
   isDataMaster?: boolean;
   userAlias?: string | null;
   users?: any[];
+  config?: any;
 }) {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -202,6 +203,43 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
               
               <div className="flex-1 overflow-y-auto p-10 print:overflow-visible print-only" id="reservation-print-content">
                 <div className="max-w-3xl mx-auto space-y-10">
+                  {/* ENCABEZADO DEL PDF: 3 COLUMNAS (AGENCIA - INFO - HOTEL) */}
+                  <div className="flex items-center justify-between border-b-2 border-gray-200 pb-6 mb-6">
+                    
+                    {/* Izquierda: Logo Agencia */}
+                    <div className="w-32 h-20 flex items-center justify-start shrink-0">
+                      {config?.logoImage ? (
+                        <img src={config.logoImage} alt="Margarita Viajes" className="max-h-full max-w-full object-contain" crossOrigin="anonymous" />
+                      ) : (
+                        <span className="font-black text-orange-500 text-xl leading-none">Margarita Viajes</span>
+                      )}
+                    </div>
+
+                    {/* Centro: Datos Agencia */}
+                    <div className="flex-1 text-center px-4">
+                      <h2 className="font-black text-lg uppercase text-[#0B132B]">{config?.agencyName || config?.nombreEmpresa || 'Margarita Viajes'}</h2>
+                      <p className="font-bold text-xs text-gray-600 mt-1">RIF: {config?.rif || 'J-40156646-4'} | RTN: {config?.rtn || '13314'}</p>
+                      <p className="text-[11px] text-gray-500 italic mt-2 max-w-sm mx-auto leading-tight">{config?.direccion || 'Calle La Ceiba, Sector El Otro Lado del Río, La Asunción'}</p>
+                    </div>
+
+                    {/* Derecha: Logo Hotel */}
+                    <div className="w-32 h-20 flex items-center justify-end shrink-0">
+                      {(() => {
+                        const hotel = hotels.find(h => h.id === selectedReservation.hotelId || h.name === selectedReservation.hotelName);
+                        const hotelLogo = hotel?.logo || (hotel as any)?.logoImage;
+                        return hotelLogo ? (
+                          <img src={hotelLogo} alt={selectedReservation.hotelName} className="max-h-full max-w-full object-contain rounded-lg" crossOrigin="anonymous" />
+                        ) : (
+                          <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-[8px] text-gray-400 font-bold text-center">SIN LOGO<br />HOTEL</div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-600 p-4 rounded-xl flex justify-between font-black text-xs uppercase text-white mb-6">
+                    <span>Voucher de Reserva: {selectedReservation.clientName}</span>
+                    <span>Folio: {selectedReservation.id?.startsWith('R') ? selectedReservation.id : selectedReservation.quoteId?.replace('C', 'R')}</span>
+                  </div>
                   
                   {/* BLOQUE: CLIENTE */}
                   <div className="bg-gray-50/50 p-8 rounded-[2rem] border border-gray-100">

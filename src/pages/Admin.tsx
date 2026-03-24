@@ -600,7 +600,7 @@ export default function AdminDashboard({ user }: AdminProps) {
           )}
 
           {activeTab === 'bookings' && userModules?.bookings && (
-            <ReservationsList hotels={hotels} isDataMaster={isDataMaster} userAlias={userAlias} users={users} />
+            <ReservationsList hotels={hotels} isDataMaster={isDataMaster} userAlias={userAlias} users={users} config={config} />
           )}
 
           {activeTab === 'operations' && userModules?.operations && (
@@ -612,6 +612,7 @@ export default function AdminDashboard({ user }: AdminProps) {
               isDataMaster={isDataMaster}
               userAlias={userAlias}
               users={users}
+              config={config}
             />
           )}
 

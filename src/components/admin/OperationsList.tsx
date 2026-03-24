@@ -13,7 +13,8 @@ export default function OperationsList({
   setOpFilter,
   isDataMaster,
   userAlias,
-  users
+  users,
+  config
 }: {
   selectedOperation: Operation | null;
   setSelectedOperation: (op: Operation | null) => void;
@@ -22,6 +23,7 @@ export default function OperationsList({
   isDataMaster?: boolean;
   userAlias?: string | null;
   users?: any[];
+  config?: any;
 }) {
   const [operations, setOperations] = useState<Operation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -249,6 +251,40 @@ export default function OperationsList({
             </div>
             
             <div className="flex-1 overflow-y-auto p-8 print:overflow-visible print-only" id="operation-print-content">
+              {/* ENCABEZADO DEL PDF: 3 COLUMNAS (AGENCIA - INFO - HOTEL) */}
+              <div className="flex items-center justify-between border-b-2 border-gray-200 pb-6 mb-6">
+                
+                {/* Izquierda: Logo Agencia */}
+                <div className="w-32 h-20 flex items-center justify-start shrink-0">
+                  {config?.logoImage ? (
+                    <img src={config.logoImage} alt="Margarita Viajes" className="max-h-full max-w-full object-contain" crossOrigin="anonymous" />
+                  ) : (
+                    <span className="font-black text-orange-500 text-xl leading-none">Margarita Viajes</span>
+                  )}
+                </div>
+
+                {/* Centro: Datos Agencia */}
+                <div className="flex-1 text-center px-4">
+                  <h2 className="font-black text-lg uppercase text-[#0B132B]">{config?.agencyName || config?.nombreEmpresa || 'Margarita Viajes'}</h2>
+                  <p className="font-bold text-xs text-gray-600 mt-1">RIF: {config?.rif || 'J-40156646-4'} | RTN: {config?.rtn || '13314'}</p>
+                  <p className="text-[11px] text-gray-500 italic mt-2 max-w-sm mx-auto leading-tight">{config?.direccion || 'Calle La Ceiba, Sector El Otro Lado del Río, La Asunción'}</p>
+                </div>
+
+                {/* Derecha: Logo Hotel */}
+                <div className="w-32 h-20 flex items-center justify-end shrink-0">
+                  {(selectedOperation as any)?.hotelLogo || (selectedOperation as any)?.logo ? (
+                    <img src={(selectedOperation as any)?.hotelLogo || (selectedOperation as any)?.logo} alt={selectedOperation?.hotelName} className="max-h-full max-w-full object-contain rounded-lg" crossOrigin="anonymous" />
+                  ) : (
+                    <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-[8px] text-gray-400 font-bold text-center">SIN LOGO<br />HOTEL</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-[#0B132B] p-4 rounded-xl flex justify-between font-black text-xs uppercase text-white mb-8">
+                <span>Comprobante de Operación: {selectedOperation.clientName}</span>
+                <span>Folio Venta: {selectedOperation.id}</span>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* BLOQUE 1: CONFIRMACIÓN DE HOTEL */}
                 <div className="space-y-4">

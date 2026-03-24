@@ -531,6 +531,79 @@ export default function Quoter() {
         Margarita Viajes C.A.
       </footer>
       <ToastContainer />
+
+      {/* CONTENEDOR OCULTO PARA GENERACIÓN DE PDF (html2canvas compatible) */}
+      <div id="pdf-hidden-container" className="fixed -left-[9999px] top-0 w-[800px] bg-white p-12 font-sans overflow-hidden">
+        {/* ENCABEZADO DEL PDF: 3 COLUMNAS (AGENCIA - INFO - HOTEL) */}
+        <div className="flex items-center justify-between border-b-2 border-gray-200 pb-6 mb-6">
+          
+          {/* Izquierda: Logo Agencia */}
+          <div className="w-32 h-20 flex items-center justify-start shrink-0">
+            {activeConfig?.logoImage ? (
+              <img src={activeConfig.logoImage} alt="Margarita Viajes" className="max-h-full max-w-full object-contain" crossOrigin="anonymous" />
+            ) : (
+              <span className="font-black text-orange-500 text-xl leading-none">Margarita Viajes</span>
+            )}
+          </div>
+
+          {/* Centro: Datos Agencia */}
+          <div className="flex-1 text-center px-4">
+            <h2 className="font-black text-lg uppercase text-[#0B132B]">{activeConfig?.agencyName || activeConfig?.nombreEmpresa || 'Margarita Viajes'}</h2>
+            <p className="font-bold text-xs text-gray-600 mt-1">RIF: {activeConfig?.rif || 'J-40156646-4'} | RTN: {activeConfig?.rtn || '13314'}</p>
+            <p className="text-[11px] text-gray-500 italic mt-2 max-w-sm mx-auto leading-tight">{activeConfig?.direccion || 'Calle La Ceiba, Sector El Otro Lado del Río, La Asunción'}</p>
+          </div>
+
+          {/* Derecha: Logo Hotel */}
+          <div className="w-32 h-20 flex items-center justify-end shrink-0">
+            {selectedHotel?.logo || (selectedHotel as any)?.logoImage ? (
+              <img src={selectedHotel?.logo || (selectedHotel as any)?.logoImage} alt={selectedHotel?.name} className="max-h-full max-w-full object-contain rounded-lg" crossOrigin="anonymous" />
+            ) : (
+              <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-[8px] text-gray-400 font-bold text-center">SIN LOGO<br />HOTEL</div>
+            )}
+          </div>
+
+        </div>
+
+        {/* RESTO DEL CONTENIDO PARA PDF (EMULACIÓN) */}
+        <div className="space-y-6">
+          <div className="bg-slate-100 p-4 rounded-xl flex justify-between font-black text-xs uppercase text-[#0B132B]">
+            <span>Estimado Cliente: {formData.name}</span>
+            <span>Folio: {quoteId}</span>
+          </div>
+
+          <table className="w-full text-left border-collapse">
+            <tbody>
+              <tr className="border-b border-gray-100">
+                <td className="py-3 font-bold text-gray-500 text-[10px] uppercase w-1/4">Hotel/Servicio:</td>
+                <td className="py-3 font-black text-[#0B132B] uppercase">{selectedHotel.name}</td>
+                <td className="py-3 font-bold text-gray-500 text-[10px] uppercase w-1/4">Check-In:</td>
+                <td className="py-3 font-black text-[#0B132B] uppercase">{formData.checkIn}</td>
+              </tr>
+              <tr className="border-b border-gray-100">
+                <td className="py-3 font-bold text-gray-500 text-[10px] uppercase">Plan Seleccionado:</td>
+                <td className="py-3 font-black text-orange-500 uppercase">{selectedHotel.plan || 'No especificado'}</td>
+                <td className="py-3 font-bold text-gray-500 text-[10px] uppercase">Check-Out:</td>
+                <td className="py-3 font-black text-[#0B132B] uppercase">{formData.checkOut}</td>
+              </tr>
+              <tr className="border-b border-gray-100">
+                <td className="py-3 font-bold text-gray-500 text-[10px] uppercase">Categoría:</td>
+                <td className="py-3 font-black text-[#0B132B] uppercase">{selectedHotel.type === 'full-day' ? 'SERVICIO FULL DAY' : (selectedHotel.rooms.find(r => r.id === formData.roomType)?.name || 'Estándar')}</td>
+                <td className="py-3 font-bold text-gray-500 text-[10px] uppercase">Pasajeros:</td>
+                <td className="py-3 font-black text-[#0B132B] uppercase">{formData.pax} Adultos / {formData.children} Niños</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div className="bg-[#0B132B] p-8 rounded-3xl text-white flex justify-between items-center mt-10">
+            <span className="font-black italic uppercase tracking-widest text-sm">Total Neto a Pagar</span>
+            <span className="text-4xl font-black italic">$ {finalPrice.toLocaleString()}</span>
+          </div>
+
+          <p className="text-[10px] font-bold text-red-600 text-center mt-20 uppercase px-12 leading-relaxed">
+            PRECIOS Y DISPONIBILIDAD SUJETOS A CAMBIOS AL MOMENTO DE RESERVA Y EMISIÓN | CONSULTAR SIEMPRE ANTES DE REALIZAR EL PAGO.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

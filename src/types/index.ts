@@ -1,5 +1,5 @@
 export type QuoteStatus = 'Nuevo' | 'Atendido' | 'Reserva' | 'Venta Cerrada' | 'Venta Concretada' | 'Confirmada';
-export type ReservationStatus = 'Confirmada' | 'Cancelada' | 'Completada' | 'Pendiente' | 'Liquidada' | 'Venta Cerrada' | 'Reserva';
+export type ReservationStatus = 'Confirmada' | 'Cancelada' | 'Completada' | 'Pendiente' | 'Liquidada' | 'Venta Cerrada' | 'Venta Concretada' | 'Reserva';
 
 export type Room = { id: string; name: string; capacity: number; }
 
