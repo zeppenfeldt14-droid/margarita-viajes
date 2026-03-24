@@ -33,7 +33,10 @@ export class AdminController {
       // No devolver hashes de password
       const safeUsers = users.map(u => {
         const { passwordHash, ...rest } = u;
-        return rest;
+        return {
+          ...rest,
+          name: u.fullName // Frontend compat
+        };
       });
       return res.json(safeUsers);
     } catch (error: any) {

@@ -14,6 +14,7 @@ export default function AdminLayout({ children, onLogout }: { children: React.Re
     { title: "USUARIOS", path: "/admin/users", icon: <Users size={16} /> },
     { title: "CLIENTES", path: "/admin/customers", icon: <Users size={16} /> },
     { title: "MARKETING", path: "/admin/marketing", icon: <FileText size={16} /> },
+    { title: "BITÁCORA", path: "/admin/logs", icon: <FileText size={16} /> },
     { title: "ADMINISTRACIÓN", path: "/admin/administration", icon: <Settings size={16} /> },
     { title: "CONFIG. WEB", path: "/admin/webconfig", icon: <Settings size={16} /> },
   ];

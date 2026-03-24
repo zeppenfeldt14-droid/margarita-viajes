@@ -50,12 +50,11 @@ export default function Login({ onLogin, onBack }: LoginProps) {
 
         // Registrar bitácora de conexión
         try {
-          await api.saveConnectionLog(data.user.id, {
-            date: new Date().toISOString(),
-            action: 'Inicio de Sesión',
-            success: true,
-            ip: 'Detectada',
-            device: navigator.userAgent
+          await api.createLog({
+            user_id: data.user?.id,
+            user_name: data.user?.name || data.user?.fullName,
+            action_type: 'LOGIN',
+            details: `Inicio de sesión exitoso desde: ${navigator.userAgent}`
           });
         } catch (logErr) {
           console.error("Error al registrar bitácora:", logErr);

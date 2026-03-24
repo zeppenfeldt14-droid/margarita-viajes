@@ -2,13 +2,13 @@ import express from 'express';
 import type { Request, Response } from 'express';
 import { QuoteController } from '../controllers/QuoteController.js';
 import { AdminController } from '../controllers/AdminController.js';
-import { AuthController } from '../controllers/AuthController.js';
-import { authMiddleware } from '../middlewares/auth.js';
+import { LogController } from '../controllers/LogController.js';
 
 export function createRouter(
   quoteController: QuoteController, 
   adminController: AdminController,
-  authController: AuthController
+  authController: AuthController,
+  logController: LogController
 ) {
   const router = express.Router();
 
@@ -76,6 +76,10 @@ export function createRouter(
   router.post('/admin/coupons', (req: Request, res: Response) => adminController.createCoupon(req, res));
   router.put('/admin/coupons/:id', (req: Request, res: Response) => adminController.updateCoupon(req, res));
   router.delete('/admin/coupons/:id', (req: Request, res: Response) => adminController.deleteCoupon(req, res));
+
+  // Logs
+  router.get('/admin/logs', (req: Request, res: Response) => logController.getLogs(req, res));
+  router.post('/admin/logs', (req: Request, res: Response) => logController.createLog(req, res));
 
   return router;
 }

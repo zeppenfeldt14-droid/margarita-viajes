@@ -388,5 +388,18 @@ export async function initDatabase(db: Knex) {
     console.log('[Database] Tabla "coupons" creada.');
   }
 
+  // Tabla: logs (Bitácora de actividad)
+  if (!(await db.schema.hasTable('logs'))) {
+    await db.schema.createTable('logs', (table: any) => {
+      table.increments('id').primary();
+      table.string('user_id').nullable();
+      table.string('user_name').nullable();
+      table.string('action_type').notNullable(); // LOGIN, UPDATE_QUOTE, etc.
+      table.text('details').nullable();
+      table.timestamp('created_at').defaultTo(db.fn.now());
+    });
+    console.log('[Database] Tabla "logs" creada.');
+  }
+
   console.log('[Database] Esquema verificado/creado con éxito.');
 }

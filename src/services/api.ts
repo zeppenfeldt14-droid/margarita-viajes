@@ -153,6 +153,18 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
+  },
+
+  // Logs
+  getLogs: async () => {
+    const res = await fetchWithAuth('/admin/logs');
+    return res.json();
+  },
+  createLog: async (logData: any) => {
+    return fetchWithAuth('/admin/logs', {
+      method: 'POST',
+      body: JSON.stringify(logData),
+    });
   }
 };
 

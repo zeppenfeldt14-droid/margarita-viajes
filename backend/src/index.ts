@@ -13,11 +13,13 @@ import { PostgresUserRepository } from './infrastructure/database/PostgresUserRe
 import { PostgresOperationRepository } from './infrastructure/database/PostgresOperationRepository.js';
 import { PostgresReservationRepository } from './infrastructure/database/PostgresReservationRepository.js';
 import { PostgresCouponRepository } from './infrastructure/database/PostgresCouponRepository.js';
+import { PostgresLogRepository } from './infrastructure/database/PostgresLogRepository.js';
 import { initDatabase } from './infrastructure/database/initDb.js';
 import { CalculateQuotePrice } from './application/use-cases/CalculateQuotePrice.js';
 import { QuoteController } from './infrastructure/webserver/controllers/QuoteController.js';
 import { AdminController } from './infrastructure/webserver/controllers/AdminController.js';
 import { AuthController } from './infrastructure/webserver/controllers/AuthController.js';
+import { LogController } from './infrastructure/webserver/controllers/LogController.js';
 import dotenv from 'dotenv';
 import { createRouter } from './infrastructure/webserver/routes/api.js';
 import { NotificationService } from './infrastructure/services/NotificationService.js';
@@ -88,6 +90,7 @@ const userRepository = new PostgresUserRepository(db);
 const operationRepository = new PostgresOperationRepository(db);
 const reservationRepository = new PostgresReservationRepository(db);
 const couponRepository = new PostgresCouponRepository(db);
+const logRepository = new PostgresLogRepository(db);
 
 // Casos de Uso
 const calculateQuotePrice = new CalculateQuotePrice(seasonRepository);
@@ -118,10 +121,11 @@ const adminController = new AdminController(
   notificationService
 );
 const authController = new AuthController(userRepository);
+const logController = new LogController(logRepository);
 
 // --- RUTAS DE LA API ---
 // IMPORTANTE: Registrar las rutas ANTES de cualquier manejador general de 404
-app.use('/api', createRouter(quoteController, adminController, authController));
+app.use('/api', createRouter(quoteController, adminController, authController, logController));
 
 // Manejador global de 404 para la API  ...
 // Debe ir AL FINAL de todas las definiciones de ruta de la API

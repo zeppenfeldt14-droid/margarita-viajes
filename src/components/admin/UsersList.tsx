@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Camera, Plus, ShieldCheck, Target, X } from 'lucide-react';
 import { api } from '../../services/api';
 import { Card, SectionTitle } from './Common';
@@ -111,7 +111,12 @@ export default function UsersList() {
                     BITÃCORA
                   </button>
                   <button onClick={() => {
-                    setNewUser({ ...u, password: '', modules: u.modules || defaultModules });
+                    setNewUser({ 
+                      ...u, 
+                      name: u.name || u.fullName, 
+                      password: '', 
+                      modules: u.modules || defaultModules 
+                    });
                     setShowUserModal(true);
                   }} className="bg-[#0B132B] text-white px-3 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-md">
                     EDITAR
