@@ -38,6 +38,7 @@ function App() {
     localStorage.removeItem("user_level");
     localStorage.removeItem("user_modules");
     localStorage.removeItem("staff_token"); 
+    localStorage.removeItem("staff_user_photo");
     setIsAuthenticated(false);
     setUser("");
     setLocation("/");

@@ -23,6 +23,10 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
     return userPermissions[item.module] === true;
   });
 
+  const userName = localStorage.getItem("staff_user") || "Admin";
+  const userRole = localStorage.getItem("staff_user_role") || "Staff";
+  const userPhoto = localStorage.getItem("staff_user_photo");
+
   return (
     <div className="flex h-screen bg-[#F8F9FB] font-sans selection:bg-orange-200">
       
@@ -31,15 +35,19 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
         <div>
           {/* Logo Area */}
           <div className="h-24 flex items-center px-8 border-b border-white/5">
-             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                 <div className="text-orange-500 font-black text-sm tracking-tighter flex items-center">
-                    <span className="text-yellow-500">M</span>V
-                </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden border border-white/10 shadow-inner">
+                {userPhoto ? (
+                  <img src={userPhoto} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="text-orange-500 font-black text-sm tracking-tighter flex items-center">
+                    <span className="text-yellow-500">{userName.charAt(0)}</span>{userName.charAt(1).toUpperCase() || 'V'}
+                  </div>
+                )}
               </div>
-              <div className="flex flex-col text-[10px] font-bold text-white leading-tight uppercase tracking-widest">
-                <span>Gerente General</span>
-                <span className="text-gray-500">Margarita Viajes</span>
+              <div className="flex flex-col text-[10px] font-bold text-white leading-tight uppercase tracking-widest truncate max-w-[150px]">
+                <span className="truncate">{userName}</span>
+                <span className="text-gray-500 truncate">{userRole}</span>
               </div>
             </div>
           </div>
