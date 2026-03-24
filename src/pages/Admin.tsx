@@ -60,9 +60,16 @@ export default function AdminDashboard({ user }: AdminProps) {
     else if (location.includes('/webconfig')) setActiveTab('settings');
   }, [location]);
 
+
+  const [config, setConfig] = useState<Record<string, string>>({});
+  const [savingConfig, setSavingConfig] = useState(false);
+  const [selectedOperation, setSelectedOperation] = useState<Operation | null>(null);
+  const [opFilter, setOpFilter] = useState<'activas' | 'historial' | 'todas'>('activas');
+  const { hotels, transfers, quotes, users, setQuotes, refreshData } = useGlobalData();
+
   const userModules = React.useMemo(() => {
     // Buscar el usuario actual en la lista global de usuarios
-    const currentUser = users.find((u: any) => u.name === user || u.fullName === user || u.alias === user);
+    const currentUser = (users || []).find((u: any) => u.name === user || u.fullName === user || u.alias === user);
     
     if (currentUser) {
       if (currentUser.level === 1) {
@@ -81,12 +88,6 @@ export default function AdminDashboard({ user }: AdminProps) {
       return { inventory: false, quotes: true, bookings: false, operations: false, users: false, customers: false, marketing: false, webconfig: false };
     }
   }, [user, users]);
-
-  const [config, setConfig] = useState<Record<string, string>>({});
-  const [savingConfig, setSavingConfig] = useState(false);
-  const [selectedOperation, setSelectedOperation] = useState<Operation | null>(null);
-  const [opFilter, setOpFilter] = useState<'activas' | 'historial' | 'todas'>('activas');
-  const { hotels, transfers, quotes, users, setQuotes, refreshData } = useGlobalData();
 
   const [quoteFilter, setQuoteFilter] = useState<'original' | 'discounted' | 'unassigned' | 'history'>('original');
   const [quoteSearchTerm, setQuoteSearchTerm] = useState('');
