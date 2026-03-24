@@ -13,7 +13,8 @@ import {
   Image as ImageIcon,
   Upload,
   Globe,
-  Camera
+  Camera,
+  Download
 } from 'lucide-react';
 import { api } from '../services/api';
 import { showToast, ToastContainer } from '../components/Toast';
@@ -409,7 +410,8 @@ export default function AdminDashboard({ user }: AdminProps) {
                     <thead>
                       <tr className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">
                         <th className="pb-6 px-4">COTIZACIÓN / CLIENTE</th>
-                        <th className="pb-6 px-4 text-center">FECHAS / TOTAL</th>
+                        <th className="pb-6 px-4">FECHAS</th>
+                        <th className="pb-6 px-4 text-center">TOTAL</th>
                         <th className="pb-6 px-4">ESTADO</th>
                         <th className="pb-6 px-4">ASESOR</th>
                         <th className="pb-6 px-4 text-right">ACCIONES</th>
@@ -446,10 +448,13 @@ export default function AdminDashboard({ user }: AdminProps) {
                               </div>
                             </td>
                             <td className="py-2.5 px-4">
-                              <div className="flex flex-col gap-0.5">
-                                <div className="flex items-center gap-1 text-[9px] font-black uppercase"><Calendar size={10} className="text-orange-500" /> {formatDateVisual(quote.checkIn || quote.check_in)}</div>
-                                <div className="font-black italic text-orange-600 text-[11px]">$ {Number(quote.totalAmount || quote.total_amount).toLocaleString()}</div>
+                              <div className="flex flex-col gap-0.5 whitespace-nowrap">
+                                <div className="flex items-center gap-1 text-[9px] font-black uppercase text-gray-500"><Calendar size={9} /> {formatDateVisual(quote.checkIn || quote.check_in)}</div>
+                                <div className="flex items-center gap-1 text-[9px] font-black uppercase text-gray-300"><Calendar size={9} /> {formatDateVisual(quote.checkOut || quote.check_out)}</div>
                               </div>
+                            </td>
+                            <td className="py-2.5 px-4 text-center">
+                              <div className="font-black italic text-orange-600 text-[11px]">$ {Number(quote.totalAmount || quote.total_amount).toLocaleString()}</div>
                             </td>
                             <td className="py-2.5 px-4">
                               <select
@@ -539,7 +544,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                                     showToast('Error de conexión al actualizar el estado');
                                   }
                                 }}
-                                className={`px-3 py-1.2 rounded-full text-[8px] font-black uppercase tracking-widest cursor-pointer border-0 ${quote.status === 'Nuevo' ? 'bg-red-500 text-white' :
+                                className={`px-4 py-1 rounded-full text-[8px] font-black uppercase tracking-widest cursor-pointer border-0 w-full max-w-[120px] ${quote.status === 'Nuevo' ? 'bg-red-500 text-white' :
                                     quote.status === 'Atendido' ? 'bg-yellow-500 text-white' :
                                       quote.status === 'Reserva' ? 'bg-blue-500 text-white' :
                                         'bg-green-500 text-white'
@@ -562,7 +567,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                                     showToast(err.message, 'error');
                                   }
                                 }}
-                                className="bg-gray-50 border-0 px-2 py-1.2 rounded-full text-[8px] font-black uppercase outline-none ring-1 ring-inset ring-gray-200 focus:ring-orange-500 w-full max-w-[100px] cursor-pointer"
+                                className="bg-gray-50 border-0 px-4 py-1 rounded-full text-[8px] font-black uppercase outline-none ring-1 ring-inset ring-gray-200 focus:ring-orange-500 w-full max-w-[130px] cursor-pointer"
                               >
                                 <option value="">SIN ASIGNAR</option>
                                 {users.map(u => (
@@ -1073,21 +1078,6 @@ export default function AdminDashboard({ user }: AdminProps) {
                     </button>
                     <button 
                       onClick={() => {
-                        const folio = selectedQuote.id || selectedQuote.folio;
-                        const link = document.createElement('a');
-                        link.href = `https://margarita-viajes.onrender.com/api/public/quotes/${folio}/pdf`;
-                        link.download = `Cotizacion_${folio}.pdf`;
-                        link.target = '_blank';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }} 
-                      className="w-full bg-slate-700 text-white py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
-                    >
-                      <Download size={16} /> Descargar PDF
-                    </button>
-                    <button 
-                      onClick={() => {
                         const pdfLink = `https://margarita-viajes.onrender.com/api/public/quotes/${selectedQuote.id}/pdf`;
                         const whatsappText = encodeURIComponent(`Hola ${selectedQuote.clientName || selectedQuote.client_name}, aquí tienes tu cotización en PDF: ${pdfLink}`);
                         window.open(`https://wa.me/${(selectedQuote.whatsapp || '').replace(/\D/g, '')}?text=${whatsappText}`, '_blank');
@@ -1260,14 +1250,32 @@ export default function AdminDashboard({ user }: AdminProps) {
                   </button>
                 </div>
 
-                <div className="flex items-center justify-between pt-4">
-                  <span className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${selectedQuote.status === 'Nuevo' ? 'bg-red-500 text-white' :
-                      selectedQuote.status === 'Atendido' ? 'bg-yellow-500 text-white' :
-                        'bg-green-500 text-white'
-                    }`}>
-                    {selectedQuote.status}
-                  </span>
-                  <span className="text-[10px] font-bold text-gray-400">Fecha de solicitud: {formatDateTimeVisual(selectedQuote.date || selectedQuote.created_at)}</span>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    <span className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${selectedQuote.status === 'Nuevo' ? 'bg-red-500 text-white' :
+                        selectedQuote.status === 'Atendido' ? 'bg-yellow-500 text-white' :
+                          'bg-green-500 text-white'
+                      }`}>
+                      {selectedQuote.status}
+                    </span>
+                    <button 
+                      onClick={() => {
+                        const folio = selectedQuote.id || selectedQuote.folio;
+                        const link = document.createElement('a');
+                        link.href = `https://margarita-viajes.onrender.com/api/public/quotes/${folio}/pdf`;
+                        link.download = `Cotizacion_${folio}.pdf`;
+                        link.target = '_blank';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
+                      className="text-gray-400 hover:text-orange-600 transition-colors p-1"
+                      title="Descargar PDF"
+                    >
+                      <Download size={20} />
+                    </button>
+                  </div>
+                  <span className="text-[9px] font-bold text-gray-400">Fecha de solicitud: {formatDateTimeVisual(selectedQuote.date || selectedQuote.created_at)}</span>
                 </div>
               </div>
               <div className="p-8 border-t border-gray-100 flex gap-4">
