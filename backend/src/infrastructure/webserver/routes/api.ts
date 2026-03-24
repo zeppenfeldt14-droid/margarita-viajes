@@ -2,7 +2,9 @@ import express from 'express';
 import type { Request, Response } from 'express';
 import { QuoteController } from '../controllers/QuoteController.js';
 import { AdminController } from '../controllers/AdminController.js';
+import { AuthController } from '../controllers/AuthController.js';
 import { LogController } from '../controllers/LogController.js';
+import { authMiddleware } from '../middlewares/auth.js';
 
 export function createRouter(
   quoteController: QuoteController, 
