@@ -27,6 +27,7 @@ import OperationsList from '../components/admin/OperationsList';
 import CustomersList from '../components/admin/CustomersList';
 import MarketingPanel from '../components/admin/MarketingPanel';
 import UsersList from '../components/admin/UsersList';
+import CommandCenter from '../components/admin/CommandCenter';
 import { useGlobalData } from '../context/GlobalContext';
 import type { Hotel, Transfer, Quotation, Operation, Reservation, ReservationStatus, QuoteStatus } from '../types';
 // import { NavItem } from "../components/admin/NavItem"; // No utilizado
@@ -272,92 +273,14 @@ export default function AdminDashboard({ user }: AdminProps) {
           {activeTab === 'inicio' && (
             <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 print-hidden">
               <div className="flex items-center justify-between">
-                <SectionTitle>Dashboard de Rendimiento</SectionTitle>
-                <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-gray-100 shadow-sm animate-pulse">
-                   <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <SectionTitle>Centro de Comando Operativo</SectionTitle>
+                <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-gray-100 shadow-sm">
+                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Sincronizado en tiempo real</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* KPI 1: Cotizaciones Pendientes */}
-                <Card className="bg-gradient-to-br from-[#0B132B] to-[#1C2541] text-white border-none shadow-2xl relative overflow-hidden group hover:shadow-[0_20px_50px_rgba(11,19,43,0.3)] hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700"></div>
-                  <div className="relative z-10">
-                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-200 mb-6 flex items-center gap-2">
-                       <FileText size={14} /> Cotizaciones Activas
-                    </h3>
-                    {!quotes ? (
-                      <div className="h-12 w-24 bg-white/10 animate-pulse rounded-lg"></div>
-                    ) : (
-                      <div className="flex items-baseline gap-3">
-                        <p className="text-6xl font-black italic tracking-tighter transition-all duration-700">
-                          {(quotes || []).filter(q => {
-                            const isPending = q.status === 'Nuevo' || q.status === 'Atendido';
-                            if (!isPending) return false;
-                            if (!isDataMaster) return q.assignedTo === userAlias || !q.assignedTo;
-                            return true;
-                          }).length}
-                        </p>
-                        <span className="text-blue-300 text-[10px] font-bold uppercase tracking-widest">En Proceso</span>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-
-                {/* KPI 2: Ventas del Mes */}
-                <Card className="bg-gradient-to-br from-teal-500 to-emerald-700 text-white border-none shadow-2xl relative overflow-hidden group hover:shadow-[0_20px_50px_rgba(20,184,166,0.3)] hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700"></div>
-                  <div className="relative z-10">
-                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-teal-100 mb-6 flex items-center gap-2">
-                       <ShieldCheck size={14} /> Ventas Generadas (Mes)
-                    </h3>
-                    {!quotes ? (
-                      <div className="h-12 w-24 bg-white/10 animate-pulse rounded-lg"></div>
-                    ) : (
-                      <div className="flex items-baseline gap-3">
-                        <p className="text-6xl font-black italic tracking-tighter transition-all duration-700">
-                          {(quotes || []).filter((q: Quotation) => {
-                            const isSale = ['Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(q.status) &&
-                              new Date(q.date || "").getMonth() === new Date().getMonth();
-                            if (!isSale) return false;
-                            if (!isDataMaster) return q.assignedTo === userAlias;
-                            return true;
-                          }).length}
-                        </p>
-                        <span className="text-teal-100 text-[10px] font-bold uppercase tracking-widest">Cerradas</span>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-
-                {/* KPI 3: Tasa de Conversión */}
-                <Card className="bg-gradient-to-br from-orange-500 to-red-600 text-white border-none shadow-2xl relative overflow-hidden group hover:shadow-[0_20px_50px_rgba(249,115,22,0.3)] hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700"></div>
-                  <div className="relative z-10">
-                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-100 mb-6 flex items-center gap-2">
-                       <Globe size={14} /> Tasa de Conversión
-                    </h3>
-                    {!quotes ? (
-                      <div className="h-12 w-24 bg-white/10 animate-pulse rounded-lg"></div>
-                    ) : (
-                      <div className="flex items-baseline gap-3">
-                        <p className="text-6xl font-black italic tracking-tighter transition-all duration-700">
-                          {(() => {
-                            const visibleQuotes = (quotes || []).filter(q => isDataMaster ? true : (q.assignedTo === userAlias));
-                            const sales = visibleQuotes.filter(q => ['Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(q.status)).length;
-                            return visibleQuotes.length > 0 ? Math.round((sales / visibleQuotes.length) * 100) : 0;
-                          })()}
-                        </p>
-                        <div className="flex flex-col">
-                          <span className="text-3xl font-black italic leading-none">%</span>
-                          <span className="text-orange-100 text-[8px] font-bold uppercase tracking-widest">Rendimiento</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              </div>
+              <CommandCenter />
             </div>
           )}
 
