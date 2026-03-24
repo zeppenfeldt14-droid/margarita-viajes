@@ -14,7 +14,8 @@ import {
   Upload,
   Globe,
   Camera,
-  Download
+  Download,
+  Eye
 } from 'lucide-react';
 import { api } from '../services/api';
 import { showToast, ToastContainer } from '../components/Toast';
@@ -412,7 +413,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                         <th className="pb-6 px-4">COTIZACIÓN / CLIENTE</th>
                         <th className="pb-6 px-4">FECHAS</th>
                         <th className="pb-6 px-4 text-center">TOTAL</th>
-                        <th className="pb-6 px-4">ESTADO</th>
+                        <th className="pb-6 px-4 text-center">ESTADO</th>
                         <th className="pb-6 px-4">ASESOR</th>
                         <th className="pb-6 px-4 text-right">ACCIONES</th>
                       </tr>
@@ -465,107 +466,109 @@ export default function AdminDashboard({ user }: AdminProps) {
                             <td className="py-2.5 px-4 text-center">
                               <div className="font-black italic text-orange-600 text-[11px]">$ {Number(quote.totalAmount || quote.total_amount).toLocaleString()}</div>
                             </td>
-                            <td className="py-2.5 px-4">
-                              {['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(quote.status) ? (
-                                <div className="bg-blue-600 !text-white px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest text-center shadow-sm border border-blue-700 w-full max-w-[120px] mx-auto">
-                                  {quote.status === 'Reserva' ? 'RESERVA' : quote.status}
-                                </div>
-                              ) : (
-                                <select
-                                  value={quote.status}
-                                  onChange={async (e: React.ChangeEvent<HTMLSelectElement>) => {
-                                    const newStatus = e.target.value;
-                                    let newId = quote.id;
+                            <td className="py-2.5 px-4 text-center">
+                              <div className="flex justify-center">
+                                {['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(quote.status) ? (
+                                  <div className="bg-blue-600 !text-white px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest text-center shadow-sm border border-blue-700 w-full max-w-[120px]">
+                                    {quote.status === 'Reserva' ? 'RESERVA' : quote.status}
+                                  </div>
+                                ) : (
+                                  <select
+                                    value={quote.status}
+                                    onChange={async (e: React.ChangeEvent<HTMLSelectElement>) => {
+                                      const newStatus = e.target.value;
+                                      let newId = quote.id;
 
-                                    if (newStatus === 'Reserva') {
-                                      const totalExpected = parseInt(quote.pax || '0') + parseInt(quote.children || '0');
-                                      const currentCompanions = (quote as Quotation).companions || [];
-                                      const hasEmptyNames = currentCompanions.some((c: { name: string }) => !c.name || c.name.trim() === '');
+                                      if (newStatus === 'Reserva') {
+                                        const totalExpected = parseInt(quote.pax || '0') + parseInt(quote.children || '0');
+                                        const currentCompanions = (quote as Quotation).companions || [];
+                                        const hasEmptyNames = currentCompanions.some((c: { name: string }) => !c.name || c.name.trim() === '');
 
-                                      if (currentCompanions.length !== totalExpected || hasEmptyNames || (!quote.technicalSheet && !technicalSheetSaved)) {
-                                        alert('Debe cargar la ficha técnica de todos los pasajeros (con nombre y apellido) antes de pasar a Reserva');
-                                        return;
-                                      }
-                                    }
-
-                                    if (newStatus === 'Reserva') {
-                                      try {
-                                        let nextResNum = 1001;
-                                        const resData = await api.getReservations().catch(() => []);
-                                        if (Array.isArray(resData) && resData.length > 0) {
-                                          const rIds = resData
-                                            .map((r: Reservation) => r.id?.toString() || '')
-                                            .filter((id: string) => id.startsWith('R'))
-                                            .map((id: string) => parseInt(id.replace(/\D/g, '')) || 0);
-                                          if (rIds.length > 0) nextResNum = Math.max(...rIds) + 1;
+                                        if (currentCompanions.length !== totalExpected || hasEmptyNames || (!quote.technicalSheet && !technicalSheetSaved)) {
+                                          alert('Debe cargar la ficha técnica de todos los pasajeros (con nombre y apellido) antes de pasar a Reserva');
+                                          return;
                                         }
-                                        const nextResId = 'R' + nextResNum.toString().padStart(6, '0');
+                                      }
 
-                                        const reservationData = {
-                                          id: nextResId,
-                                          quoteId: quote.id,
-                                          originalQuoteId: quote.originalQuoteId || quote.id,
-                                          clientName: quote.clientName || quote.client_name,
-                                          email: quote.email,
-                                          whatsapp: quote.whatsapp,
-                                          hotelId: quote.hotelId || quote.hotel_id,
-                                          hotelName: quote.hotelName || quote.hotel_name,
-                                          checkIn: quote.checkIn || quote.check_in,
-                                          checkOut: quote.checkOut || quote.check_out,
-                                          roomType: quote.roomType || quote.room_type,
-                                          pax: quote.pax,
-                                          children: quote.children,
-                                          infants: quote.infants,
-                                          totalAmount: quote.totalAmount || quote.total_amount,
-                                          discount: quote.discount || null,
-                                          discountAmount: quote.discountAmount || null,
-                                          companions: (quote as Quotation).companions || [],
-                                          technicalSheet: (quote as Quotation).technicalSheet || null,
-                                          plan: quote.plan || null,
-                                          status: 'Confirmada' as ReservationStatus
-                                        };
+                                      if (newStatus === 'Reserva') {
+                                        try {
+                                          let nextResNum = 1001;
+                                          const resData = await api.getReservations().catch(() => []);
+                                          if (Array.isArray(resData) && resData.length > 0) {
+                                            const rIds = resData
+                                              .map((r: Reservation) => r.id?.toString() || '')
+                                              .filter((id: string) => id.startsWith('R'))
+                                              .map((id: string) => parseInt(id.replace(/\D/g, '')) || 0);
+                                            if (rIds.length > 0) nextResNum = Math.max(...rIds) + 1;
+                                          }
+                                          const nextResId = 'R' + nextResNum.toString().padStart(6, '0');
 
-                                        const reservationRes = await api.createReservation(reservationData as Partial<Reservation>);
-                                        if (!reservationRes.ok) {
+                                          const reservationData = {
+                                            id: nextResId,
+                                            quoteId: quote.id,
+                                            originalQuoteId: quote.originalQuoteId || quote.id,
+                                            clientName: quote.clientName || quote.client_name,
+                                            email: quote.email,
+                                            whatsapp: quote.whatsapp,
+                                            hotelId: quote.hotelId || quote.hotel_id,
+                                            hotelName: quote.hotelName || quote.hotel_name,
+                                            checkIn: quote.checkIn || quote.check_in,
+                                            checkOut: quote.checkOut || quote.check_out,
+                                            roomType: quote.roomType || quote.room_type,
+                                            pax: quote.pax,
+                                            children: quote.children,
+                                            infants: quote.infants,
+                                            totalAmount: quote.totalAmount || quote.total_amount,
+                                            discount: quote.discount || null,
+                                            discountAmount: quote.discountAmount || null,
+                                            companions: (quote as Quotation).companions || [],
+                                            technicalSheet: (quote as Quotation).technicalSheet || null,
+                                            plan: quote.plan || null,
+                                            status: 'Confirmada' as ReservationStatus
+                                          };
+
+                                          const reservationRes = await api.createReservation(reservationData as Partial<Reservation>);
+                                          if (!reservationRes.ok) {
+                                            showToast('Error al crear la reserva');
+                                            return;
+                                          }
+                                        } catch (error) {
+                                          console.error('Error creating reservation:', error);
                                           showToast('Error al crear la reserva');
                                           return;
                                         }
+                                      }
+
+                                      try {
+                                        const response = await api.updateQuote(quote.id, {
+                                          status: newStatus as QuoteStatus,
+                                          id: newId
+                                        });
+
+                                        if (response.ok) {
+                                          setQuotes(quotes.map((q: Quotation) => q.id === quote.id ? { ...q, status: newStatus as QuoteStatus, id: newId } : q));
+                                          showToast(`Estado cambiado a: ${newStatus}${newStatus === "Reserva" ? " y Reserva creada" : ""}`);
+                                          recordActivity('UPDATE_QUOTE_STATUS', `Cambiado estado de folio ${quote.id} a ${newStatus}`);
+                                        } else {
+                                          const errorData = await response.json().catch(() => ({}));
+                                          showToast(`Error: ${errorData.message || 'No se pudo actualizar el estado'}`);
+                                        }
                                       } catch (error) {
-                                        console.error('Error creating reservation:', error);
-                                        showToast('Error al crear la reserva');
-                                        return;
+                                        console.error('Error updating status:', error);
+                                        showToast('Error de conexión al actualizar el estado');
                                       }
-                                    }
-
-                                    try {
-                                      const response = await api.updateQuote(quote.id, {
-                                        status: newStatus as QuoteStatus,
-                                        id: newId
-                                      });
-
-                                      if (response.ok) {
-                                        setQuotes(quotes.map((q: Quotation) => q.id === quote.id ? { ...q, status: newStatus as QuoteStatus, id: newId } : q));
-                                        showToast(`Estado cambiado a: ${newStatus}${newStatus === "Reserva" ? " y Reserva creada" : ""}`);
-                                        recordActivity('UPDATE_QUOTE_STATUS', `Cambiado estado de folio ${quote.id} a ${newStatus}`);
-                                      } else {
-                                        const errorData = await response.json().catch(() => ({}));
-                                        showToast(`Error: ${errorData.message || 'No se pudo actualizar el estado'}`);
-                                      }
-                                    } catch (error) {
-                                      console.error('Error updating status:', error);
-                                      showToast('Error de conexión al actualizar el estado');
-                                    }
-                                  }}
-                                  className={`px-4 py-1 rounded-full text-[8px] font-black uppercase tracking-widest cursor-pointer border-0 w-full max-w-[120px] mx-auto ${quote.status === 'Nuevo' ? 'bg-red-500 !text-white' :
-                                      quote.status === 'Atendido' ? 'bg-yellow-500 !text-white' :
-                                        quote.status === 'Reserva' ? 'bg-blue-500 !text-white' :
-                                          'bg-green-500 !text-white'
-                                    }`}
-                                >
-                                  <option value="Nuevo" disabled={['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(quote.status)}>Nuevo</option>
-                                  <option value="Atendido" disabled={['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(quote.status)}>Atendido</option>
-                                </select>
-                              )}
+                                    }}
+                                    className={`px-4 py-1 rounded-full text-[8px] font-black uppercase tracking-widest cursor-pointer border-0 w-full max-w-[120px] ${quote.status === 'Nuevo' ? 'bg-red-500 !text-white' :
+                                        quote.status === 'Atendido' ? 'bg-yellow-500 !text-white' :
+                                          quote.status === 'Reserva' ? 'bg-blue-500 !text-white' :
+                                            'bg-green-500 !text-white'
+                                      }`}
+                                  >
+                                    <option value="Nuevo" disabled={['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(quote.status)}>Nuevo</option>
+                                    <option value="Atendido" disabled={['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(quote.status)}>Atendido</option>
+                                  </select>
+                                )}
+                              </div>
                             </td>
                             <td className="py-2.5 px-4">
                               <select
@@ -588,7 +591,21 @@ export default function AdminDashboard({ user }: AdminProps) {
                                 ))}
                               </select>
                             </td>
-                            <td className="py-2.5 px-4 text-right"><button onClick={() => setSelectedQuote(quote)} className="bg-[#0B132B] text-white px-4 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-orange-600 transition-all border-0 ring-1 ring-inset ring-white/10">VER</button></td>
+                            <td className="py-2.5 px-4 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <button 
+                                  title="Vista Previa"
+                                  onClick={() => {
+                                    const folio = quote.id;
+                                    window.open(`https://margarita-viajes.onrender.com/api/public/quotes/${folio}/pdf`, '_blank');
+                                  }}
+                                  className="p-1.5 bg-gray-100 text-[#0B132B] rounded-lg hover:bg-gray-200 transition-all border border-gray-200"
+                                >
+                                  <Eye size={14} />
+                                </button>
+                                <button onClick={() => setSelectedQuote(quote)} className="bg-[#0B132B] text-white px-4 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-orange-600 transition-all border-0 ring-1 ring-inset ring-white/10">VER</button>
+                              </div>
+                            </td>
                           </tr>
                         ))
                       }
@@ -664,7 +681,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                     <div className="bg-blue-50/50 p-8 rounded-[2rem] border border-blue-100">
                       <h5 className="text-[10px] font-black uppercase tracking-widest text-blue-800 mb-4 flex items-center gap-2"><Globe size={16} /> Resumen de la Plataforma</h5>
                       <div className="space-y-4">
-                        <div className="flex justify-between items-center border-b border-blue-100/50 pb-2"><span className="text-[11px] font-bold text-blue-600/70">Usuarios Activos</span><span className="text-sm font-black italic text-blue-900">{(users || []).filter(u => u.active === true).length}</span></div>
+                        <div className="flex justify-between items-center border-b border-blue-100/50 pb-2"><span className="text-[11px] font-bold text-blue-600/70">Usuarios Activos</span><span className="text-sm font-black italic text-blue-900">{(users || []).filter(u => (u as any).active !== false).length}</span></div>
                         <div className="flex justify-between items-center border-b border-blue-100/50 pb-2"><span className="text-[11px] font-bold text-blue-600/70">Hoteles en Inventario</span><span className="text-sm font-black italic text-blue-900">{hotels?.length || 0}</span></div>
                         <div className="flex justify-between items-center"><span className="text-[11px] font-bold text-blue-600/70">Cotizaciones Totales</span><span className="text-sm font-black italic text-blue-900">{quotes?.length || 0}</span></div>
                       </div>
@@ -1001,7 +1018,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Plan de Comidas</p>
-                    <p className="text-sm font-black text-orange-600 uppercase">{selectedQuote.plan || selectedQuote.hotel_plan || 'No especificado'}</p>
+                    <p className="text-sm font-black text-orange-600 uppercase">{selectedQuote.plan || (selectedQuote as any).hotel_plan || 'No especificado'}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Pasajeros</p>
@@ -1009,6 +1026,17 @@ export default function AdminDashboard({ user }: AdminProps) {
                       {selectedQuote.pax} Adultos, {selectedQuote.children || 0} Niños, {selectedQuote.infants || 0} Infantes
                     </p>
                   </div>
+                  {(selectedQuote as any).includeTransfer && (
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Servicio de Traslado</p>
+                      <p className="text-sm font-black italic text-[#0B132B] uppercase flex items-center gap-1">
+                        SOLICITADO ✓ 
+                        <span className="text-[10px] font-bold text-gray-400 normal-case">
+                          ({transfers.find(t => t.id === (selectedQuote as any).transferId)?.route || 'Ruta no especificada'})
+                        </span>
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {hasExistingDiscount && (
@@ -1099,7 +1127,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                   <div className="flex flex-col gap-4">
                     <button 
                       onClick={() => {
-                        const folio = selectedQuote.id || selectedQuote.folio;
+                        const folio = selectedQuote.id || (selectedQuote as any).folio;
                         window.open(`https://margarita-viajes.onrender.com/api/public/quotes/${folio}/pdf`, '_blank');
                       }} 
                       className="w-full bg-teal-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-teal-700 transition-all flex items-center justify-center gap-2"
@@ -1279,7 +1307,17 @@ export default function AdminDashboard({ user }: AdminProps) {
                     </span>
                     <button 
                       onClick={() => {
-                        const folio = selectedQuote.id || selectedQuote.folio;
+                        const folio = selectedQuote.id || (selectedQuote as any).folio;
+                        window.open(`https://margarita-viajes.onrender.com/api/public/quotes/${folio}/pdf`, '_blank');
+                      }}
+                      className="text-gray-400 hover:text-[#0B132B] transition-colors p-1"
+                      title="Ver Vista Previa"
+                    >
+                      <Eye size={20} />
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const folio = selectedQuote.id || (selectedQuote as any).folio;
                         const link = document.createElement('a');
                         link.href = `https://margarita-viajes.onrender.com/api/public/quotes/${folio}/pdf`;
                         link.download = `Cotizacion_${folio}.pdf`;
@@ -1294,7 +1332,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                       <Download size={20} />
                     </button>
                   </div>
-                  <span className="text-[9px] font-bold text-gray-400">Fecha de solicitud: {formatDateTimeVisual(selectedQuote.date || selectedQuote.created_at)}</span>
+                  <span className="text-[9px] font-bold text-gray-400">Fecha de solicitud: {formatDateTimeVisual(selectedQuote.date || (selectedQuote as any).created_at)}</span>
                 </div>
               </div>
               <div className="p-8 border-t border-gray-100 flex gap-4">

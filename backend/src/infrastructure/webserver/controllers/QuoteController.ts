@@ -163,11 +163,9 @@ export class QuoteController {
       doc.pipe(res);
 
       const brandColor = '#0B132B';
-      const accentColor = '#ea580c';
       const labelColor = '#999999';
       const borderColor = '#EEEEEE';
 
-      // --- ENCABEZADO TRIPLE ---
       const drawWebImage = async (url: string, x: number, y: number, width: number) => {
         try {
           if (!url || !url.startsWith('http')) return;
@@ -179,74 +177,66 @@ export class QuoteController {
         } catch (err) { console.error(`[PDF] Error loading ${url}:`, err); }
       };
 
+      // --- ENCABEZADO TRIPLE (ESTÁNDAR) ---
       await drawWebImage(config.logoImage, 50, 40, 80);
       await drawWebImage(hotelLogoUrl, 465, 40, 80);
 
-      // Centro: Datos Agencia
-      doc.fillColor(brandColor).fontSize(14).font('Helvetica-Bold').text(config.agencyName || 'MARGARITA VIAJES', 150, 45, { align: 'center', width: 295 });
+      doc.fillColor(brandColor).fontSize(14).font('Helvetica-Bold').text(config.agencyName?.toUpperCase() || 'MARGARITA VIAJES', 150, 45, { align: 'center', width: 295 });
       doc.fontSize(8).font('Helvetica').text(`RIF: ${config.rif || 'J-40156646-4'} | RTN: ${config.rtn || '13314'}`, 150, 62, { align: 'center', width: 295 });
       doc.fontSize(7).fillColor(labelColor).text(config.direccion || '-', 150, 72, { align: 'center', width: 295 });
 
-      doc.moveTo(50, 110).lineTo(545, 110).stroke(borderColor);
+      doc.moveTo(50, 110).lineTo(545, 110).lineWidth(2).stroke(brandColor);
 
-      // --- SECCIÓN CLIENTE / FECHA ---
+      // --- CUADRO COTIZACIÓN / FECHA ---
       doc.fillColor(labelColor).fontSize(8).font('Helvetica-Bold').text('ESTIMADO SR./A:', 50, 130);
       doc.fillColor(brandColor).fontSize(12).text((quote.clientName || 'CLIENTE').toUpperCase(), 50, 142);
 
       doc.fillColor(labelColor).fontSize(8).text('FECHA DE EMISIÓN:', 400, 130, { align: 'right' });
       doc.fillColor(brandColor).fontSize(10).text(new Date(quote.date || new Date()).toLocaleDateString() || 'S/F', 400, 142, { align: 'right' });
 
-      // --- CUADRÍCULA 2x4 ---
+      // --- GRILLA DE DETALLES ---
       const gridY = 185;
-      const rowH = 40;
+      const rowH = 35;
       const colW = 240;
 
-      const drawItem = (label: string, value: string, x: number, y: number, valueColor = brandColor) => {
+      const drawItem = (label: string, value: string, x: number, y: number) => {
         doc.fillColor(labelColor).fontSize(8).font('Helvetica-Bold').text(label.toUpperCase(), x, y);
-        const valX = x + 100;
-        doc.fillColor(valueColor).fontSize(10).font('Helvetica-Bold').text(value?.toUpperCase() || 'NO ESPECIFICADO', valX, y, { width: 140, align: 'right' });
-        doc.moveTo(x, y + 25).lineTo(x + colW, y + 25).stroke('#F9F9F9');
+        doc.fillColor(brandColor).fontSize(9).font('Helvetica-Bold').text(value?.toUpperCase() || '-', x + 85, y, { width: 155, align: 'right' });
+        doc.moveTo(x, y + 20).lineTo(x + colW, y + 20).lineWidth(0.5).stroke(borderColor);
       };
 
-      // Filas
-      drawItem('HOTEL', quote.hotelName, 50, gridY);
-      drawItem('PLAN', quote.plan, 305, gridY, (quote.plan?.toLowerCase().includes('no especificado') ? accentColor : brandColor));
+      drawItem('HOTEL:', quote.hotelName, 50, gridY);
+      drawItem('TEMPORADA:', quote.season || '-', 305, gridY);
       drawItem('HABITACIÓN:', quote.roomType, 50, gridY + rowH);
       drawItem('UBICACIÓN:', hotelLocation || '-', 305, gridY + rowH);
       drawItem('ENTRADA:', new Date(quote.checkIn).toLocaleDateString(), 50, gridY + rowH * 2);
       drawItem('SALIDA:', new Date(quote.checkOut).toLocaleDateString(), 305, gridY + rowH * 2);
       drawItem('ADULTOS:', quote.pax, 50, gridY + rowH * 3);
-      const kids = (parseInt(quote.children || '0') + parseInt(quote.infants || '0')).toString();
-      drawItem('NIÑOS/INFANTES:', kids, 305, gridY + rowH * 3);
-
-      // --- BLOQUE DE TOTAL ---
-      const totalY = gridY + rowH * 4 + 10;
-      doc.save();
-      doc.fillColor('#F8F9FA').roundedRect(50, totalY, 495, 65, 10).fill();
-      doc.restore();
-
-      doc.fillColor(brandColor).fontSize(10).font('Helvetica-Bold').text('TOTAL A PAGAR', 70, totalY + 25);
-      const finalPrice = Number(quote.finalAmount || quote.totalAmount || 0);
-      doc.fillColor(brandColor).fontSize(32).font('Helvetica-Bold').text(`$ ${finalPrice.toLocaleString()}`, 300, totalY + 15, { align: 'right', width: 220 });
-
-      // --- FOOTER DINÁMICO ---
-      const footerY = totalY + 85;
-      doc.fillColor(brandColor).fontSize(9).font('Helvetica-Bold').text('QUEDAMOS ATENTOS A SU REQUERIMIENTO:', 50, footerY);
+      drawItem('NIÑOS/INF.:', (parseInt(quote.children || '0') + parseInt(quote.infants || '0')).toString(), 305, gridY + rowH * 3);
       
-      const drawFooterRow = (label: string, value: string, y: number, color = brandColor) => {
-        doc.fillColor(brandColor).fontSize(8).font('Helvetica-Bold').text(label, 50, y);
-        doc.fillColor(color).fontSize(8).font('Helvetica-Bold').text(value, 300, y, { align: 'right', width: 245 });
-      };
+      // TRASLADO (v19)
+      if (quote.includeTransfer || quote.transferId) {
+        drawItem('TRASLADO:', 'SOLICITADO', 50, gridY + rowH * 4);
+      }
 
-      drawFooterRow('ASESOR DE VIAJES:', quote.assignedTo || 'Sin Asignar', footerY + 20);
-      drawFooterRow('WHATSAPP:', config.telefono || '+58 424 6861748', footerY + 35, '#25D366');
-      drawFooterRow('CORREO:', config.correo || 'margaritaviaje@gmail.com', footerY + 50, '#007bff');
+      // --- TOTAL ---
+      const totalY = gridY + rowH * 5 + 10;
+      doc.rect(50, totalY, 495, 50).fill('#F8F9FA');
+      doc.fillColor(brandColor).fontSize(10).font('Helvetica-Bold').text('TOTAL A PAGAR', 70, totalY + 20);
+      doc.fontSize(24).text(`$ ${(quote.finalAmount || 0).toLocaleString()}`, 300, totalY + 14, { align: 'right', width: 220 });
 
-      doc.fillColor('#FF0000').fontSize(7).font('Helvetica-Bold').text('PRECIOS Y DISPONIBILIDAD SUJETOS A CAMBIOS AL MOMENTO DE RESERVA Y EMISIÓN | CONSULTAR SIEMPRE ANTES DE REALIZAR EL PAGO.', 50, footerY + 80, { align: 'center', width: 495 });
+      // --- FOOTER ---
+      const footerY = totalY + 70;
+      doc.fillColor(brandColor).fontSize(9).font('Helvetica-Bold').text('QUEDAMOS ATENTOS A SU REQUERIMIENTO:', 50, footerY);
+      doc.fontSize(8).text(`ASESOR: ${quote.assignedTo || 'MARGARITA VIAJES'}`, 50, footerY + 20);
+      doc.text(`WHATSAPP: ${config.telefono || '+58 424 6861748'}`, 50, footerY + 35);
+      doc.text(`CORREO: ${config.correo || 'margaritaviaje@gmail.com'}`, 50, footerY + 50);
+
+      doc.fillColor('#FF0000').fontSize(7).text('PRECIOS Y DISPONIBILIDAD SUJETOS A CAMBIOS AL MOMENTO DE RESERVA Y EMISIÓN.', 50, footerY + 80, { align: 'center', width: 495 });
 
       doc.end();
     } catch (error: any) {
-      console.error('[QuoteController] Error in getQuotePdfOnDemand:', error);
+      console.error('[PDF] Error:', error);
       if (!res.headersSent) res.status(500).json({ error: error.message });
     }
   }
@@ -280,12 +270,11 @@ export class QuoteController {
       const doc = new PDFDocument({ margin: 50, size: 'A4' });
       doc.pipe(res);
 
-      const brandColor = '#0B132B'; // Azul Oscuro para cabeceras
-      const successColor = '#10b981'; // Verde para el pie de pago
+      const brandColor = '#0B132B';
+      const successColor = '#10b981';
       const labelColor = '#999999';
       const borderColor = '#EEEEEE';
 
-      // --- ENCABEZADO ---
       const drawWebImage = async (url: string, x: number, y: number, width: number) => {
         try {
           if (!url || !url.startsWith('http')) return;
@@ -297,68 +286,62 @@ export class QuoteController {
         } catch (err) { console.error(`[PDF] Error loading ${url}:`, err); }
       };
 
+      // --- ENCABEZADO TRIPLE (ESTÁNDAR) ---
       await drawWebImage(config.logoImage, 50, 40, 80);
       await drawWebImage(hotelLogoUrl, 465, 40, 80);
 
-      doc.fillColor(brandColor).fontSize(16).font('Helvetica-Bold').text('VOUCHER DE SERVICIO', 150, 45, { align: 'center', width: 295 });
-      doc.fontSize(8).font('Helvetica').text(`RIF: ${config.rif || 'J-40156646-4'} | RTN: ${config.rtn || '13314'}`, 150, 65, { align: 'center', width: 295 });
-      doc.fontSize(7).fillColor(labelColor).text(config.direccion || '-', 150, 75, { align: 'center', width: 295 });
+      doc.fillColor(brandColor).fontSize(14).font('Helvetica-Bold').text('VOUCHER DE SERVICIO', 150, 45, { align: 'center', width: 295 });
+      doc.fontSize(8).font('Helvetica').text(`RIF: ${config.rif || 'J-40156646-4'} | RTN: ${config.rtn || '13314'}`, 150, 62, { align: 'center', width: 295 });
+      doc.fontSize(7).fillColor(labelColor).text(config.direccion || '-', 150, 72, { align: 'center', width: 295 });
 
       doc.moveTo(50, 110).lineTo(545, 110).lineWidth(2).stroke(brandColor);
 
-      // --- DATOS PRINCIPALES ---
-      doc.fillColor(labelColor).fontSize(8).font('Helvetica-Bold').text('TITULAR DE LA RESERVA:', 50, 130);
+      // --- DATOS TITULAR ---
+      doc.fillColor(labelColor).fontSize(8).font('Helvetica-Bold').text('TITULAR:', 50, 130);
       doc.fillColor(brandColor).fontSize(12).text((op.clientName || 'CLIENTE').toUpperCase(), 50, 142);
-
       doc.fillColor(labelColor).fontSize(8).text('FOLIO VENTA:', 400, 130, { align: 'right' });
-      doc.fillColor(brandColor).fontSize(12).text(op.id || 'S/F', 400, 142, { align: 'right' });
+      doc.fillColor(brandColor).fontSize(10).text(op.id || '-', 400, 142, { align: 'right' });
 
-      // --- TABLA DE SERVICIOS (Cabecera Azul) ---
-      const drawTableHeader = (title: string, y: number) => {
-        doc.rect(50, y, 495, 20).fill(brandColor);
-        doc.fillColor('#FFFFFF').fontSize(9).font('Helvetica-Bold').text(title.toUpperCase(), 60, y + 6);
-      };
-
-      const drawRow = (label: string, value: string, y: number) => {
-        doc.fillColor(labelColor).fontSize(8).font('Helvetica-Bold').text(label.toUpperCase(), 60, y + 5);
-        doc.fillColor(brandColor).fontSize(9).font('Helvetica-Bold').text(value?.toUpperCase() || '-', 250, y + 5, { align: 'right', width: 280 });
-        doc.moveTo(50, y + 20).lineTo(545, y + 20).lineWidth(0.5).stroke(borderColor);
-      };
-
+      // --- DETALLES ---
       let currentY = 180;
-      drawTableHeader('Detalles del Alojamiento', currentY);
-      currentY += 20;
-      drawRow('Hotel / Establecimiento', op.hotelName, currentY); currentY += 20;
-      drawRow('Ubicación', hotelLocation, currentY); currentY += 20;
-      drawRow('Plan de Alimentación', op.plan || 'No especificado', currentY); currentY += 20;
-      drawRow('Tipo de Habitación', op.roomType, currentY); currentY += 20;
-      drawRow('Fecha de Entrada (Check-In)', new Date(op.checkIn).toLocaleDateString(), currentY); currentY += 20;
-      drawRow('Fecha de Salida (Check-Out)', new Date(op.checkOut).toLocaleDateString(), currentY); currentY += 20;
+      const drawBlockHeader = (title: string, y: number) => {
+        doc.rect(50, y, 495, 18).fill(brandColor);
+        doc.fillColor('#FFFFFF').fontSize(8).font('Helvetica-Bold').text(title.toUpperCase(), 60, y + 5);
+      };
 
-      currentY += 20;
-      drawTableHeader('Lista de Pasajeros', currentY);
-      currentY += 20;
+      drawBlockHeader('Información del Servicio', currentY);
+      currentY += 25;
+
+      const drawOpRow = (label: string, value: string, y: number) => {
+        doc.fillColor(labelColor).fontSize(8).text(label.toUpperCase(), 60, y);
+        doc.fillColor(brandColor).fontSize(9).font('Helvetica-Bold').text(value?.toUpperCase() || '-', 250, y, { align: 'right', width: 280 });
+        doc.moveTo(50, y + 15).lineTo(545, y + 15).lineWidth(0.5).stroke(borderColor);
+      };
+
+      drawOpRow('Hotel', op.hotelName, currentY); currentY += 20;
+      drawOpRow('Llegada (Check-in)', new Date(op.checkIn).toLocaleDateString(), currentY); currentY += 20;
+      drawOpRow('Salida (Check-out)', new Date(op.checkOut).toLocaleDateString(), currentY); currentY += 20;
+      drawOpRow('Habitación', op.roomType, currentY); currentY += 20;
+      drawOpRow('Plan', op.plan || 'No especificado', currentY); currentY += 20;
+
+      currentY += 10;
+      drawBlockHeader('Pasajeros Registrados', currentY);
+      currentY += 25;
       if (op.companions && op.companions.length > 0) {
-        op.companions.forEach((p: any, i: number) => {
-          doc.fillColor(brandColor).fontSize(8).font('Helvetica-Bold').text(`${i + 1}. ${p.name.toUpperCase()}`, 60, currentY + 5);
-          doc.fillColor(labelColor).fontSize(8).text(`(${p.type || 'ADULTO'}${p.age ? ` - ${p.age} Años` : ''})`, 300, currentY + 5);
+        op.companions.forEach((p: any) => {
+          doc.fillColor(brandColor).fontSize(8).text(p.name.toUpperCase(), 60, currentY);
+          doc.fillColor(labelColor).fontSize(8).text(p.type || 'Adulto', 350, currentY);
           currentY += 15;
         });
-      } else {
-        doc.fillColor(labelColor).fontSize(8).font('Helvetica-Oblique').text('No hay pasajeros registrados.', 60, currentY + 5);
-        currentY += 15;
       }
 
-      // --- PIE DE PÁGINA (Barra Verde) ---
-      const footerY = 750;
-      doc.rect(50, footerY, 495, 30).fill(successColor);
-      doc.fillColor('#FFFFFF').fontSize(10).font('Helvetica-Bold').text('ESTATUS DE PAGO: PAGADO TOTALMENTE', 50, footerY + 10, { align: 'center', width: 495 });
-
-      doc.fillColor(brandColor).fontSize(8).font('Helvetica').text('Este voucher es el documento oficial de confirmación de sus servicios. Por favor preséntelo al momento del Check-In.', 50, footerY + 40, { align: 'center', width: 495 });
+      // --- STATUS PAGO ---
+      doc.rect(50, 750, 495, 25).fill(successColor);
+      doc.fillColor('#FFFFFF').fontSize(9).font('Helvetica-Bold').text('ESTATUS DE PAGO: PAGADO TOTALMENTE', 50, 758, { align: 'center', width: 495 });
 
       doc.end();
     } catch (error: any) {
-      console.error('[QuoteController] Error in getVoucherPdfOnDemand:', error);
+      console.error('[PDF] Voucher Error:', error);
       if (!res.headersSent) res.status(500).json({ error: error.message });
     }
   }

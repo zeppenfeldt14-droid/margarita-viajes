@@ -56,6 +56,9 @@ export type Quotation = {
   technicalSheet?: any; 
   companions?: any[]; 
   plan?: string;
+  season?: string;
+  includeTransfer?: boolean;
+  transferId?: string;
 }
 
 export type Reservation = { 
@@ -78,6 +81,7 @@ export type Reservation = {
   totalAmount: number; 
   status: ReservationStatus; 
   plan?: string;
+  companions?: any[];
   createdAt: string; 
 }
 

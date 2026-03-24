@@ -173,6 +173,9 @@ export default function Quoter() {
         status: 'Nuevo' as QuoteStatus,
         assignedTo: 'Sin Asignar',
         plan: selectedHotel?.plan || 'No especificado',
+        season: priceInfo?.season || '-',
+        includeTransfer: formData.includeTransfer,
+        transferId: formData.transferId,
       };
 
       const response = await api.createQuote(newQuote);
