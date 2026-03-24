@@ -141,119 +141,121 @@ export class QuoteController {
       }
 
       const config = await this.configRepo.getConfig();
+      let hotelLogoUrl = '';
+      let hotelLocation = '';
       
+      try {
+        if (quote.hotelId) {
+          const hotel = await this.hotelRepo.findById(quote.hotelId);
+          if (hotel) {
+            hotelLogoUrl = hotel.logo || '';
+            hotelLocation = hotel.location || '';
+          }
+        }
+      } catch (e) { console.error('[PDF] Hotel fetch error:', e); }
+
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename=Cotizacion_${id}.pdf`);
 
-      const doc = new PDFDocument({ margin: 50 });
+      const doc = new PDFDocument({ margin: 50, size: 'A4' });
       doc.pipe(res);
 
-      // --- ENCABEZADO ---
-      try {
-        const logoUrl = config.logoImage;
-        if (logoUrl && logoUrl.startsWith('http')) {
-          const response = await fetch(logoUrl);
-          if (response.ok) {
-            const logoBuffer = Buffer.from(await response.arrayBuffer());
-            doc.image(logoBuffer, 50, 45, { width: 100 });
-          }
-        }
-      } catch (err) {
-        console.error('[PDF] Error al cargar logo:', err);
-      }
-
-      doc.fillColor('#0B132B')
-         .fontSize(20)
-         .font('Helvetica-Bold')
-         .text(config.agencyName || 'MARGARITA VIAJES', 160, 50, { align: 'center' });
-
-      doc.fontSize(10)
-         .font('Helvetica')
-         .text(`RIF: ${config.rif || 'J-40156646-4'} | RTN: ${config.rtn || '13314'}`, 160, 75, { align: 'center' })
-         .text(config.direccion || 'Calle La Ceiba, Sector El Otro Lado del Río, La Asunción, Edo. Nueva Esparta', 160, 90, { align: 'center', width: 350 });
-
-      doc.moveTo(50, 130).lineTo(550, 130).stroke('#EEEEEE');
-
-      // --- DATOS DEL CLIENTE ---
-      doc.moveDown(2);
-      doc.fillColor('#999999').fontSize(8).font('Helvetica-Bold').text('ESTIMADO SR./A:', 50, 150);
-      doc.fillColor('#0B132B').fontSize(14).text((quote.clientName || 'CLIENTE').toUpperCase(), 50, 160);
-
-      doc.fillColor('#999999').fontSize(8).text('FECHA DE EMISIÓN:', 400, 150, { align: 'right' });
-      doc.fillColor('#0B132B').fontSize(10).text(new Date(quote.date || (quote as any).createdAt || new Date()).toLocaleDateString(), 400, 160, { align: 'right' });
-
-      // --- DETALLE DEL VIAJE ---
-      doc.moveDown(3);
-      // --- CUADRÍCULA DE DATOS ---
-      const gridY = 180;
-      const colWidth = 240;
-      const rowHeight = 35;
       const brandColor = '#0B132B';
       const accentColor = '#ea580c';
-      const lightTextColor = '#999999';
+      const labelColor = '#999999';
+      const borderColor = '#EEEEEE';
 
-      const drawGridItem = (label: string, value: string, x: number, y: number) => {
-        doc.fillColor(lightTextColor).fontSize(7).font('Helvetica-Bold').text(label.toUpperCase(), x, y);
-        doc.fillColor(brandColor).fontSize(10).font('Helvetica-Bold').text(value?.toUpperCase() || '-', x, y + 10, { width: colWidth - 20, height: 15 });
-        doc.moveTo(x, y + 25).lineTo(x + colWidth - 10, y + 25).stroke('#F9F9F9');
+      // --- ENCABEZADO TRIPLE ---
+      // Logo Agencia (Izquierda)
+      try {
+        const agencyLogo = config.logoImage;
+        if (agencyLogo && agencyLogo.startsWith('http')) {
+          const resp = await fetch(agencyLogo);
+          if (resp.ok) doc.image(Buffer.from(await resp.arrayBuffer()), 50, 40, { width: 80 });
+        }
+      } catch (err) {}
+
+      // Logo Hotel (Derecha)
+      try {
+        if (hotelLogoUrl && hotelLogoUrl.startsWith('http')) {
+          const resp = await fetch(hotelLogoUrl);
+          if (resp.ok) doc.image(Buffer.from(await resp.arrayBuffer()), 465, 40, { width: 80 });
+        }
+      } catch (err) {}
+
+      // Centro: Datos Agencia
+      doc.fillColor(brandColor).fontSize(14).font('Helvetica-Bold').text(config.agencyName || 'MARGARITA VIAJES', 150, 45, { align: 'center', width: 295 });
+      doc.fontSize(8).font('Helvetica').text(`RIF: ${config.rif || 'J-40156646-4'} | RTN: ${config.rtn || '13314'}`, 150, 62, { align: 'center', width: 295 });
+      doc.fontSize(7).fillColor(labelColor).text(config.direccion || '-', 150, 72, { align: 'center', width: 295 });
+
+      doc.moveTo(50, 110).lineTo(545, 110).stroke(borderColor);
+
+      // --- SECCIÓN CLIENTE / FECHA ---
+      doc.fillColor(labelColor).fontSize(8).font('Helvetica-Bold').text('ESTIMADO SR./A:', 50, 130);
+      doc.fillColor(brandColor).fontSize(12).text((quote.clientName || 'CLIENTE').toUpperCase(), 50, 142);
+
+      doc.fillColor(labelColor).fontSize(8).text('FECHA DE EMISIÓN:', 400, 130, { align: 'right' });
+      doc.fillColor(brandColor).fontSize(10).text(new Date(quote.date || new Date()).toLocaleDateString() || 'S/F', 400, 142, { align: 'right' });
+
+      // --- CUADRÍCULA 2x4 ---
+      const gridY = 180;
+      const rowH = 35;
+      const colW = 240;
+
+      const drawItem = (label: string, value: string, x: number, y: number, isRight = false, valueColor = brandColor) => {
+        doc.fillColor(labelColor).fontSize(8).font('Helvetica-Bold').text(label.toUpperCase(), x, y);
+        const valX = x + 100;
+        doc.fillColor(valueColor).fontSize(10).font('Helvetica-Bold').text(value?.toUpperCase() || 'NO ESPECIFICADO', valX, y, { width: 140, align: 'right' });
+        doc.moveTo(x, y + 15).lineTo(x + colW, y + 15).stroke('#FAFAFA');
       };
 
       // Fila 1
-      drawGridItem('CLIENTE', quote.clientName || 'CLIENTE', 50, gridY);
-      drawGridItem('FECHA DE EMISIÓN', new Date(quote.date || new Date()).toLocaleDateString(), 50 + colWidth + 10, gridY);
+      drawItem('HOTEL', quote.hotelName, 50, gridY);
+      drawItem('PLAN', quote.plan, 305, gridY, true, (quote.plan?.toLowerCase().includes('no especificado') ? accentColor : brandColor));
 
       // Fila 2
-      drawGridItem('HOTEL / PAQUETE', quote.hotelName || '-', 50, gridY + rowHeight);
-      drawGridItem('TEMPORADA', quote.season || (quote as any).temp || 'ESTÁNDAR', 50 + colWidth + 10, gridY + rowHeight);
+      drawItem('HABITACIÓN:', quote.roomType, 50, gridY + rowH);
+      drawItem('UBICACIÓN:', hotelLocation || 'PLAYA EL AGUA', 305, gridY + rowH);
 
       // Fila 3
-      drawGridItem('TIPO DE HABITACIÓN', quote.roomType || '-', 50, gridY + rowHeight * 2);
-      drawGridItem('PLAN DE COMIDAS', quote.plan || 'NO ESPECIFICADO', 50 + colWidth + 10, gridY + rowHeight * 2);
+      drawItem('ENTRADA:', new Date(quote.checkIn).toLocaleDateString(), 50, gridY + rowH * 2);
+      drawItem('SALIDA:', new Date(quote.checkOut).toLocaleDateString(), 305, gridY + rowH * 2);
 
       // Fila 4
-      drawGridItem('FECHA DE ENTRADA', new Date(quote.checkIn).toLocaleDateString(), 50, gridY + rowHeight * 3);
-      drawGridItem('FECHA DE SALIDA', new Date(quote.checkOut).toLocaleDateString(), 50 + colWidth + 10, gridY + rowHeight * 3);
+      drawItem('ADULTOS:', quote.pax, 50, gridY + rowH * 3);
+      const childInfo = (parseInt(quote.children || '0') + parseInt(quote.infants || '0')).toString();
+      drawItem('NIÑOS/INFANTES:', childInfo, 305, gridY + rowH * 3);
 
-      // Fila 5
-      const paxDetails = `${quote.pax} ADULTOS${quote.children ? `, ${quote.children} NIÑOS` : ''}${quote.infants ? `, ${quote.infants} INF` : ''}`;
-      drawGridItem('PASAJEROS', paxDetails, 50, gridY + rowHeight * 4);
-      
-      const diffDays = Math.max(1, Math.ceil((new Date(quote.checkOut).getTime() - new Date(quote.checkIn).getTime()) / (1000 * 60 * 60 * 24)));
-      drawGridItem('ESTADÍA', `${diffDays} NOCHE${diffDays > 1 ? 'S' : ''}`, 50 + colWidth + 10, gridY + rowHeight * 4);
+      // --- BLOQUE DE TOTAL (TARJETA CON SOMBRA) ---
+      const totalY = gridY + rowH * 5;
+      doc.save();
+      doc.fillColor('#F8F9FA').roundedRect(50, totalY, 495, 65, 10).fill();
+      doc.restore();
 
-      // --- BLOQUE DE TOTAL DESTACADO ---
-      doc.moveDown(4);
-      const totalSectionY = doc.y + 40;
-      
-      // Caja de fondo
-      doc.rect(50, totalSectionY, 495, 60).fill(brandColor);
-      
-      doc.fillColor(accentColor).fontSize(9).font('Helvetica-Bold').text('TOTAL NETO A PAGAR', 70, totalSectionY + 15);
-      doc.fillColor('#FFFFFF').fontSize(8).font('Helvetica').text('Precios expresados en Dólares Americanos ($)', 70, totalSectionY + 30);
-      
+      doc.fillColor(brandColor).fontSize(10).font('Helvetica-Bold').text('TOTAL A PAGAR', 70, totalY + 25);
       const finalPrice = Number(quote.finalAmount || quote.totalAmount || 0);
-      doc.fillColor('#FFFFFF').fontSize(26).font('Helvetica-Bold').text(`$ ${finalPrice.toLocaleString()}`, 70, totalSectionY + 18, { align: 'right', width: 450 });
+      doc.fillColor(brandColor).fontSize(32).font('Helvetica-Bold').text(`$ ${finalPrice.toLocaleString()}`, 300, totalY + 15, { align: 'right', width: 220 });
 
-      // --- PIE DE PÁGINA / ASESOR ---
-      const footerY = 680;
-      doc.moveTo(50, footerY).lineTo(545, footerY).stroke('#EEEEEE');
+      // --- FOOTER ---
+      const footerY = 640;
+      doc.fillColor(brandColor).fontSize(9).font('Helvetica-Bold').text('QUEDAMOS ATENTOS A SU REQUERIMIENTO:', 50, footerY);
       
-      doc.fillColor(lightTextColor).fontSize(8).font('Helvetica').text('Quedamos atentos a su requerimiento:', 50, footerY + 15);
-      
-      const seller = quote.assignedTo || 'Equipo Margarita Viajes';
-      doc.fillColor(brandColor).fontSize(10).font('Helvetica-Bold').text(`Asesor de Viajes: ${seller}`, 50, footerY + 30);
-      
-      doc.fillColor(lightTextColor).fontSize(8).text(`WhatsApp: ${config.telefono || '+58 424 0000000'}`, 400, footerY + 30, { align: 'right' });
-      doc.text(`Correo: ${config.correo || 'ventas@margaritaviajes.com'}`, 400, footerY + 45, { align: 'right' });
+      const drawFooterRow = (label: string, value: string, y: number, color = brandColor) => {
+        doc.fillColor(brandColor).fontSize(8).font('Helvetica-Bold').text(label, 50, y);
+        doc.fillColor(color).fontSize(8).font('Helvetica-Bold').text(value, 300, y, { align: 'right', width: 245 });
+      };
 
-      doc.fillColor(accentColor).fontSize(7).text('PRECIOS Y DISPONIBILIDAD SUJETOS A CAMBIOS AL MOMENTO DE RESERVA Y EMISIÓN.', 50, footerY + 80, { align: 'center', width: 500 });
+      drawFooterRow('ASESOR DE VIAJES:', quote.assignedTo || 'Sin Asignar', footerY + 20);
+      drawFooterRow('WHATSAPP:', config.telefono || '+58 424 6861748', footerY + 35, '#25D366');
+      drawFooterRow('CORREO:', config.correo || 'margaritaviaje@gmail.com', footerY + 50, '#007bff');
+
+      // Disclaimer Rojo
+      doc.fillColor('#FF0000').fontSize(7).font('Helvetica-Bold').text('PRECIOS Y DISPONIBILIDAD SUJETOS A CAMBIOS AL MOMENTO DE RESERVA Y EMISIÓN | CONSULTAR SIEMPRE ANTES DE REALIZAR EL PAGO.', 50, 780, { align: 'center', width: 495 });
 
       doc.end();
     } catch (error: any) {
       console.error('[QuoteController] Error in getQuotePdfOnDemand:', error);
-      if (!res.headersSent) {
-        res.status(500).json({ error: error.message });
-      }
+      if (!res.headersSent) res.status(500).json({ error: error.message });
     }
   }
 }

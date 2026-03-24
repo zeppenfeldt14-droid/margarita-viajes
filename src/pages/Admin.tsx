@@ -441,9 +441,21 @@ export default function AdminDashboard({ user }: AdminProps) {
                               <div className="flex flex-col">
                                 <span className="font-black italic text-orange-600 text-[11px] leading-tight">{quote.id}</span>
                                 <span className="font-black italic uppercase text-[#0B132B] truncate max-w-[200px]">{quote.clientName || quote.client_name}</span>
-                                <div className="flex items-center gap-1.5 opacity-60 overflow-hidden">
-                                  <span className="text-[8px] tracking-tight truncate">{quote.hotelName || quote.hotel_name}</span>
-                                  {(quote as any).season || (quote as any).temp ? <span className="bg-orange-50 text-orange-600 text-[7px] px-1 py-0.5 rounded font-black uppercase">Temporada: {(quote as any).season || (quote as any).temp}</span> : (quote.plan && <span className="bg-orange-50 text-orange-600 text-[7px] px-1 py-0.5 rounded font-black uppercase">Plan: {quote.plan}</span>)}
+                                <div className="flex flex-col opacity-60">
+                                  <span className="text-[8px] tracking-tight">{quote.hotelName || quote.hotel_name}</span>
+                                  <div className="mt-0.5">
+                                    {(quote as any).season || (quote as any).temp ? (
+                                      <span className="bg-orange-50 text-orange-600 text-[7px] px-1.5 py-0.5 rounded font-black uppercase border border-orange-100">
+                                        Temporada: {(quote as any).season || (quote as any).temp}
+                                      </span>
+                                    ) : (
+                                      quote.plan && (
+                                        <span className="bg-slate-50 text-slate-600 text-[7px] px-1.5 py-0.5 rounded font-black uppercase border border-slate-100">
+                                          Plan: {quote.plan}
+                                        </span>
+                                      )
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </td>
@@ -544,10 +556,10 @@ export default function AdminDashboard({ user }: AdminProps) {
                                     showToast('Error de conexión al actualizar el estado');
                                   }
                                 }}
-                                className={`px-4 py-1 rounded-full text-[8px] font-black uppercase tracking-widest cursor-pointer border-0 w-full max-w-[120px] ${quote.status === 'Nuevo' ? 'bg-red-500 text-white' :
-                                    quote.status === 'Atendido' ? 'bg-yellow-500 text-white' :
-                                      quote.status === 'Reserva' ? 'bg-blue-500 text-white' :
-                                        'bg-green-500 text-white'
+                                className={`px-4 py-1 rounded-full text-[8px] font-black uppercase tracking-widest cursor-pointer border-0 w-full max-w-[120px] ${quote.status === 'Nuevo' ? 'bg-red-500 !text-white' :
+                                    quote.status === 'Atendido' ? 'bg-yellow-500 !text-white' :
+                                      quote.status === 'Reserva' ? 'bg-blue-500 !text-white' :
+                                        'bg-green-500 !text-white'
                                   }`}
                               >
                                 <option value="Nuevo" disabled={['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(quote.status)}>Nuevo</option>
@@ -931,7 +943,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                             }
                           } catch (err) { showToast('Error al reasignar'); }
                         }}
-                        className="w-full bg-white border border-gray-100 px-3 py-1.5 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer"
+                        className="w-fit min-w-[150px] bg-white border border-gray-100 px-3 py-1.5 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer"
                       >
                         <option value="">Sin Asignar</option>
                         {(users || []).map((u: any) => (
@@ -1257,9 +1269,9 @@ export default function AdminDashboard({ user }: AdminProps) {
 
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-3">
-                    <span className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${selectedQuote.status === 'Nuevo' ? 'bg-red-500 text-white' :
-                        selectedQuote.status === 'Atendido' ? 'bg-yellow-500 text-white' :
-                          'bg-green-500 text-white'
+                    <span className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${selectedQuote.status === 'Nuevo' ? 'bg-red-500 !text-white' :
+                        selectedQuote.status === 'Atendido' ? 'bg-yellow-500 !text-white' :
+                          'bg-green-500 !text-white'
                       }`}>
                       {selectedQuote.status}
                     </span>

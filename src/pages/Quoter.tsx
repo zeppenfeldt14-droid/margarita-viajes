@@ -473,12 +473,12 @@ export default function Quoter() {
               <div className="flex items-center justify-between mb-8 pt-4 border-t border-dashed border-gray-200">
                 <div className="flex flex-col items-start gap-2">
                   {priceInfo?.season && (
-                    <span className="bg-orange-600 text-white text-[10px] px-3 py-1 rounded-full font-black uppercase shadow-sm">
+                    <span className="bg-orange-600 text-white text-[10px] px-3 py-1.5 rounded-full font-black uppercase shadow-sm border border-orange-700 flex items-center justify-center w-fit">
                       Temporada: {priceInfo.season}
                     </span>
                   )}
                   {selectedHotel.plan && (
-                    <span className="bg-orange-50 text-orange-600 text-[10px] px-3 py-1 rounded-full font-black uppercase border border-orange-100">
+                    <span className="bg-[#0B132B] text-white text-[10px] px-3 py-1.5 rounded-full font-black uppercase shadow-sm border border-slate-700 flex items-center justify-center w-fit">
                       PLAN: {selectedHotel.plan}
                     </span>
                   )}
