@@ -61,19 +61,29 @@ export default function UsersList() {
 
   // Función para determinar si el usuario está conectado basado en la bitácora (v4)
   const isUserOnline = (userId: string, alias: string) => {
-    // Filtrar logs de este usuario que sean de tipo sesión
-    const userSessionLogs = allLogs.filter(log => 
-      (log.user_id === userId || log.user_name === alias || log.alias === alias) &&
-      (log.action_type === 'LOGIN' || log.action_type === 'LOGOUT' || log.action_type === 'LOGOUT_INACTIVITY' || (log.action && (log.action.includes('LOGIN') || log.action.includes('LOGOUT'))))
+    const STALE_TIMEOUT = 30 * 60 * 1000; // 30 minutos de inactividad
+    const now = new Date().getTime();
+
+    // Filtrar todos los logs de este usuario (no solo sesión, sino cualquier actividad)
+    const userLogs = allLogs.filter(log => 
+      (log.user_id === userId || log.user_name === alias || log.alias === alias)
     ).sort((a, b) => new Date(b.created_at || b.date).getTime() - new Date(a.created_at || a.date).getTime());
 
-    if (userSessionLogs.length === 0) return false;
+    if (userLogs.length === 0) return false;
 
-    const lastLog = userSessionLogs[0];
-    const action = lastLog.action_type || lastLog.action || '';
+    const lastLog = userLogs[0];
+    const lastActivityTime = new Date(lastLog.created_at || lastLog.date).getTime();
+    const timeDiff = now - lastActivityTime;
+    const action = (lastLog.action_type || lastLog.action || '').toUpperCase();
     
-    // Si la última acción fue LOGIN, el usuario está conectado
-    return action.toUpperCase().includes('LOGIN');
+    // Regla 1: Si la última acción fue un LOGOUT explícito, está desconectado
+    if (action.includes('LOGOUT')) return false;
+
+    // Regla 2: Si la última actividad fue hace más de 30 minutos, se considera desconectado (stale)
+    if (timeDiff > STALE_TIMEOUT) return false;
+
+    // Regla 3: Si hubo actividad reciente y no fue logout, está en línea
+    return true;
   };
 
   const handleSaveUser = async () => {
