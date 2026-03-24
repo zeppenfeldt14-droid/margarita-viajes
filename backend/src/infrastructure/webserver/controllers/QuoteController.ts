@@ -168,13 +168,24 @@ export class QuoteController {
 
       const drawWebImage = async (url: string, x: number, y: number, width: number) => {
         try {
-          if (!url || !url.startsWith('http')) return;
-          const resp = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-          if (resp.ok) {
-            const buf = Buffer.from(await resp.arrayBuffer());
-            doc.image(buf, x, y, { width });
+          if (!url) return;
+          
+          let buf: Buffer;
+          if (url.startsWith('data:image')) {
+            const base64Data = url.split(',')[1];
+            buf = Buffer.from(base64Data, 'base64');
+          } else if (url.startsWith('http')) {
+            const resp = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+            if (!resp.ok) throw new Error(`HTTP Error ${resp.status}`);
+            buf = Buffer.from(await resp.arrayBuffer());
+          } else {
+            return;
           }
-        } catch (err) { console.error(`[PDF] Error loading ${url}:`, err); }
+          
+          doc.image(buf, x, y, { width });
+        } catch (err) { 
+          console.error(`[PDF] Error loading image:`, err); 
+        }
       };
 
       // --- ENCABEZADO TRIPLE (ESTÁNDAR) ---
@@ -277,13 +288,24 @@ export class QuoteController {
 
       const drawWebImage = async (url: string, x: number, y: number, width: number) => {
         try {
-          if (!url || !url.startsWith('http')) return;
-          const resp = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-          if (resp.ok) {
-            const buf = Buffer.from(await resp.arrayBuffer());
-            doc.image(buf, x, y, { width });
+          if (!url) return;
+          
+          let buf: Buffer;
+          if (url.startsWith('data:image')) {
+            const base64Data = url.split(',')[1];
+            buf = Buffer.from(base64Data, 'base64');
+          } else if (url.startsWith('http')) {
+            const resp = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+            if (!resp.ok) throw new Error(`HTTP Error ${resp.status}`);
+            buf = Buffer.from(await resp.arrayBuffer());
+          } else {
+            return;
           }
-        } catch (err) { console.error(`[PDF] Error loading ${url}:`, err); }
+          
+          doc.image(buf, x, y, { width });
+        } catch (err) { 
+          console.error(`[PDF] Error loading image:`, err); 
+        }
       };
 
       // --- ENCABEZADO TRIPLE (ESTÁNDAR) ---
@@ -346,4 +368,3 @@ export class QuoteController {
     }
   }
 }
-
