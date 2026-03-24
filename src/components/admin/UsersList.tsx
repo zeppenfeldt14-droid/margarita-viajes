@@ -61,10 +61,10 @@ export default function UsersList() {
 
   // Función para determinar si el usuario está conectado basado en la bitácora (v4)
   const isUserOnline = (userId: string, alias: string) => {
-    const STALE_TIMEOUT = 30 * 60 * 1000; // 30 minutos de inactividad
+    const STALE_TIMEOUT = 15 * 60 * 1000; // 15 minutos (Sincronizado con timer de inactividad de 5min)
     const now = new Date().getTime();
 
-    // Filtrar todos los logs de este usuario (no solo sesión, sino cualquier actividad)
+    // Filtrar todos los logs de este usuario (incluyendo LOGIN, GESTIÓN y LOGOUT)
     const userLogs = allLogs.filter(log => 
       (log.user_id === userId || log.user_name === alias || log.alias === alias)
     ).sort((a, b) => new Date(b.created_at || b.date).getTime() - new Date(a.created_at || a.date).getTime());
@@ -76,13 +76,13 @@ export default function UsersList() {
     const timeDiff = now - lastActivityTime;
     const action = (lastLog.action_type || lastLog.action || '').toUpperCase();
     
-    // Regla 1: Si la última acción fue un LOGOUT explícito, está desconectado
+    // Regla 1: Si el último log es un cierre de sesión (manual o automático), está desconectado
     if (action.includes('LOGOUT')) return false;
 
-    // Regla 2: Si la última actividad fue hace más de 30 minutos, se considera desconectado (stale)
+    // Regla 2: Si no hubo actividad en los últimos 15 minutos, está desconectado (stale)
     if (timeDiff > STALE_TIMEOUT) return false;
 
-    // Regla 3: Si hubo actividad reciente y no fue logout, está en línea
+    // Regla 3: Si hubo actividad reciente y NO fue un logout, está en línea
     return true;
   };
 

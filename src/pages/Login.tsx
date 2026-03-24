@@ -53,14 +53,15 @@ export default function Login({ onLogin, onBack }: LoginProps) {
         localStorage.setItem("user_modules", JSON.stringify(data.user?.modules || {}));
         localStorage.setItem("staff_auth", "true");
 
-        // Registrar bitácora de conexión
+        // Registrar bitácora de conexión (Garantizar que se cree el log para validar el semáforo)
         try {
-          await api.createLog({
+          const logPayload = {
             user_id: data.user?.id,
-            user_name: data.user?.name || data.user?.fullName,
+            user_name: data.user?.alias || data.user?.name || 'Usuario',
             action_type: 'LOGIN',
-            details: `Inicio de sesión exitoso desde: ${navigator.userAgent}`
-          });
+            details: `Inicio de sesión exitoso - IP/Browser: ${navigator.userAgent.slice(0, 50)}...`
+          };
+          await api.createLog(logPayload);
         } catch (logErr) {
           console.error("Error al registrar bitácora:", logErr);
         }

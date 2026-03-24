@@ -80,8 +80,10 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
 
       // Restricción de visibilidad por nivel (RBAC)
       if (!isDataMaster) {
-        // Reservas asignadas específicamente a este asesor
-        if (res.assignedTo !== userAlias) return false;
+        // Reservas asignadas específicamente a este asesor O sin asignar
+        const isAssignedToMe = res.assignedTo === userAlias;
+        const isUnassigned = !res.assignedTo || res.assignedTo === '';
+        if (!isAssignedToMe && !isUnassigned) return false;
       }
 
       return true;

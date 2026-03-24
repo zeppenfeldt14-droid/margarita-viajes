@@ -165,7 +165,10 @@ export default function OperationsList({
 
                     // Restricción de visibilidad por nivel (RBAC)
                     if (!isDataMaster) {
-                      if (op.assignedTo !== userAlias) return false;
+                      // Operaciones asignadas específicamente a este asesor O sin asignar
+                      const isAssignedToMe = op.assignedTo === userAlias;
+                      const isUnassigned = !op.assignedTo || op.assignedTo === '';
+                      if (!isAssignedToMe && !isUnassigned) return false;
                     }
 
                     return true;
