@@ -1,10 +1,12 @@
-import React, { useEffect } from "react";
-import { useLocation } from "wouter";
 import { LayoutDashboard, Inbox, Hotel, FileText, Settings, Users, LogOut } from "lucide-react";
 import { api } from "../services/api";
+import { useGlobalData } from "../context/GlobalContext";
 
 export default function AdminLayout({ children, onLogout, userPermissions }: { children: React.ReactNode, onLogout?: () => void, userPermissions?: any }) {
   const [location, setLocation] = useLocation();
+  const { quotes } = useGlobalData();
+
+  const newQuotesCount = (quotes || []).filter(q => q.status === 'Nuevo').length;
 
   const NAV_ITEMS = [
     { title: "INICIO", path: "/admin", icon: <LayoutDashboard size={16} /> },
@@ -103,12 +105,17 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
                   <div className="flex items-center gap-4 text-xs tracking-widest">
                      {item.icon}
                      {item.title}
-                  </div>
-                  {item.badge && (
-                    <span className="bg-white text-orange-500 text-[10px] font-black w-5 h-5 flex flex-col items-center justify-center rounded-full">
-                      {item.badge}
-                    </span>
-                  )}
+                   </div>
+                   {item.title === 'COTIZACIONES' && newQuotesCount > 0 && (
+                     <span className="bg-red-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full animate-pulse shadow-lg shadow-red-500/50">
+                       {newQuotesCount}
+                     </span>
+                   )}
+                   {item.badge && item.title !== 'COTIZACIONES' && (
+                     <span className="bg-white text-orange-500 text-[10px] font-black w-5 h-5 flex flex-col items-center justify-center rounded-full">
+                       {item.badge}
+                     </span>
+                   )}
                 </button>
               );
             })}
