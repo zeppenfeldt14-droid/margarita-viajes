@@ -544,7 +544,7 @@ export default function AdminDashboard({ user }: AdminProps) {
             <MarketingPanel quotes={quotes} config={config} />
           )}
 
-          {activeTab === 'settings' && userModules?.webconfig && (
+          {activeTab === 'settings' && userModules?.settings && (
             <div className="space-y-10 animate-in fade-in duration-500">
               <SectionTitle>Configuración de la Página Web</SectionTitle>
 

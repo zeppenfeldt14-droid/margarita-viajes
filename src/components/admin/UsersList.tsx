@@ -147,8 +147,8 @@ export default function UsersList() {
             <Card key={u.id} className="relative overflow-hidden border-2 border-gray-50 shadow-sm hover:border-orange-200 transition-all flex flex-col justify-between">
               {/* Tarea C: Status Badge at top right */}
               <div className="absolute top-4 right-4 z-10">
-                <span className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest ${u.active ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-red-50 text-red-600 border border-red-100'}`}>
-                  {u.active ? 'ACTIVO' : 'INACTIVO'}
+                <span className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest ${u.isOnline ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-gray-100 text-gray-500 border border-gray-200'}`}>
+                  {u.isOnline ? 'CONECTADO' : 'DESCONECTADO'}
                 </span>
               </div>
 
@@ -251,9 +251,30 @@ export default function UsersList() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField name="email" label="CORREO ELECTRÓNICO" type="email" placeholder="ejemplo@margaritaviajes.com" value={newUser.email} onChange={(e: any) => setNewUser({...newUser, email: e.target.value})} />
-                <InputField name="password" label={newUser.id ? "CONTRASEÑA (Dejar en blanco para no cambiar)" : "CONTRASEÑA (OBLIGATORIA)"} type="password" placeholder="********" value={newUser.password || ''} onChange={(e: any) => setNewUser({...newUser, password: e.target.value})} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm relative">
+                <div className="absolute -top-3 left-6 bg-orange-500 text-white px-4 py-1 rounded-full text-[8px] font-black uppercase tracking-widest">Control de Acceso</div>
+                <div className="flex flex-col gap-4">
+                  <InputField name="email" label="CORREO ELECTRÓNICO" type="email" placeholder="ejemplo@margaritaviajes.com" value={newUser.email} onChange={(e: any) => setNewUser({...newUser, email: e.target.value})} />
+                  <InputField name="password" label={newUser.id ? "CONTRASEÑA (Dejar en blanco para no cambiar)" : "CONTRASEÑA (OBLIGATORIA)"} type="password" placeholder="********" value={newUser.password || ''} onChange={(e: any) => setNewUser({...newUser, password: e.target.value})} />
+                </div>
+                <div className="flex flex-col justify-center items-center gap-4 bg-gray-50/50 rounded-2xl p-4 border border-dashed border-gray-200">
+                  <p className="text-[10px] font-black text-[#0B132B] uppercase tracking-widest">¿Permitir acceso al sistema?</p>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => setNewUser({...newUser, active: true})}
+                      className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${newUser.active ? 'bg-green-600 text-white shadow-lg' : 'bg-white text-gray-400 border border-gray-200'}`}
+                    >
+                      CUENTA ACTIVA
+                    </button>
+                    <button 
+                      onClick={() => setNewUser({...newUser, active: false})}
+                      className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!newUser.active ? 'bg-red-600 text-white shadow-lg' : 'bg-white text-gray-400 border border-gray-200'}`}
+                    >
+                      INACTIVA
+                    </button>
+                  </div>
+                  <p className="text-[8px] text-gray-400 font-bold uppercase text-center mt-2 px-4 italic leading-tight">Si se marca como Inactiva, el usuario no podrá iniciar sesión bajo ninguna circunstancia.</p>
+                </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-blue-50/50 p-6 rounded-3xl border border-blue-50">
@@ -336,13 +357,6 @@ export default function UsersList() {
               <div className="bg-orange-50/50 p-6 rounded-3xl border border-orange-50 space-y-4">
                 <h4 className="text-[10px] font-black text-orange-600 uppercase tracking-widest flex items-center gap-2"><Target size={14}/> Asignación y Ruleta</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center justify-between bg-white p-3 rounded-xl shadow-sm border border-gray-50">
-                    <span className="text-[10px] font-bold text-gray-600 uppercase">Estado del Perfil:</span>
-                    <select value={newUser.active ? 'true' : 'false'} onChange={(e) => setNewUser({...newUser, active: e.target.value === 'true'})} className="bg-gray-50 rounded-lg px-3 py-1.5 text-[10px] font-black uppercase outline-none border-none focus:ring-2 focus:ring-orange-500/20">
-                      <option value="true">Activo</option>
-                      <option value="false">Inactivo</option>
-                    </select>
-                  </div>
                   <div className="flex items-center justify-between bg-white p-3 rounded-xl shadow-sm border border-gray-50">
                     <span className="text-[10px] font-bold text-gray-600 uppercase">Recibir Leads (Ruleta):</span>
                     <select value={newUser.inRoulette !== false ? 'true' : 'false'} onChange={(e) => setNewUser({...newUser, inRoulette: e.target.value === 'true'})} className="bg-gray-50 rounded-lg px-3 py-1.5 text-[10px] font-black uppercase outline-none border-none focus:ring-2 focus:ring-orange-500/20">
