@@ -25,6 +25,7 @@ export interface Quote {
   previousId?: string;
   originalQuoteId?: string;
   plan?: string;
+  assignedTo?: string;
 }
 
 export interface IQuoteRepository {

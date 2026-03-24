@@ -25,6 +25,7 @@ export function createRouter(
   router.get('/config', (req: Request, res: Response) => adminController.getConfig(req, res));
   router.get('/public/config', (req: Request, res: Response) => adminController.getConfig(req, res));
   router.get('/public/quotes/next-folio', (req: Request, res: Response) => quoteController.getNextFolio(req, res));
+  router.get('/public/quotes/:id/pdf', (req: Request, res: Response) => quoteController.getQuotePdfOnDemand(req, res));
   router.post('/quotes/calculate', (req: Request, res: Response) => quoteController.calculatePrice(req, res));
   router.post('/quotes', (req: Request, res: Response) => quoteController.saveQuote(req, res));
 
