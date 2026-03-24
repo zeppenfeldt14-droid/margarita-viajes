@@ -317,10 +317,22 @@ export async function initDatabase(db: Knex) {
       table.decimal('total_amount');
       table.text('companions'); // JSON
       table.text('technical_sheet'); // JSON
+      table.text('hotel_response_image').nullable();
+      table.text('payment_proof_image').nullable();
       table.string('status');
       table.timestamp('created_at').defaultTo(db.fn.now());
     });
     console.log('[Database] Tabla "operations" creada.');
+  } else {
+    // Verificar y agregar columnas faltantes
+    const hasHotelResponse = await db.schema.hasColumn('operations', 'hotel_response_image');
+    const hasPaymentProof = await db.schema.hasColumn('operations', 'payment_proof_image');
+    
+    await db.schema.alterTable('operations', (table: any) => {
+      if (!hasHotelResponse) table.text('hotel_response_image').nullable();
+      if (!hasPaymentProof) table.text('payment_proof_image').nullable();
+    });
+    console.log('[Database] Verificación de columnas en "operations" completada.');
   }
 
   // Tabla: coupons

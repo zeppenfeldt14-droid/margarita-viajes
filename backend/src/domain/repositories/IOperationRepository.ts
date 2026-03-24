@@ -17,6 +17,8 @@ export interface Operation {
   companions?: { name: string; type: string }[];
   technicalSheet?: any;
   status: string;
+  hotelResponseImage?: string;
+  paymentProofImage?: string;
   createdAt?: string;
 }
 

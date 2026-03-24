@@ -33,6 +33,8 @@ export class PostgresOperationRepository implements IOperationRepository {
       total_amount: operation.totalAmount,
       companions: JSON.stringify(operation.companions || []),
       technical_sheet: JSON.stringify(operation.technicalSheet || {}),
+      hotel_response_image: operation.hotelResponseImage,
+      payment_proof_image: operation.paymentProofImage,
       status: operation.status
     }).returning('*');
     return result;
@@ -44,12 +46,12 @@ export class PostgresOperationRepository implements IOperationRepository {
       .orderBy('id', 'desc')
       .first();
 
-    let nextNum = 100001;
+    let nextNum = 1001;
     if (result) {
       const numPart = parseInt(result.id.replace(/\D/g, '')) || 0;
       nextNum = numPart + 1;
     }
 
-    return { nextId: 'V' + nextNum.toString().padStart(10, '0') };
+    return { nextId: 'V' + nextNum.toString().padStart(6, '0') };
   }
 }

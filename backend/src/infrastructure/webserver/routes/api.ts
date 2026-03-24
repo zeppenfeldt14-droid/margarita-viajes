@@ -62,6 +62,7 @@ export function createRouter(
   router.get('/admin/operation', (req: Request, res: Response) => adminController.getOperationSequence(req, res));
   router.get('/admin/operations', (req: Request, res: Response) => adminController.getOperations(req, res));
   router.post('/admin/operation', (req: Request, res: Response) => adminController.createOperation(req, res));
+  router.post('/admin/operations', (req: Request, res: Response) => adminController.createOperation(req, res));
 
   // Reservations
   router.get('/admin/reservations', (req: Request, res: Response) => adminController.getReservations(req, res));
