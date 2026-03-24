@@ -774,7 +774,7 @@ export default function AdminDashboard({ user }: AdminProps) {
 
       {/* MODALES */}
       {selectedQuote && (() => {
-        const hasExistingDiscount = selectedQuote.discount || selectedQuote.discountAmount;
+        const hasExistingDiscount = Number(selectedQuote.discount || 0) > 0 || Number(selectedQuote.discountAmount || 0) > 0;
         const baseAmount = hasExistingDiscount
           ? Number(selectedQuote.totalAmount || selectedQuote.total_amount) + Number(selectedQuote.discountAmount || 0)
           : Number(selectedQuote.totalAmount || selectedQuote.total_amount || 0);
