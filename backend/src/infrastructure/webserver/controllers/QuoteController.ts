@@ -7,6 +7,7 @@ import type { IQuoteRepository } from '../../../domain/repositories/IQuoteReposi
 import type { IWebConfigRepository } from '../../../domain/repositories/IWebConfigRepository.js';
 import type { IHotelRepository } from '../../../domain/repositories/IHotelRepository.js';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
+import type { IOperationRepository } from '../../../domain/repositories/IOperationRepository.js';
 import { NotificationService } from '../../services/NotificationService.js';
 
 export class QuoteController {
@@ -18,6 +19,7 @@ export class QuoteController {
     private configRepo: IWebConfigRepository,
     private hotelRepo: IHotelRepository,
     private userRepo: IUserRepository,
+    private operationRepo: IOperationRepository,
     private notificationService: NotificationService
   ) {}
 
@@ -248,4 +250,117 @@ export class QuoteController {
       if (!res.headersSent) res.status(500).json({ error: error.message });
     }
   }
+
+  async getVoucherPdfOnDemand(req: Request, res: Response) {
+    try {
+      const id = req.params['id'] as string;
+      const op = await this.operationRepo.findById(id);
+      
+      if (!op) {
+        return res.status(404).json({ error: 'Operación no encontrada' });
+      }
+
+      const config = await this.configRepo.getConfig();
+      let hotelLogoUrl = '';
+      let hotelLocation = '';
+      
+      try {
+        if (op.hotelId) {
+          const hotel = await this.hotelRepo.findById(op.hotelId);
+          if (hotel) {
+            hotelLogoUrl = hotel.logo || '';
+            hotelLocation = hotel.location || '';
+          }
+        }
+      } catch (e) { console.error('[PDF] Hotel fetch error:', e); }
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=Voucher_${id}.pdf`);
+
+      const doc = new PDFDocument({ margin: 50, size: 'A4' });
+      doc.pipe(res);
+
+      const brandColor = '#0B132B'; // Azul Oscuro para cabeceras
+      const successColor = '#10b981'; // Verde para el pie de pago
+      const labelColor = '#999999';
+      const borderColor = '#EEEEEE';
+
+      // --- ENCABEZADO ---
+      const drawWebImage = async (url: string, x: number, y: number, width: number) => {
+        try {
+          if (!url || !url.startsWith('http')) return;
+          const resp = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+          if (resp.ok) {
+            const buf = Buffer.from(await resp.arrayBuffer());
+            doc.image(buf, x, y, { width });
+          }
+        } catch (err) { console.error(`[PDF] Error loading ${url}:`, err); }
+      };
+
+      await drawWebImage(config.logoImage, 50, 40, 80);
+      await drawWebImage(hotelLogoUrl, 465, 40, 80);
+
+      doc.fillColor(brandColor).fontSize(16).font('Helvetica-Bold').text('VOUCHER DE SERVICIO', 150, 45, { align: 'center', width: 295 });
+      doc.fontSize(8).font('Helvetica').text(`RIF: ${config.rif || 'J-40156646-4'} | RTN: ${config.rtn || '13314'}`, 150, 65, { align: 'center', width: 295 });
+      doc.fontSize(7).fillColor(labelColor).text(config.direccion || '-', 150, 75, { align: 'center', width: 295 });
+
+      doc.moveTo(50, 110).lineTo(545, 110).lineWidth(2).stroke(brandColor);
+
+      // --- DATOS PRINCIPALES ---
+      doc.fillColor(labelColor).fontSize(8).font('Helvetica-Bold').text('TITULAR DE LA RESERVA:', 50, 130);
+      doc.fillColor(brandColor).fontSize(12).text((op.clientName || 'CLIENTE').toUpperCase(), 50, 142);
+
+      doc.fillColor(labelColor).fontSize(8).text('FOLIO VENTA:', 400, 130, { align: 'right' });
+      doc.fillColor(brandColor).fontSize(12).text(op.id || 'S/F', 400, 142, { align: 'right' });
+
+      // --- TABLA DE SERVICIOS (Cabecera Azul) ---
+      const drawTableHeader = (title: string, y: number) => {
+        doc.rect(50, y, 495, 20).fill(brandColor);
+        doc.fillColor('#FFFFFF').fontSize(9).font('Helvetica-Bold').text(title.toUpperCase(), 60, y + 6);
+      };
+
+      const drawRow = (label: string, value: string, y: number) => {
+        doc.fillColor(labelColor).fontSize(8).font('Helvetica-Bold').text(label.toUpperCase(), 60, y + 5);
+        doc.fillColor(brandColor).fontSize(9).font('Helvetica-Bold').text(value?.toUpperCase() || '-', 250, y + 5, { align: 'right', width: 280 });
+        doc.moveTo(50, y + 20).lineTo(545, y + 20).lineWidth(0.5).stroke(borderColor);
+      };
+
+      let currentY = 180;
+      drawTableHeader('Detalles del Alojamiento', currentY);
+      currentY += 20;
+      drawRow('Hotel / Establecimiento', op.hotelName, currentY); currentY += 20;
+      drawRow('Ubicación', hotelLocation, currentY); currentY += 20;
+      drawRow('Plan de Alimentación', op.plan || 'No especificado', currentY); currentY += 20;
+      drawRow('Tipo de Habitación', op.roomType, currentY); currentY += 20;
+      drawRow('Fecha de Entrada (Check-In)', new Date(op.checkIn).toLocaleDateString(), currentY); currentY += 20;
+      drawRow('Fecha de Salida (Check-Out)', new Date(op.checkOut).toLocaleDateString(), currentY); currentY += 20;
+
+      currentY += 20;
+      drawTableHeader('Lista de Pasajeros', currentY);
+      currentY += 20;
+      if (op.companions && op.companions.length > 0) {
+        op.companions.forEach((p: any, i: number) => {
+          doc.fillColor(brandColor).fontSize(8).font('Helvetica-Bold').text(`${i + 1}. ${p.name.toUpperCase()}`, 60, currentY + 5);
+          doc.fillColor(labelColor).fontSize(8).text(`(${p.type || 'ADULTO'}${p.age ? ` - ${p.age} Años` : ''})`, 300, currentY + 5);
+          currentY += 15;
+        });
+      } else {
+        doc.fillColor(labelColor).fontSize(8).font('Helvetica-Oblique').text('No hay pasajeros registrados.', 60, currentY + 5);
+        currentY += 15;
+      }
+
+      // --- PIE DE PÁGINA (Barra Verde) ---
+      const footerY = 750;
+      doc.rect(50, footerY, 495, 30).fill(successColor);
+      doc.fillColor('#FFFFFF').fontSize(10).font('Helvetica-Bold').text('ESTATUS DE PAGO: PAGADO TOTALMENTE', 50, footerY + 10, { align: 'center', width: 495 });
+
+      doc.fillColor(brandColor).fontSize(8).font('Helvetica').text('Este voucher es el documento oficial de confirmación de sus servicios. Por favor preséntelo al momento del Check-In.', 50, footerY + 40, { align: 'center', width: 495 });
+
+      doc.end();
+    } catch (error: any) {
+      console.error('[QuoteController] Error in getVoucherPdfOnDemand:', error);
+      if (!res.headersSent) res.status(500).json({ error: error.message });
+    }
+  }
 }
+

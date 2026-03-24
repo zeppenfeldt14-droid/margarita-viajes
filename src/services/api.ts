@@ -165,7 +165,8 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(logData),
     });
-  }
+  },
+  getBaseUrl: () => API_URL
 };
 
 export default api;

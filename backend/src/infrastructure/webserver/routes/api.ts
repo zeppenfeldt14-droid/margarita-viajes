@@ -71,6 +71,7 @@ export function createRouter(
   router.get('/admin/operations', (req: Request, res: Response) => adminController.getOperations(req, res));
   router.post('/admin/operation', (req: Request, res: Response) => adminController.createOperation(req, res));
   router.post('/admin/operations', (req: Request, res: Response) => adminController.createOperation(req, res));
+  router.get('/admin/operations/:id/voucher', (req: Request, res: Response) => quoteController.getVoucherPdfOnDemand(req, res));
 
   // Reservations
   router.get('/admin/reservations', (req: Request, res: Response) => adminController.getReservations(req, res));

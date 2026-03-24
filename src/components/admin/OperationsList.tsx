@@ -370,14 +370,23 @@ export default function OperationsList({
             <div className="p-8 border-t border-gray-100 flex gap-4 bg-gray-50/50 print-hidden">
               <button
                 onClick={() => {
+                  const url = `${api.getBaseUrl()}/admin/operations/${selectedOperation.id}/voucher`;
+                  window.open(url, '_blank');
+                }}
+                className="flex-1 bg-[#0B132B] text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl flex items-center justify-center gap-2"
+              >
+                <Printer size={16} /> Descargar Voucher (PDF)
+              </button>
+              <button
+                onClick={() => {
                   const originalTitle = document.title;
                   document.title = `Venta_${selectedOperation.id}`;
                   window.print();
                   document.title = originalTitle;
                 }}
-                className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-blue-700 transition-all shadow-xl flex items-center justify-center gap-2"
+                className="flex-1 bg-gray-100 text-[#0B132B] py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-200 transition-all shadow-xl flex items-center justify-center gap-2"
               >
-                <Printer size={16} /> Imprimir / Guardar PDF
+                <Printer size={16} /> Imprimir Ficha
               </button>
               <button
                 onClick={() => {

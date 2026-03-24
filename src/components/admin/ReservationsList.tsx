@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Calendar, ShieldCheck, AlertCircle, Briefcase, X, Search, Mail, Printer } from 'lucide-react';
+import { Users, Calendar, ShieldCheck, AlertCircle, Briefcase, X, Search, Mail, Printer, Download } from 'lucide-react';
 import { api } from '../../services/api';
 import { showToast } from '../Toast';
 import { Card, SectionTitle } from './Common';
@@ -138,8 +138,37 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                       <td className="py-5 px-4"><div className="flex flex-col"><span className="font-black italic text-[#0B132B]">{res.clientName}</span><span className="text-[9px] text-gray-400 lowercase">{res.email}</span></div></td>
                       <td className="py-5 px-4 text-[10px] font-black">{formatDateVisual(res.checkIn)} - {formatDateVisual(res.checkOut)}</td>
                       <td className="py-5 px-4 text-center font-black italic text-green-600">$ {Number(res.totalAmount).toLocaleString()}</td>
-                      <td className="py-5 px-4"><span className={`px-3 py-1.5 rounded-full text-[8px] font-black ${res.status === 'Venta Cerrada' ? 'bg-green-500' : 'bg-blue-500'} text-white`}>{res.status}</span></td>
-                      <td className="py-5 px-4 text-center"><button onClick={() => setSelectedReservation(res)} className="bg-[#0B132B] text-white px-4 py-2 rounded-xl text-[9px] font-black hover:bg-orange-600 transition-all">Ver Reserva</button></td>
+                       <td className="py-5 px-4">
+                        <select
+                          value={res.status}
+                          onChange={async (e) => {
+                            const newStatus = e.target.value;
+                            try {
+                              const updatedRes = await api.updateReservation(res.id, { status: newStatus });
+                              if (updatedRes) {
+                                fetchReservations();
+                                showToast(`Estado: ${newStatus}`);
+                              }
+                            } catch (err) { showToast('Error al actualizar estado'); }
+                          }}
+                          className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border-none cursor-pointer outline-none transition-all ${
+                            res.status === 'Venta Cerrada' || res.status === 'Venta Concretada' ? 'bg-blue-600 text-white shadow-sm' :
+                            res.status === 'Liquidada' ? 'bg-purple-600 text-white' :
+                            res.status === 'Cancelada' ? 'bg-red-500 text-white' :
+                            res.status === 'Confirmada' ? 'bg-green-500 text-white' :
+                            'bg-blue-400 text-white'
+                          }`}
+                        >
+                          <option value="Confirmada">Confirmada</option>
+                          <option value="Venta Cerrada">Venta Cerrada</option>
+                          <option value="Venta Concretada">Venta Concretada</option>
+                          <option value="Liquidada">Liquidada</option>
+                          <option value="Cancelada">Cancelada</option>
+                        </select>
+                      </td>
+                      <td className="py-5 px-4 text-center">
+                        <button onClick={() => setSelectedReservation(res)} className="bg-[#0B132B] text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-orange-600 transition-all shadow-sm">VER</button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -157,7 +186,8 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                   <h3 className="text-2xl font-black italic text-[#0B132B] uppercase tracking-tighter">Detalles de Reserva Activa</h3>
                   <div className="flex flex-col gap-0.5 mt-1">
                     <p className="text-sm font-black text-[#0B132B] uppercase">
-                      FOLIO: {selectedReservation.id?.startsWith('R') ? selectedReservation.id : selectedReservation.quoteId?.replace('C', 'R')}
+                      FOLIO: {selectedReservation.id?.startsWith('R') ? selectedReservation.id : selectedReservation.quoteId?.replace('C', 'R')} |
+                      NOCHES: {Math.ceil((new Date(selectedReservation.checkOut).getTime() - new Date(selectedReservation.checkIn).getTime()) / (1000 * 60 * 60 * 24))}
                     </p>
                     {(selectedReservation.previousId || selectedReservation.originalQuoteId) && (
                       <p className="text-[10px] font-bold text-orange-500 italic">
@@ -225,6 +255,7 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                       <div className="grid grid-cols-2 gap-8">
                         <div><p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Check-in</p><p className="text-xl font-black italic text-[#0B132B]">{formatDateVisual(selectedReservation.checkIn)}</p></div>
                         <div><p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Check-out</p><p className="text-xl font-black italic text-[#0B132B]">{formatDateVisual(selectedReservation.checkOut)}</p></div>
+                        <div><p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Estadía</p><p className="text-xl font-black text-blue-600">{Math.ceil((new Date(selectedReservation.checkOut).getTime() - new Date(selectedReservation.checkIn).getTime()) / (1000 * 60 * 60 * 24))} NOCHES</p></div>
                         <div className="flex flex-col"><span className="text-[10px] font-bold text-gray-400 uppercase mb-1">Plan de Comidas</span><span className="text-lg font-black text-orange-600 uppercase">{(selectedReservation as any).plan || 'No definido'}</span></div>
                         <div><p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Tipo Habitación</p><p className="text-lg font-bold text-[#0B132B]">{selectedReservation.roomType}</p></div>
                         <div><p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Ocupación</p><p className="text-lg font-bold text-[#0B132B] uppercase">{selectedReservation.pax} Adultos {selectedReservation.children ? `/ ${selectedReservation.children} Niños` : ''}</p></div>
@@ -448,21 +479,21 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                                   paymentProofImage: paymentProofImage
                                 });
 
-                                showToast('✅ ¡Venta Cerrada con éxito!');
+                                showToast('✅ ¡Venta Cerrada!');
                                 setSelectedReservation(null);
                                 fetchReservations();
                             } else {
                                 const errorData = await createOpRes.json().catch(() => ({}));
-                                showToast(`❌ Error al crear operación: ${errorData.message || 'No se pudo procesar la solicitud.'}`);
+                                showToast(`❌ Error: ${errorData.message || 'Error al procesar'}`);
                             }
                           } catch (error) {
                             console.error('Error closing reservation:', error);
-                            showToast('❌ Error crítico al cerrar la reserva.');
+                            showToast('❌ Error crítico.');
                           }
                         }}
-                        className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-6 rounded-[2.5rem] font-black text-sm uppercase tracking-[0.4em] hover:from-green-600 hover:to-green-700 transition-all shadow-2xl shadow-green-200 flex items-center justify-center gap-4 active:scale-95 border-b-4 border-green-800"
+                        className="w-full bg-blue-600 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-3 active:scale-95"
                       >
-                        <ShieldCheck size={24} />
+                        <ShieldCheck size={18} />
                         Marcar como VENTA CERRADA
                       </button>
 
@@ -501,9 +532,9 @@ Saludos.`;
                           
                           setShowEmailModal(true);
                         }}
-                        className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-2"
+                        className="w-full bg-white border-2 border-blue-600 text-blue-600 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-50 transition-all flex items-center justify-center gap-2"
                       >
-                        <Briefcase size={16} /> Generar Correo para Hotel
+                        <Mail size={16} /> Correo al Hotel
                       </button>
 
                       <button
@@ -514,9 +545,9 @@ Saludos.`;
                           window.print();
                           document.title = originalTitle;
                         }}
-                        className="w-full bg-gray-100 text-[#0B132B] py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
+                        className="w-full bg-[#0B132B] text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
                       >
-                        <Printer size={16} /> Imprimir Ficha / PDF
+                        <Download size={16} /> Descargar Ficha
                       </button>
                     </div>
                   )}
