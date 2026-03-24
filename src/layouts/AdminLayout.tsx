@@ -2,20 +2,26 @@ import React from "react";
 import { useLocation } from "wouter";
 import { LayoutDashboard, Inbox, Hotel, FileText, Settings, Users, LogOut } from "lucide-react";
 
-export default function AdminLayout({ children, onLogout }: { children: React.ReactNode, onLogout?: () => void }) {
+export default function AdminLayout({ children, onLogout, userPermissions }: { children: React.ReactNode, onLogout?: () => void, userPermissions?: any }) {
   const [location, setLocation] = useLocation();
 
   const NAV_ITEMS = [
     { title: "INICIO", path: "/admin", icon: <LayoutDashboard size={16} /> },
-    { title: "INVENTARIO", path: "/admin/inventory", icon: <Inbox size={16} /> },
-    { title: "COTIZACIONES", path: "/admin/quotes", icon: <FileText size={16} />, badge: 3 },
-    { title: "RESERVAS (HOTEL)", path: "/admin/reservations", icon: <Hotel size={16} /> },
-    { title: "VENTAS (OPERACIONES)", path: "/admin/sales", icon: <FileText size={16} /> },
-    { title: "USUARIOS", path: "/admin/users", icon: <Users size={16} /> },
-    { title: "CLIENTES", path: "/admin/customers", icon: <Users size={16} /> },
-    { title: "MARKETING", path: "/admin/marketing", icon: <FileText size={16} /> },
-    { title: "CONFIGURACIÓN", path: "/admin/webconfig", icon: <Settings size={16} /> },
+    { title: "INVENTARIO", path: "/admin/inventory", icon: <Inbox size={16} />, module: 'inventory' },
+    { title: "COTIZACIONES", path: "/admin/quotes", icon: <FileText size={16} />, badge: 3, module: 'quotes' },
+    { title: "RESERVAS (HOTEL)", path: "/admin/reservations", icon: <Hotel size={16} />, module: 'bookings' },
+    { title: "VENTAS (OPERACIONES)", path: "/admin/sales", icon: <FileText size={16} />, module: 'operations' },
+    { title: "USUARIOS", path: "/admin/users", icon: <Users size={16} />, module: 'users' },
+    { title: "CLIENTES", path: "/admin/customers", icon: <Users size={16} />, module: 'customers' },
+    { title: "MARKETING", path: "/admin/marketing", icon: <FileText size={16} />, module: 'marketing' },
+    { title: "CONFIGURACIÓN", path: "/admin/webconfig", icon: <Settings size={16} />, module: 'settings' },
   ];
+
+  const filteredItems = NAV_ITEMS.filter(item => {
+    if (!item.module) return true; // INICIO siempre visible
+    if (!userPermissions) return true; // Fallback
+    return userPermissions[item.module] === true;
+  });
 
   return (
     <div className="flex h-screen bg-[#F8F9FB] font-sans selection:bg-orange-200">
@@ -40,7 +46,7 @@ export default function AdminLayout({ children, onLogout }: { children: React.Re
 
           {/* Navigation */}
           <nav className="mt-8 px-4 space-y-2">
-            {NAV_ITEMS.map((item) => {
+            {filteredItems.map((item) => {
               const isActive = location === item.path || (item.path !== '/admin' && location.startsWith(item.path));
               return (
                 <button

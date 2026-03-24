@@ -34,16 +34,20 @@ export function createRouter(
   // Admin Endpoints (Protected)
   router.use('/admin', authMiddleware(['LEVEL_1', 'LEVEL_2', 'LEVEL_3']));
   
+  // SOLAMENTE NIVEL 1 (GERENTES)
+  const masterAuth = authMiddleware(['Gerente General', 'Gerente Operaciones']);
+
   router.get('/admin/hotels', (req: Request, res: Response) => adminController.getHotels(req, res));
   router.post('/admin/hotels', (req: Request, res: Response) => adminController.createHotel(req, res));
   router.put('/admin/hotels/:id', (req: Request, res: Response) => adminController.updateHotel(req, res));
   router.delete('/admin/hotels/:id', (req: Request, res: Response) => adminController.deleteHotel(req, res));
   router.get('/admin/hotels/:hotelId/rooms', (req: Request, res: Response) => adminController.getRoomsByHotel(req, res));
   router.post('/admin/rooms', (req: Request, res: Response) => adminController.createRoom(req, res));
-  router.get('/admin/users', (req: Request, res: Response) => adminController.getUsers(req, res));
-  router.post('/admin/users', (req: Request, res: Response) => adminController.createUser(req, res));
-  router.put('/admin/users/:id', (req: Request, res: Response) => adminController.updateUser(req, res));
-  router.delete('/admin/users/:id', (req: Request, res: Response) => adminController.deleteUser(req, res));
+  
+  router.get('/admin/users', masterAuth, (req: Request, res: Response) => adminController.getUsers(req, res));
+  router.post('/admin/users', masterAuth, (req: Request, res: Response) => adminController.createUser(req, res));
+  router.put('/admin/users/:id', masterAuth, (req: Request, res: Response) => adminController.updateUser(req, res));
+  router.delete('/admin/users/:id', masterAuth, (req: Request, res: Response) => adminController.deleteUser(req, res));
 
   // Transfers
   router.get('/admin/transfers', (req: Request, res: Response) => adminController.getTransfers(req, res));
@@ -57,9 +61,9 @@ export function createRouter(
   router.get('/quotes/check', (req: Request, res: Response) => quoteController.checkDuplicate(req, res));
   router.put('/admin/quotes/:id', (req: Request, res: Response) => adminController.updateQuote(req, res));
 
-  // Config
-  router.get('/admin/config', (req: Request, res: Response) => adminController.getConfig(req, res));
-  router.post('/admin/config', (req: Request, res: Response) => adminController.updateConfig(req, res));
+  // Config (NIVEL 1 SOLAMENTE)
+  router.get('/admin/config', masterAuth, (req: Request, res: Response) => adminController.getConfig(req, res));
+  router.post('/admin/config', masterAuth, (req: Request, res: Response) => adminController.updateConfig(req, res));
 
   // Operations
   router.get('/admin/operation', (req: Request, res: Response) => adminController.getOperationSequence(req, res));
@@ -79,9 +83,9 @@ export function createRouter(
   router.put('/admin/coupons/:id', (req: Request, res: Response) => adminController.updateCoupon(req, res));
   router.delete('/admin/coupons/:id', (req: Request, res: Response) => adminController.deleteCoupon(req, res));
 
-  // Logs
-  router.get('/admin/logs', (req: Request, res: Response) => logController.getLogs(req, res));
-  router.post('/admin/logs', (req: Request, res: Response) => logController.createLog(req, res));
+  // Logs (NIVEL 1 SOLAMENTE)
+  router.get('/admin/logs', masterAuth, (req: Request, res: Response) => logController.getLogs(req, res));
+  router.post('/admin/logs', masterAuth, (req: Request, res: Response) => logController.createLog(req, res));
 
   return router;
 }

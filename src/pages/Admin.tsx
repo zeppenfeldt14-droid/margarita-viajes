@@ -67,28 +67,42 @@ export default function AdminDashboard({ user }: AdminProps) {
   const { hotels, transfers, quotes, users, setQuotes, refreshData } = useGlobalData();
 
   const userModules = React.useMemo(() => {
-    // Buscar el usuario actual en la lista global de usuarios
-    const currentUser = (users || []).find((u: any) => u.name === user || u.fullName === user || u.alias === user);
-    
-    if (currentUser) {
-      if (currentUser.level === 1 || currentUser.role === 'Gerente General' || currentUser.role === 'Gerente Operaciones') {
-        return { inventory: true, quotes: true, bookings: true, operations: true, users: true, customers: true, marketing: true, webconfig: true };
-      }
-      return currentUser.modules || {};
+    const level = parseInt(localStorage.getItem('user_level') || '3');
+    const role = localStorage.getItem('staff_user_role');
+    const alias = localStorage.getItem('staff_user_alias');
+    const isMaster = level === 1 || role === 'Gerente General' || role === 'Gerente Operaciones' || alias === 'Gerente General' || alias === 'Gerente Operaciones';
+
+    if (isMaster) {
+      return { inventory: true, quotes: true, bookings: true, operations: true, users: true, customers: true, marketing: true, settings: true };
     }
 
-    // Fallback al localStorage si la lista aún no carga
-    try {
-      const storedModules = JSON.parse(localStorage.getItem('user_modules') || '{}');
-      const level = parseInt(localStorage.getItem('user_level') || '3');
-      const role = localStorage.getItem('staff_user_role');
-      const isMaster = level === 1 || role === 'Gerente General' || role === 'Gerente Operaciones';
-      
-      if (isMaster) return { inventory: true, quotes: true, bookings: true, operations: true, users: true, customers: true, marketing: true, webconfig: true };
-      return storedModules;
-    } catch (e) {
-      return { inventory: false, quotes: true, bookings: false, operations: false, users: false, customers: false, marketing: false, webconfig: false };
+    // Buscar el usuario actual en la lista global de usuarios
+    const currentUser = (users || []).find((u: any) => u.name === user || u.fullName === user || u.alias === user || u.email === user);
+    
+    let modules: any = { inventory: false, quotes: true, bookings: false, operations: false, users: false, customers: false, marketing: false, settings: false };
+    
+    if (currentUser && currentUser.modules) {
+      modules = { ...currentUser.modules };
+    } else {
+      // Fallback al localStorage
+      try {
+        modules = JSON.parse(localStorage.getItem('user_modules') || '{}');
+      } catch (e) {}
     }
+
+    // FORZAR REGLAS MAESTRAS (Master Document)
+    // Nivel 2 y 3 nunca tienen acceso a Usuarios ni Configuración
+    return {
+      ...modules,
+      inventory: !!modules.inventory,
+      quotes: !!modules.quotes,
+      bookings: !!modules.bookings,
+      operations: !!modules.operations,
+      customers: !!modules.customers,
+      marketing: !!modules.marketing,
+      users: false, // Forzado
+      settings: false // Forzado
+    };
   }, [user, users]);
 
   const [quoteFilter, setQuoteFilter] = useState<'original' | 'discounted' | 'unassigned' | 'history'>('original');

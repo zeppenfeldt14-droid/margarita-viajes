@@ -62,8 +62,24 @@ function App() {
             <Route key={path} path={path}>
               {() => {
                 console.log("[App] Navigating to admin route:", path, "Auth:", isAuthenticated);
+                
+                // Obtener permisos para el Smart Sidebar
+                let permissions = {};
+                try {
+                  const level = parseInt(localStorage.getItem('user_level') || '3');
+                  const role = localStorage.getItem('staff_user_role');
+                  const alias = localStorage.getItem('staff_user_alias');
+                  const isMaster = level === 1 || role === 'Gerente General' || role === 'Gerente Operaciones' || alias === 'Gerente General' || alias === 'Gerente Operaciones';
+                  if (isMaster) {
+                    permissions = { inventory: true, quotes: true, bookings: true, operations: true, users: true, customers: true, marketing: true, settings: true };
+                  } else {
+                    const modules = JSON.parse(localStorage.getItem('user_modules') || '{}');
+                    permissions = { ...modules, users: false, settings: false };
+                  }
+                } catch (e) {}
+
                 return isAuthenticated ? (
-                  <AdminLayout onLogout={handleLogout}>
+                  <AdminLayout onLogout={handleLogout} userPermissions={permissions}>
                     <AdminDashboard user={user} />
                   </AdminLayout>
                 ) : (
