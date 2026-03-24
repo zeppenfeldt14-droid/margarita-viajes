@@ -43,10 +43,13 @@ export default function Login({ onLogin, onBack }: LoginProps) {
       const data = await response.json();
       if (data.token) {
         localStorage.setItem("staff_token", data.token);
-        localStorage.setItem("login_time", Date.now().toString());
-        localStorage.setItem("logged_user_id", data.user?.id || '');
-        localStorage.setItem('user_level', (data.user?.level || 3).toString());
-        localStorage.setItem('user_modules', JSON.stringify(data.user.modules || {}));
+        localStorage.setItem("staff_user", data.user?.name || '');
+        localStorage.setItem("staff_user_id", data.user?.id || '');
+        localStorage.setItem("staff_user_email", data.user?.email || '');
+        localStorage.setItem("staff_user_alias", data.user?.alias || '');
+        localStorage.setItem("user_level", (data.user?.level || 3).toString());
+        localStorage.setItem("user_modules", JSON.stringify(data.user?.modules || {}));
+        localStorage.setItem("staff_auth", "true");
 
         // Registrar bitácora de conexión
         try {

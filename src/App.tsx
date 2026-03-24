@@ -24,21 +24,22 @@ function App() {
   }, []);
 
   const handleLogin = (staffUser: string) => {
-    console.log("[App] Login successful for user:", staffUser);
     setIsAuthenticated(true);
     setUser(staffUser);
-    localStorage.setItem("staff_auth", "true");
-    localStorage.setItem("staff_user", staffUser);
     setLocation("/admin");
   };
 
   const handleLogout = () => {
-    console.log("[App] Logging out...");
-    setIsAuthenticated(false);
-    setUser("");
     localStorage.removeItem("staff_auth");
     localStorage.removeItem("staff_user");
-    localStorage.removeItem("staff_token"); // Limpiar también el token
+    localStorage.removeItem("staff_user_id");
+    localStorage.removeItem("staff_user_email");
+    localStorage.removeItem("staff_user_alias");
+    localStorage.removeItem("user_level");
+    localStorage.removeItem("user_modules");
+    localStorage.removeItem("staff_token"); 
+    setIsAuthenticated(false);
+    setUser("");
     setLocation("/");
   };
 

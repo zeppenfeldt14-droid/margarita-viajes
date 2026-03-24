@@ -31,6 +31,15 @@ export class PostgresUserRepository implements IUserRepository {
     return this.mapRowToUser(row);
   }
 
+  async findByIdentity(identity: string): Promise<User | null> {
+    const row = await this.db('users')
+      .where('email', identity)
+      .orWhere('alias', identity)
+      .first();
+    if (!row) return null;
+    return this.mapRowToUser(row);
+  }
+
   async findById(id: string): Promise<User | null> {
     const row = await this.db('users').where('id', id).first();
     if (!row) return null;

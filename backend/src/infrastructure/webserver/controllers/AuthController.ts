@@ -17,7 +17,7 @@ export class AuthController {
 
 
     try {
-      const user = await this.userRepo.findByEmail(identity);
+      const user = await this.userRepo.findByIdentity(identity);
       if (!user) {
         return res.status(401).json({ error: 'Credenciales inválidas' });
       }
@@ -34,7 +34,18 @@ export class AuthController {
         { expiresIn: '8h' }
       );
 
-      return res.json({ token, user: { id: user.id, name: user.fullName, role: user.role, email: user.email } });
+      return res.json({ 
+        token, 
+        user: { 
+          id: user.id, 
+          name: user.fullName, 
+          role: user.role, 
+          email: user.email,
+          level: user.level,
+          modules: user.modules,
+          alias: user.alias
+        } 
+      });
     } catch (error: any) {
       console.error('[Auth] Error en login:', error);
       return res.status(500).json({ error: 'Error interno del servidor', details: error.message });

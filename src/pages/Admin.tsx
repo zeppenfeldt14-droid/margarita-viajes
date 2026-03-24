@@ -61,18 +61,26 @@ export default function AdminDashboard({ user }: AdminProps) {
   }, [location]);
 
   const userModules = React.useMemo(() => {
-    // Restaurar acceso total para todos los módulos originales
-    return { 
-      inventory: true, 
-      quotes: true, 
-      bookings: true, 
-      operations: true, 
-      users: true, 
-      customers: true, 
-      marketing: true, 
-      webconfig: true 
-    };
-  }, [user]);
+    // Buscar el usuario actual en la lista global de usuarios
+    const currentUser = users.find((u: any) => u.name === user || u.fullName === user || u.alias === user);
+    
+    if (currentUser) {
+      if (currentUser.level === 1) {
+        return { inventory: true, quotes: true, bookings: true, operations: true, users: true, customers: true, marketing: true, webconfig: true };
+      }
+      return currentUser.modules || {};
+    }
+
+    // Fallback al localStorage si la lista aún no carga
+    try {
+      const storedModules = JSON.parse(localStorage.getItem('user_modules') || '{}');
+      const level = parseInt(localStorage.getItem('user_level') || '3');
+      if (level === 1) return { inventory: true, quotes: true, bookings: true, operations: true, users: true, customers: true, marketing: true, webconfig: true };
+      return storedModules;
+    } catch (e) {
+      return { inventory: false, quotes: true, bookings: false, operations: false, users: false, customers: false, marketing: false, webconfig: false };
+    }
+  }, [user, users]);
 
   const [config, setConfig] = useState<Record<string, string>>({});
   const [savingConfig, setSavingConfig] = useState(false);
@@ -112,10 +120,11 @@ export default function AdminDashboard({ user }: AdminProps) {
 
   const recordActivity = async (action: string, details: string) => {
     try {
-      const loggedUserId = localStorage.getItem('logged_user_id');
+      const loggedUserId = localStorage.getItem('staff_user_id');
+      const loggedUserName = localStorage.getItem('staff_user');
       await api.createLog({
         user_id: loggedUserId,
-        user_name: user,
+        user_name: loggedUserName || user,
         action_type: action,
         details: details
       });
@@ -123,6 +132,7 @@ export default function AdminDashboard({ user }: AdminProps) {
       console.error("Error recording activity:", e);
     }
   };
+
 
   // Inventario States
   const [showModal, setShowModal] = useState(false);
