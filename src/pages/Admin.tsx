@@ -17,41 +17,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { showToast, ToastContainer } from '../components/Toast';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 
-// Helper for PDF capture
-const generatePdfBase64 = async (elementId: string): Promise<string> => {
-  const element = document.getElementById(elementId);
-  if (!element) throw new Error('Element not found');
-  
-  // Opción para forzar el renderizado a colores compatibles (No oklch)
-  const canvas = await html2canvas(element, {
-    scale: 2,
-    useCORS: true,
-    logging: false,
-    windowWidth: 1200,
-    onclone: (clonedDoc) => {
-      // Forzar que el documento clonado use estilos base que no dependan de variables oklch de Tailwind v4
-      const style = clonedDoc.createElement('style');
-      style.innerHTML = `
-        * { color-scheme: light !important; }
-        :root { --color-orange-500: #f97316 !important; --color-orange-600: #ea580c !important; }
-        [style*="oklch"] { color: #000 !important; border-color: #ddd !important; }
-      `;
-      clonedDoc.head.appendChild(style);
-    }
-  });
-  
-  const imgData = canvas.toDataURL('image/png');
-  const pdf = new jsPDF('p', 'mm', 'a4');
-  const imgProps = pdf.getImageProperties(imgData);
-  const pdfWidth = pdf.internal.pageSize.getWidth();
-  const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-  
-  pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-  return pdf.output('datauristring');
-};
 
 import ReservationsList from '../components/admin/ReservationsList';
 import OperationsList from '../components/admin/OperationsList';
@@ -116,7 +82,6 @@ export default function AdminDashboard({ user }: AdminProps) {
   const [quoteFilter, setQuoteFilter] = useState<'original' | 'discounted' | 'unassigned' | 'history'>('original');
   const [quoteSearchTerm, setQuoteSearchTerm] = useState('');
   const [selectedQuote, setSelectedQuote] = useState<Quotation | null>(null);
-  const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [discount, setDiscount] = useState<number>(0);
   const [customDiscount, setCustomDiscount] = useState<string>('');
   const [companions, setCompanions] = useState<{ name: string, type: string }[]>([]);
@@ -909,14 +874,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                   if (discountPercent > 0) {
                     try {
                       // 1. Generar PDF antes de guardar
-                      showToast('Generando PDF...');
-                      setShowPdfPreview(true); // Mostrar para capturar (html2canvas lo requiere en el DOM visible o semi-visible)
-                      
-                      // Pequeño delay para asegurar que el DOM se renderice
-                      await new Promise(r => setTimeout(r, 500));
-                      
-                      const pdfBase64 = await generatePdfBase64('pdf-content');
-                      setShowPdfPreview(false);
+                      showToast('Generando cotización con descuento...');
 
                       const newQuoteId = `${selectedQuote.id}-01`;
                       const newQuoteData = {
@@ -927,8 +885,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                         discountAmount: discountAmount,
                         finalAmount: finalTotal,
                         totalAmount: finalTotal,
-                        status: 'Atendido' as QuoteStatus,
-                        pdfBase64 // <-- AQUÍ SE ENVÍA EL PDF
+                        status: 'Atendido' as QuoteStatus
                       };
                       
                       const createRes = await api.createQuote(newQuoteData);
@@ -948,7 +905,6 @@ export default function AdminDashboard({ user }: AdminProps) {
                     } catch (error: any) {
                       console.error('Error in discount application:', error);
                       showToast(`Error: ${error.message || 'No se pudo aplicar el descuento'}`);
-                      setShowPdfPreview(false);
                     }
                   } else {
                     showToast('Selecciona un porcentaje de descuento');
@@ -957,9 +913,6 @@ export default function AdminDashboard({ user }: AdminProps) {
                   Generar y Enviar con Descuento
                 </button>
 
-                <button onClick={() => setShowPdfPreview(true)} className="w-full bg-red-500 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 transition-all flex items-center justify-center gap-2">
-                  Previsualizar PDF (Actual)
-                </button>
 
                 {selectedQuote.pdfBase64 && (
                   <div className="flex flex-col gap-4">
@@ -1164,102 +1117,6 @@ export default function AdminDashboard({ user }: AdminProps) {
         );
       })()}
 
-      {selectedQuote && (() => {
-        const hotel = hotels.find(h => h.id === selectedQuote.hotelId || h.name === (selectedQuote.hotelName || selectedQuote.hotel_name));
-        const hotelLogo = hotel?.logo || '';
-        const finalTotal = selectedQuote.finalAmount || selectedQuote.final_amount || selectedQuote.totalAmount || selectedQuote.total_amount || 0;
-        const hasDiscount = (selectedQuote.discount || 0) > 0;
-
-        return (
-          <div className={`${showPdfPreview ? 'fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0B132B]/60 backdrop-blur-md transition-all' : 'hidden'} print:block print:static print:bg-white print:p-0`}>
-            <div className={`${showPdfPreview ? 'bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh] animate-in fade-in zoom-in duration-300' : ''} print-card print:block print:w-full print:max-w-none print:shadow-none print:rounded-none`}>
-              <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50 shrink-0 print:hidden">
-                <h3 className="text-sm font-black text-[#0B132B] uppercase">Vista Previa de Cotización</h3>
-                <div className="flex gap-4">
-                  <button onClick={() => {
-                    const originalTitle = document.title;
-                    document.title = `Cotizacion_${selectedQuote.id}`;
-                    window.print();
-                    document.title = originalTitle;
-                  }} className="bg-orange-500 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-md">Imprimir / Guardar PDF</button>
-                  <button onClick={() => setShowPdfPreview(false)} className="text-gray-400 hover:text-red-500 bg-white w-10 h-10 flex items-center justify-center rounded-xl shadow-sm border border-gray-100 transition-colors"><X size={20} /></button>
-                </div>
-              </div>
-
-              <div className="flex-1 p-6 bg-gray-200/50 flex justify-center overflow-y-auto custom-scrollbar print:block print:p-0">
-                <div className="bg-white p-12 shadow-md w-full max-w-[900px] text-[#0B132B] text-sm relative print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none print-only" id="pdf-content">
-
-                  {/* ENCABEZADO: 3 COLUMNAS */}
-                  <div className="flex items-center justify-between border-b-2 border-gray-200 pb-6 mb-6">
-                    {/* Izquierda: Logo Agencia */}
-                    <div className="w-32 h-20 flex items-center justify-start">
-                      {config.logoImage ? <img src={config.logoImage} alt="Margarita Viajes" className="max-h-full max-w-full object-contain" /> : <span className="font-black text-orange-500 text-xl leading-none">Margarita Viajes</span>}
-                    </div>
-
-                    {/* Centro: Datos Agencia */}
-                    <div className="flex-1 text-center px-4">
-                      <h2 className="font-black text-lg uppercase text-[#0B132B]">{config.agencyName || config.nombreEmpresa || 'Margarita Viajes'}</h2>
-                      <p className="font-bold text-xs text-gray-600 mt-1">RIF: {config.rif || 'J-40156646-4'} | RTN: {config.rtn || '13314'}</p>
-                      <p className="text-[11px] text-gray-500 italic mt-2 max-w-sm mx-auto leading-tight">{config.direccion || 'Calle La Ceiba, Sector El Otro Lado del Río, La Asunción, Edo. Nueva Esparta'}</p>
-                    </div>
-
-                    {/* Derecha: Logo Hotel */}
-                    <div className="w-32 h-20 flex items-center justify-end">
-                      {hotelLogo ? <img src={hotelLogo} alt={hotel?.name} className="max-h-full max-w-full object-contain rounded-lg" /> : <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-[8px] text-gray-400 font-bold text-center">SIN LOGO<br />HOTEL</div>}
-                    </div>
-                  </div>
-
-                  {/* DATOS DEL CLIENTE Y VIAJE */}
-                  <div className="grid grid-cols-2 gap-4 mb-8">
-                    <div className="bg-gray-50/80 p-4 rounded-xl border border-gray-100">
-                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Estimado Sr./a:</p>
-                      <p className="font-black uppercase text-base text-[#0B132B]">{selectedQuote.clientName || selectedQuote.client_name}</p>
-                    </div>
-                    <div className="bg-gray-50/80 p-4 rounded-xl border border-gray-100 text-right">
-                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Fecha de Emisión:</p>
-                      <p className="font-black uppercase text-base text-[#0B132B]">{formatDateTimeVisual(selectedQuote.date)}</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-x-12 gap-y-5 mb-10">
-                    <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-400 text-xs uppercase">Hotel</span> <span className="font-black text-sm uppercase text-[#0B132B] text-right">{selectedQuote.hotelName || selectedQuote.hotel_name}</span></div>
-                    <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-400 text-xs uppercase">Plan</span> <span className="font-black text-sm uppercase text-orange-600 text-right">{selectedQuote.plan || hotel?.plan || 'No especificado'}</span></div>
-                    <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Habitación:</span> <span className="font-black text-sm uppercase text-[#0B132B] text-right">{selectedQuote.roomType || selectedQuote.room_type}</span></div>
-                    <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Ubicación:</span> <span className="font-black text-sm uppercase text-[#0B132B] text-right">{hotel?.location || '-'}</span></div>
-                    <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Entrada:</span> <span className="font-black text-sm text-[#0B132B] text-right">{formatDateVisual(selectedQuote.checkIn || selectedQuote.check_in)}</span></div>
-                    <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Salida:</span> <span className="font-black text-sm text-[#0B132B] text-right">{formatDateVisual(selectedQuote.checkOut || selectedQuote.check_out)}</span></div>
-                    <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Adultos:</span> <span className="font-black text-sm text-[#0B132B] text-right">{selectedQuote.pax}</span></div>
-                    <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold text-gray-500 text-xs uppercase tracking-wider">Niños/Infantes:</span> <span className="font-black text-sm text-[#0B132B] text-right">{Number(selectedQuote.children || 0) + Number(selectedQuote.infants || 0)}</span></div>
-                  </div>
-
-                  {/* DETALLES Y TOTAL */}
-                  <div className="bg-[#0B132B] text-white p-8 rounded-[2rem] flex items-center justify-between mb-10 shadow-xl">
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-[0.3em] text-orange-400 print:text-gray-500 mb-1">TOTAL A PAGAR</p>
-                      {hasDiscount && <p className="text-sm text-green-400 italic font-bold mt-1 bg-green-400/10 inline-block px-3 py-1 rounded-md print:text-black">Descuento aplicado del {selectedQuote.discount}%</p>}
-                    </div>
-                    <p className="text-5xl font-black italic tracking-tighter text-white print:text-black">
-                      $ {Number(finalTotal).toLocaleString()}
-                    </p>
-                  </div>
-
-                  {/* PIE DE PÁGINA */}
-                  <div className="space-y-2 text-[11px] bg-gray-50 p-6 rounded-2xl print:bg-transparent">
-                    <p className="font-black text-gray-800 uppercase tracking-widest mb-3">Quedamos atentos a su requerimiento:</p>
-                    <p className="flex justify-between max-w-sm"><span className="font-bold text-gray-500 uppercase">Asesor de Viajes:</span> <span className="font-black">{selectedQuote.assignedTo || 'Equipo Margarita Viajes'}</span></p>
-                    <p className="flex justify-between max-w-sm"><span className="font-bold text-gray-500 uppercase">WhatsApp:</span> <span className="font-black text-green-600">{config.telefono || '+58 424 1234567'}</span></p>
-                    <p className="flex justify-between max-w-sm"><span className="font-bold text-gray-500 uppercase">Correo:</span> <span className="font-black text-blue-600">{config.correo || 'cotizaciones@margaritaviajes.com'}</span></p>
-                    <div className="pt-6 mt-4 border-t border-gray-200">
-                      <p className="text-[8px] font-black text-red-500 uppercase text-center tracking-widest leading-relaxed">Precios y disponibilidad sujetos a cambios al momento de reserva y emisión | Consultar siempre antes de realizar el pago.</p>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
 
       <ToastContainer />
     </div>
