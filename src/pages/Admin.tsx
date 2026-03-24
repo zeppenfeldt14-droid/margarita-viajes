@@ -443,7 +443,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                                 <span className="font-black italic uppercase text-[#0B132B] truncate max-w-[200px]">{quote.clientName || quote.client_name}</span>
                                 <div className="flex items-center gap-1.5 opacity-60 overflow-hidden">
                                   <span className="text-[8px] tracking-tight truncate">{quote.hotelName || quote.hotel_name}</span>
-                                  {quote.plan && <span className="bg-orange-50 text-orange-600 text-[7px] px-1 py-0.5 rounded font-black uppercase">{quote.plan}</span>}
+                                  {(quote as any).season || (quote as any).temp ? <span className="bg-orange-50 text-orange-600 text-[7px] px-1 py-0.5 rounded font-black uppercase">Temporada: {(quote as any).season || (quote as any).temp}</span> : (quote.plan && <span className="bg-orange-50 text-orange-600 text-[7px] px-1 py-0.5 rounded font-black uppercase">Plan: {quote.plan}</span>)}
                                 </div>
                               </div>
                             </td>
@@ -911,6 +911,51 @@ export default function AdminDashboard({ user }: AdminProps) {
                 <button onClick={() => { setSelectedQuote(null); setDiscount(0); setCustomDiscount(''); setCompanions([]); }} className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-gray-400 hover:text-red-500"><X size={20} /></button>
               </div>
               <div className="flex-1 overflow-y-auto p-8 space-y-6">
+                <div className="grid grid-cols-2 gap-6 border-b border-gray-100 pb-6 mb-6">
+                  {/* Responsable / Asesor y Noches */}
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest leading-none mb-1">Responsable / Asesor</p>
+                    {isDataMaster ? (
+                      <select
+                        value={selectedQuote.assignedTo || ''}
+                        onChange={async (e) => {
+                          const newAsesor = e.target.value;
+                          try {
+                            const res = await api.updateQuote(selectedQuote.id, { assignedTo: newAsesor });
+                            if (res.ok) {
+                              const updated = { ...selectedQuote, assignedTo: newAsesor };
+                              setSelectedQuote(updated);
+                              refreshData();
+                              showToast(`Reasignado a: ${newAsesor}`);
+                              recordActivity('REASSIGN_QUOTE', `Reasignado folio ${selectedQuote.id} a ${newAsesor}`);
+                            }
+                          } catch (err) { showToast('Error al reasignar'); }
+                        }}
+                        className="w-full bg-white border border-gray-100 px-3 py-1.5 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer"
+                      >
+                        <option value="">Sin Asignar</option>
+                        {(users || []).map((u: any) => (
+                          <option key={u.id} value={u.alias || u.name}>{u.alias || u.name}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <p className="text-sm font-black text-[#0B132B] uppercase italic">{selectedQuote.assignedTo || 'SIN ASIGNAR'}</p>
+                    )}
+                  </div>
+                  <div className="space-y-1 text-right">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Cantidad de Noches</p>
+                    <p className="text-sm font-black text-[#0B132B]">
+                      {(() => {
+                        const ci = new Date(selectedQuote.checkIn || selectedQuote.check_in);
+                        const co = new Date(selectedQuote.checkOut || selectedQuote.check_out);
+                        const diff = co.getTime() - ci.getTime();
+                        const nights = Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+                        return `${nights} NOCHE${nights > 1 ? 'S' : ''}`;
+                      })()}
+                    </p>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-1">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Cliente</p>
@@ -949,35 +994,6 @@ export default function AdminDashboard({ user }: AdminProps) {
                     <p className="text-sm font-bold text-[#0B132B]">
                       {selectedQuote.pax} Adultos, {selectedQuote.children || 0} Niños, {selectedQuote.infants || 0} Infantes
                     </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Responsable / Asesor</p>
-                    {isDataMaster ? (
-                      <select
-                        value={selectedQuote.assignedTo || ''}
-                        onChange={async (e) => {
-                          const newAsesor = e.target.value;
-                          try {
-                            const res = await api.updateQuote(selectedQuote.id, { assignedTo: newAsesor });
-                            if (res.ok) {
-                              const updated = { ...selectedQuote, assignedTo: newAsesor };
-                              setSelectedQuote(updated);
-                              refreshData();
-                              showToast(`Reasignado a: ${newAsesor}`);
-                              recordActivity('REASSIGN_QUOTE', `Reasignado folio ${selectedQuote.id} a ${newAsesor}`);
-                            }
-                          } catch (err) { showToast('Error al reasignar'); }
-                        }}
-                        className="w-full bg-white border border-gray-200 px-3 py-1.5 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer"
-                      >
-                        <option value="">Sin Asignar</option>
-                        {(users || []).map((u: any) => (
-                          <option key={u.id} value={u.alias || u.name}>{u.alias || u.name}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <p className="text-sm font-bold text-[#0B132B] uppercase italic">{selectedQuote.assignedTo || 'SIN ASIGNAR'}</p>
-                    )}
                   </div>
                 </div>
 
@@ -1132,19 +1148,14 @@ export default function AdminDashboard({ user }: AdminProps) {
                   )}
                 </div>
 
-                <div className="space-y-4 mt-6">
+                <div className="flex gap-4 mt-6">
+                  {/* Botón Guardar Lista de Pasajeros */}
                   <button
                     onClick={async () => {
                       const token = localStorage.getItem("staff_token");
                       if (!token) return alert('Error: No hay sesión activa.');
 
-                      // 1. Corrección matemática: Sumar Pax + Niños + Infantes
                       const totalExpected = Number(selectedQuote.pax || 0) + Number(selectedQuote.children || 0) + Number(selectedQuote.infants || 0);
-
-                      if (companions.length !== totalExpected) {
-                        alert(`⚠️ Error: La cantidad de pasajeros en la lista (${companions.length}) no coincide con el total de viajeros (${totalExpected}).`);
-                        return;
-                      }
 
                       const hasEmptyNames = companions.some(c => !c.name || c.name.trim() === '');
                       if (hasEmptyNames) {
@@ -1154,7 +1165,6 @@ export default function AdminDashboard({ user }: AdminProps) {
 
                       try {
                         const technicalSheet = { savedAt: new Date().toISOString(), passengers: companions };
-
                         const quoteUpdateRes = await api.updateQuote(selectedQuote.id, { companions, technicalSheet });
 
                         if (!quoteUpdateRes.ok) throw new Error('Error al actualizar la base de datos');
@@ -1164,31 +1174,30 @@ export default function AdminDashboard({ user }: AdminProps) {
                         if (typeof refreshData === 'function') refreshData();
 
                         showToast('✅ Lista de pasajeros guardada con éxito');
-                        recordActivity('SAVE_PASSENGERS', `Guardada ficha técnica / lista de pasajeros para folio ${selectedQuote.id}`);
+                        recordActivity('SAVE_PASSENGERS', `Guardada lista de pasajeros para folio ${selectedQuote.id}`);
                       } catch (error) {
                         console.error(error);
-                        showToast('❌ Error de conexión al guardar la ficha técnica.');
+                        showToast('❌ Error al guardar la ficha técnica.');
                       }
                     }}
-                    className="w-full bg-green-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-green-700 transition-all flex items-center justify-center gap-2 shadow-lg"
+                    className="flex-1 bg-green-600 text-white py-3 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-green-700 transition-all flex items-center justify-center gap-2 shadow-lg"
                   >
-                    <ShieldCheck size={16} /> Guardar Lista de Pasajeros
+                    <ShieldCheck size={16} /> Guardar Lista
                   </button>
 
+                  {/* Botón Pasar a Reserva */}
                   <button
                     onClick={async () => {
                       const totalExpected = Number(selectedQuote.pax || 0) + Number(selectedQuote.children || 0) + Number(selectedQuote.infants || 0);
                       const currentCompanions = selectedQuote.companions || companions || [];
                       const hasEmptyNames = currentCompanions.some((c: { name: string }) => !c.name || c.name.trim() === '');
 
-                      // 3. Validación estricta antes de pasar a reserva
                       if (currentCompanions.length !== totalExpected || hasEmptyNames || (!selectedQuote.technicalSheet && !technicalSheetSaved)) {
-                        alert('⚠️ ACCIÓN DENEGADA: Debe guardar la lista de pasajeros completa y sin nombres vacíos antes de pasar a Reserva.');
+                        alert('⚠️ ACCIÓN DENEGADA: Debe guardar la lista de pasajeros completa antes de pasar a Reserva.');
                         return;
                       }
 
                       try {
-                        // 4. Crear la Reserva con ID Secuencial R00...
                         let nextResNum = 1001;
                         const resData = await api.getReservations().catch(() => []);
                         if (Array.isArray(resData) && resData.length > 0) {
@@ -1226,16 +1235,12 @@ export default function AdminDashboard({ user }: AdminProps) {
                         };
 
                         const resCreate = await api.createReservation(reservationData as Partial<Reservation>);
-
                         if (!resCreate.ok) throw new Error('Error al crear la reserva');
 
-                        // 5. Actualizar el estado de la cotización
                         const resUpdate = await api.updateQuote(selectedQuote.id, { status: 'Reserva' as QuoteStatus });
-
                         if (!resUpdate.ok) throw new Error('Error al actualizar cotización');
 
-                        showToast('✅ ¡Éxito! Cotización pasada a Reserva');
-                        recordActivity('CREATE_RESERVATION', `Creada reserva ${nextResId} desde folio ${selectedQuote.id}`);
+                        showToast('✅ ¡Éxito! Pase a Reserva');
                         if (typeof refreshData === 'function') refreshData();
                         setSelectedQuote(null);
 
@@ -1244,7 +1249,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                         showToast('❌ Error al procesar el pase a reserva.');
                       }
                     }}
-                    className="w-full bg-blue-600 text-white py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg"
+                    className="flex-1 bg-blue-600 text-white py-3 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg"
                   >
                     <Briefcase size={16} /> Pasar a Reserva
                   </button>

@@ -259,11 +259,13 @@ export async function initDatabase(db: Knex) {
     const hasOriginal = await db.schema.hasColumn('quotations', 'original_quote_id');
     const hasPrevious = await db.schema.hasColumn('quotations', 'previous_id');
     const hasPlan = await db.schema.hasColumn('quotations', 'plan');
+    const hasSeason = await db.schema.hasColumn('quotations', 'season');
 
     await db.schema.alterTable('quotations', (table: any) => {
       if (!hasOriginal) table.string('original_quote_id').nullable();
       if (!hasPrevious) table.string('previous_id').nullable();
       if (!hasPlan) table.string('plan').nullable();
+      if (!hasSeason) table.string('season').nullable();
     });
     const hasHotelId = await db.schema.hasColumn('quotations', 'hotel_id');
     const hasChildren = await db.schema.hasColumn('quotations', 'children');

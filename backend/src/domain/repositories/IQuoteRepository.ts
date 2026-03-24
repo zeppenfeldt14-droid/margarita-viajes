@@ -25,6 +25,7 @@ export interface Quote {
   previousId?: string;
   originalQuoteId?: string;
   plan?: string;
+  season?: string;
   assignedTo?: string;
 }
 

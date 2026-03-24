@@ -25,7 +25,8 @@ export class PostgresQuoteRepository implements IQuoteRepository {
       assignedTo: dbQuote.assigned_to,
       previousId: dbQuote.previous_id,
       originalQuoteId: dbQuote.original_quote_id,
-      plan: dbQuote.plan
+      plan: dbQuote.plan,
+      season: dbQuote.season
     };
   }
 
@@ -64,7 +65,8 @@ export class PostgresQuoteRepository implements IQuoteRepository {
       technical_sheet: quote.technicalSheet ? JSON.stringify(quote.technicalSheet) : null,
       previous_id: quote.previousId,
       original_quote_id: quote.originalQuoteId,
-      plan: quote.plan
+      plan: quote.plan,
+      season: quote.season
     }).returning('*');
     return this.mapToDomain(result);
   }
@@ -83,6 +85,7 @@ export class PostgresQuoteRepository implements IQuoteRepository {
     if (quote.previousId !== undefined) updateData.previous_id = quote.previousId;
     if (quote.originalQuoteId !== undefined) updateData.original_quote_id = quote.originalQuoteId;
     if (quote.plan !== undefined) updateData.plan = quote.plan;
+    if (quote.season !== undefined) updateData.season = quote.season;
     
     if (quote.companions !== undefined) {
       updateData.companions = typeof quote.companions === 'string' ? quote.companions : JSON.stringify(quote.companions);

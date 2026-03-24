@@ -184,51 +184,69 @@ export class QuoteController {
 
       // --- DETALLE DEL VIAJE ---
       doc.moveDown(3);
-      const startY = 200;
-      const rowHeight = 25;
+      // --- CUADRÍCULA DE DATOS ---
+      const gridY = 180;
+      const colWidth = 240;
+      const rowHeight = 35;
+      const brandColor = '#0B132B';
+      const accentColor = '#ea580c';
+      const lightTextColor = '#999999';
 
-      const drawRow = (label: string, value: string, y: number) => {
-        doc.fillColor('#999999').fontSize(9).font('Helvetica').text(label, 50, y);
-        doc.fillColor('#0B132B').fontSize(10).font('Helvetica-Bold').text(value.toUpperCase(), 150, y, { width: 350, align: 'right' });
-        doc.moveTo(50, y + 15).lineTo(550, y + 15).stroke('#F5F5F5');
+      const drawGridItem = (label: string, value: string, x: number, y: number) => {
+        doc.fillColor(lightTextColor).fontSize(7).font('Helvetica-Bold').text(label.toUpperCase(), x, y);
+        doc.fillColor(brandColor).fontSize(10).font('Helvetica-Bold').text(value?.toUpperCase() || '-', x, y + 10, { width: colWidth - 20, height: 15 });
+        doc.moveTo(x, y + 25).lineTo(x + colWidth - 10, y + 25).stroke('#F9F9F9');
       };
 
-      drawRow('HOTEL:', quote.hotelName || '-', startY);
-      drawRow('PLAN:', quote.plan || 'NO ESPECIFICADO', startY + rowHeight);
-      drawRow('HABITACIÓN:', quote.roomType || '-', startY + rowHeight * 2);
-      drawRow('ENTRADA:', new Date(quote.checkIn).toLocaleDateString(), startY + rowHeight * 3);
-      drawRow('SALIDA:', new Date(quote.checkOut).toLocaleDateString(), startY + rowHeight * 4);
-      
-      const passengerInfo = `${quote.pax} ADULTOS, ${quote.children || 0} NIÑOS, ${quote.infants || 0} INFANTES`;
-      drawRow('PASAJEROS:', passengerInfo, startY + rowHeight * 5);
+      // Fila 1
+      drawGridItem('CLIENTE', quote.clientName || 'CLIENTE', 50, gridY);
+      drawGridItem('FECHA DE EMISIÓN', new Date(quote.date || new Date()).toLocaleDateString(), 50 + colWidth + 10, gridY);
 
-      // --- TOTAL ---
-      doc.moveDown(4);
-      const totalY = doc.y + 40;
-      doc.rect(50, totalY, 500, 70).fill('#0B132B');
+      // Fila 2
+      drawGridItem('HOTEL / PAQUETE', quote.hotelName || '-', 50, gridY + rowHeight);
+      drawGridItem('TEMPORADA', quote.season || (quote as any).temp || 'ESTÁNDAR', 50 + colWidth + 10, gridY + rowHeight);
+
+      // Fila 3
+      drawGridItem('TIPO DE HABITACIÓN', quote.roomType || '-', 50, gridY + rowHeight * 2);
+      drawGridItem('PLAN DE COMIDAS', quote.plan || 'NO ESPECIFICADO', 50 + colWidth + 10, gridY + rowHeight * 2);
+
+      // Fila 4
+      drawGridItem('FECHA DE ENTRADA', new Date(quote.checkIn).toLocaleDateString(), 50, gridY + rowHeight * 3);
+      drawGridItem('FECHA DE SALIDA', new Date(quote.checkOut).toLocaleDateString(), 50 + colWidth + 10, gridY + rowHeight * 3);
+
+      // Fila 5
+      const paxDetails = `${quote.pax} ADULTOS${quote.children ? `, ${quote.children} NIÑOS` : ''}${quote.infants ? `, ${quote.infants} INF` : ''}`;
+      drawGridItem('PASAJEROS', paxDetails, 50, gridY + rowHeight * 4);
       
-      doc.fillColor('#ea580c').fontSize(10).font('Helvetica-Bold').text('TOTAL A PAGAR', 70, totalY + 20);
+      const diffDays = Math.max(1, Math.ceil((new Date(quote.checkOut).getTime() - new Date(quote.checkIn).getTime()) / (1000 * 60 * 60 * 24)));
+      drawGridItem('ESTADÍA', `${diffDays} NOCHE${diffDays > 1 ? 'S' : ''}`, 50 + colWidth + 10, gridY + rowHeight * 4);
+
+      // --- BLOQUE DE TOTAL DESTACADO ---
+      doc.moveDown(4);
+      const totalSectionY = doc.y + 40;
+      
+      // Caja de fondo
+      doc.rect(50, totalSectionY, 495, 60).fill(brandColor);
+      
+      doc.fillColor(accentColor).fontSize(9).font('Helvetica-Bold').text('TOTAL NETO A PAGAR', 70, totalSectionY + 15);
+      doc.fillColor('#FFFFFF').fontSize(8).font('Helvetica').text('Precios expresados en Dólares Americanos ($)', 70, totalSectionY + 30);
       
       const finalPrice = Number(quote.finalAmount || quote.totalAmount || 0);
-      doc.fillColor('#FFFFFF').fontSize(30).font('Helvetica-Bold').text(`$ ${finalPrice.toLocaleString()}`, 70, totalY + 35, { align: 'right', width: 450 });
+      doc.fillColor('#FFFFFF').fontSize(26).font('Helvetica-Bold').text(`$ ${finalPrice.toLocaleString()}`, 70, totalSectionY + 18, { align: 'right', width: 450 });
 
-      if (quote.discount && Number(quote.discount) > 0) {
-        doc.fillColor('#FFFFFF').fontSize(8).font('Helvetica-Oblique').text(`Descuento aplicado del ${quote.discount}%`, 70, totalY + 10);
-      }
-
-      // --- PIE DE PÁGINA ---
-      const footerY = 700;
-      doc.moveTo(50, footerY).lineTo(550, footerY).stroke('#EEEEEE');
+      // --- PIE DE PÁGINA / ASESOR ---
+      const footerY = 680;
+      doc.moveTo(50, footerY).lineTo(545, footerY).stroke('#EEEEEE');
       
-      doc.fillColor('#999999').fontSize(8).font('Helvetica').text('Quedamos atentos a su requerimiento:', 50, footerY + 15);
+      doc.fillColor(lightTextColor).fontSize(8).font('Helvetica').text('Quedamos atentos a su requerimiento:', 50, footerY + 15);
       
       const seller = quote.assignedTo || 'Equipo Margarita Viajes';
-      doc.fillColor('#0B132B').fontSize(10).font('Helvetica-Bold').text(`Asesor de Viajes: ${seller}`, 50, footerY + 30);
+      doc.fillColor(brandColor).fontSize(10).font('Helvetica-Bold').text(`Asesor de Viajes: ${seller}`, 50, footerY + 30);
       
-      doc.fillColor('#999999').fontSize(8).text(`WhatsApp: ${config.telefono || '+58 424 1234567'}`, 400, footerY + 30, { align: 'right' });
-      doc.text(`Correo: ${config.correo || 'cotizaciones@margaritaviajes.com'}`, 400, footerY + 45, { align: 'right' });
+      doc.fillColor(lightTextColor).fontSize(8).text(`WhatsApp: ${config.telefono || '+58 424 0000000'}`, 400, footerY + 30, { align: 'right' });
+      doc.text(`Correo: ${config.correo || 'ventas@margaritaviajes.com'}`, 400, footerY + 45, { align: 'right' });
 
-      doc.fillColor('#ea580c').fontSize(7).text('PRECIOS Y DISPONIBILIDAD SUJETOS A CAMBIOS AL MOMENTO DE RESERVA Y EMISIÓN.', 50, footerY + 80, { align: 'center', width: 500 });
+      doc.fillColor(accentColor).fontSize(7).text('PRECIOS Y DISPONIBILIDAD SUJETOS A CAMBIOS AL MOMENTO DE RESERVA Y EMISIÓN.', 50, footerY + 80, { align: 'center', width: 500 });
 
       doc.end();
     } catch (error: any) {
