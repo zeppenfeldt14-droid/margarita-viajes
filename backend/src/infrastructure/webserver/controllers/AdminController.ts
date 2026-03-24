@@ -387,6 +387,10 @@ export class AdminController {
   async createReservation(req: Request, res: Response) {
     try {
       const reservation = await this.reservationRepo.create(req.body);
+      
+      // Sincronización v24: Auto-generar Operación
+      await this.syncOperationFromReservation(reservation);
+
       await this.auditRepo.log({
         action: 'CREATE',
         tableName: 'reservations',
@@ -402,9 +406,55 @@ export class AdminController {
   async updateReservation(req: Request, res: Response) {
     try {
       const reservation = await this.reservationRepo.update(req.params['id'] as string, req.body);
+      
+      // Sincronización v24: Auto-generar Operación
+      await this.syncOperationFromReservation(reservation);
+
       return res.json(reservation);
     } catch (error: any) {
       return res.status(500).json({ message: error.message });
+    }
+  }
+
+  private async syncOperationFromReservation(reservation: any) {
+    const activeStatuses = ['Confirmada', 'Venta Cerrada', 'Venta Concretada'];
+    if (activeStatuses.includes(reservation.status)) {
+      const existingOps = await this.operationRepo.findAll();
+      const alreadyExists = existingOps.find(op => op.quoteId === reservation.quoteId);
+      
+      if (!alreadyExists) {
+        const sequence = await this.operationRepo.getNextSequence();
+        await this.operationRepo.create({
+          id: sequence.nextId,
+          quoteId: reservation.quoteId,
+          clientName: reservation.clientName,
+          email: reservation.email,
+          whatsapp: reservation.whatsapp,
+          hotelId: reservation.hotelId,
+          hotelName: reservation.hotelName,
+          checkIn: reservation.checkIn,
+          checkOut: reservation.checkOut,
+          roomType: reservation.roomType,
+          pax: reservation.pax,
+          children: reservation.children,
+          infants: reservation.infants,
+          totalAmount: Number(reservation.totalAmount),
+          companions: reservation.companions,
+          technicalSheet: reservation.technicalSheet,
+          plan: reservation.plan,
+          status: 'Pendiente',
+          includeTransfer: reservation.includeTransfer,
+          transferId: reservation.transferId,
+          originalQuoteId: reservation.originalQuoteId || reservation.quoteId
+        });
+
+        await this.auditRepo.log({
+          action: 'CREATE',
+          tableName: 'operations',
+          recordId: sequence.nextId,
+          newValue: `Auto-generated from Reservation ${reservation.id}`
+        });
+      }
     }
   }
 
