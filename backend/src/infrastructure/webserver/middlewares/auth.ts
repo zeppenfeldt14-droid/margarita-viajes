@@ -22,10 +22,11 @@ export const authMiddleware = (roles: string[]) => {
       const isMaster = userLevel === 1 || decoded.role === 'Gerente General' || decoded.role === 'Gerente Operaciones';
       
       // Determine required level from roles array (e.g., ['LEVEL_1', 'LEVEL_2', 'LEVEL_3'])
-      let requiredLevel = 3;
-      if (roles.includes('LEVEL_1')) requiredLevel = 1;
+      // Check for the least restrictive level (highest number) first to permit access
+      let requiredLevel = 0; 
+      if (roles.includes('LEVEL_3')) requiredLevel = 3;
       else if (roles.includes('LEVEL_2')) requiredLevel = 2;
-      else if (roles.includes('LEVEL_3')) requiredLevel = 3;
+      else if (roles.includes('LEVEL_1')) requiredLevel = 1;
 
       // Access granted if user is Master (Level 1) or has the specific role, or meets the level requirement
       const hasAccess = isMaster || roles.includes(decoded.role) || userLevel <= requiredLevel;
