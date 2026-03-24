@@ -61,7 +61,21 @@ export class NotificationService {
       cc: 'margaritaviaje@gmail.com',
       bcc: 'margaritaviajegerenciaop@gmail.com',
       subject: `Cotización Margarita Viajes - ${quote.hotelName || quote.hotel_name}`,
-      text: `Hola ${quote.clientName || quote.client_name},\n\nAdjuntamos la cotización solicitada para tu viaje a ${quote.hotelName || quote.hotel_name}.\n\nSaludos,\nEquipo Margarita Viajes`,
+      text: `Hola ${quote.clientName || quote.client_name},\n\nAdjuntamos la cotización solicitada para tu viaje a ${quote.hotelName || quote.hotel_name}.\n\nPuedes descargarla directamente desde este enlace: https://margarita-viajes.onrender.com/api/public/quotes/${quote.id || quote.folio}/pdf\n\nSaludos,\nEquipo Margarita Viajes`,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; color: #0B132B;">
+          <h2 style="color: #ea580c;">¡Hola ${quote.clientName || quote.client_name}!</h2>
+          <p>Adjuntamos la cotización solicitada para tu viaje a <strong>${quote.hotelName || quote.hotel_name}</strong>.</p>
+          <p>También puedes descargarla o verla directamente haciendo clic en el siguiente botón:</p>
+          <div style="margin: 30px 0;">
+            <a href="https://margarita-viajes.onrender.com/api/public/quotes/${quote.id || quote.folio}/pdf" 
+               style="background-color: #0B132B; color: white; padding: 15px 25px; text-decoration: none; border-radius: 10px; font-weight: bold;">
+               Descargar Cotización en PDF
+            </a>
+          </div>
+          <p>Saludos,<br><strong>Equipo Margarita Viajes</strong></p>
+        </div>
+      `,
       attachments: [
         {
           filename: `Cotizacion_${quote.id || quote.folio || 'Margarita'}.pdf`,
