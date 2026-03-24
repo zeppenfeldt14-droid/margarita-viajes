@@ -55,8 +55,7 @@ export default function AdminDashboard({ user }: AdminProps) {
     else if (location.includes('/users')) setActiveTab('users');
     else if (location.includes('/customers')) setActiveTab('customers');
     else if (location.includes('/marketing')) setActiveTab('marketing');
-    else if (location.includes('/logs')) setActiveTab('bitacora');
-    else if (location.includes('/administration')) setActiveTab('users');
+    else if (location.includes('/marketing')) setActiveTab('marketing');
     else if (location.includes('/webconfig')) setActiveTab('settings');
   }, [location]);
 
@@ -97,27 +96,6 @@ export default function AdminDashboard({ user }: AdminProps) {
   const [companions, setCompanions] = useState<{ name: string, type: string }[]>([]);
   const [technicalSheetSaved, setTechnicalSheetSaved] = useState(false);
 
-  // Logs state
-  const [logs, setLogs] = useState<any[]>([]);
-  const [loadingLogs, setLoadingLogs] = useState(false);
-
-  const fetchLogs = async () => {
-    setLoadingLogs(true);
-    try {
-      const data = await api.getLogs();
-      setLogs(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Error fetching logs:", error);
-    } finally {
-      setLoadingLogs(false);
-    }
-  };
-
-  useEffect(() => {
-    if (activeTab === 'bitacora') {
-      fetchLogs();
-    }
-  }, [activeTab]);
 
   const recordActivity = async (action: string, details: string) => {
     try {
@@ -543,58 +521,6 @@ export default function AdminDashboard({ user }: AdminProps) {
 
           {activeTab === 'marketing' && userModules?.marketing && (
             <MarketingPanel quotes={quotes} config={config} />
-          )}
-
-          {activeTab === 'bitacora' && (
-            <div className="space-y-8 animate-in fade-in duration-500">
-              <div className="flex items-center justify-between">
-                <SectionTitle>Bitácora de Actividad (Logs)</SectionTitle>
-                <button onClick={fetchLogs} className="bg-white border border-gray-200 text-[#0B132B] px-6 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-gray-50 flex items-center gap-2">
-                  <Globe size={14} className={loadingLogs ? "animate-spin" : ""} /> Actualizar
-                </button>
-              </div>
-              <Card>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">
-                        <th className="pb-6 px-4">FECHA Y HORA</th>
-                        <th className="pb-6 px-4">USUARIO</th>
-                        <th className="pb-6 px-4">ACCIÓN</th>
-                        <th className="pb-6 px-4">DETALLES</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-[11px] font-bold">
-                      {logs.length === 0 ? (
-                        <tr>
-                          <td colSpan={4} className="py-20 text-center text-gray-400 font-black uppercase tracking-widest italic">
-                            {loadingLogs ? 'Cargando registros...' : 'No hay actividad registrada aún'}
-                          </td>
-                        </tr>
-                      ) : (
-                        logs.map((log) => (
-                          <tr key={log.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                            <td className="py-4 px-4 text-gray-500">{formatDateTimeVisual(log.created_at)}</td>
-                            <td className="py-4 px-4 font-black italic uppercase text-[#0B132B]">{log.user_name}</td>
-                            <td className="py-4 px-4">
-                              <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${
-                                log.action_type === 'LOGIN' ? 'bg-blue-50 text-blue-600' :
-                                log.action_type === 'UPDATE_QUOTE_STATUS' ? 'bg-orange-50 text-orange-600' :
-                                log.action_type === 'CREATE_RESERVATION' ? 'bg-green-50 text-green-600' :
-                                'bg-gray-100 text-gray-600'
-                              }`}>
-                                {log.action_type}
-                              </span>
-                            </td>
-                            <td className="py-4 px-4 text-gray-600">{log.details}</td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </Card>
-            </div>
           )}
 
           {activeTab === 'settings' && userModules?.webconfig && (
