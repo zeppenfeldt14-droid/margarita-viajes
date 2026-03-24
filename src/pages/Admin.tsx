@@ -437,25 +437,22 @@ export default function AdminDashboard({ user }: AdminProps) {
                         })
                         .map((quote: Quotation) => (
                           <tr key={quote.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                            <td className="py-2.5 px-4 text-[10px] font-black uppercase">
-                              <div className="flex flex-col">
+                            <td className="py-2.5 px-4 text-[10px] font-black uppercase text-center">
+                              <div className="flex flex-col items-center">
                                 <span className="font-black italic text-orange-600 text-[11px] leading-tight">{quote.id}</span>
                                 <span className="font-black italic uppercase text-[#0B132B] truncate max-w-[200px]">{quote.clientName || quote.client_name}</span>
-                                <div className="flex flex-col opacity-60">
-                                  <span className="text-[8px] tracking-tight">{quote.hotelName || quote.hotel_name}</span>
-                                  <div className="mt-0.5">
-                                    {(quote as any).season || (quote as any).temp ? (
-                                      <span className="bg-orange-50 text-orange-600 text-[7px] px-1.5 py-0.5 rounded font-black uppercase border border-orange-100">
-                                        Temporada: {(quote as any).season || (quote as any).temp}
-                                      </span>
-                                    ) : (
-                                      quote.plan && (
-                                        <span className="bg-slate-50 text-slate-600 text-[7px] px-1.5 py-0.5 rounded font-black uppercase border border-slate-100">
-                                          Plan: {quote.plan}
-                                        </span>
-                                      )
-                                    )}
-                                  </div>
+                                <span className="text-[8px] tracking-tight text-gray-500 mt-0.5">{quote.hotelName || quote.hotel_name}</span>
+                                <div className="flex flex-col gap-1 mt-1">
+                                  {((quote as any).season || (quote as any).temp) && (
+                                    <span className="bg-orange-50 text-orange-600 text-[7px] px-2 py-0.5 rounded-full font-black uppercase border border-orange-100 w-fit mx-auto">
+                                      Temporada: {(quote as any).season || (quote as any).temp}
+                                    </span>
+                                  )}
+                                  {quote.plan && (
+                                    <span className="bg-slate-50 text-slate-600 text-[7px] px-2 py-0.5 rounded-full font-black uppercase border border-slate-100 w-fit mx-auto">
+                                      Plan: {quote.plan}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </td>
@@ -469,102 +466,106 @@ export default function AdminDashboard({ user }: AdminProps) {
                               <div className="font-black italic text-orange-600 text-[11px]">$ {Number(quote.totalAmount || quote.total_amount).toLocaleString()}</div>
                             </td>
                             <td className="py-2.5 px-4">
-                              <select
-                                value={quote.status}
-                                onChange={async (e: React.ChangeEvent<HTMLSelectElement>) => {
-                                  const newStatus = e.target.value;
-                                  let newId = quote.id;
+                              {['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(quote.status) ? (
+                                <div className="bg-blue-600 !text-white px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest text-center shadow-sm border border-blue-700 w-full max-w-[120px] mx-auto">
+                                  {quote.status === 'Reserva' ? 'RESERVA' : quote.status}
+                                </div>
+                              ) : (
+                                <select
+                                  value={quote.status}
+                                  onChange={async (e: React.ChangeEvent<HTMLSelectElement>) => {
+                                    const newStatus = e.target.value;
+                                    let newId = quote.id;
 
-                                  if (newStatus === 'Reserva') {
-                                    const totalExpected = parseInt(quote.pax || '0') + parseInt(quote.children || '0');
-                                    const currentCompanions = (quote as Quotation).companions || [];
-                                    const hasEmptyNames = currentCompanions.some((c: { name: string }) => !c.name || c.name.trim() === '');
+                                    if (newStatus === 'Reserva') {
+                                      const totalExpected = parseInt(quote.pax || '0') + parseInt(quote.children || '0');
+                                      const currentCompanions = (quote as Quotation).companions || [];
+                                      const hasEmptyNames = currentCompanions.some((c: { name: string }) => !c.name || c.name.trim() === '');
 
-                                    if (currentCompanions.length !== totalExpected || hasEmptyNames || (!quote.technicalSheet && !technicalSheetSaved)) {
-                                      alert('Debe cargar la ficha técnica de todos los pasajeros (con nombre y apellido) antes de pasar a Reserva');
-                                      return;
-                                    }
-                                  }
-
-                                  if (newStatus === 'Reserva') {
-                                    try {
-                                      // 1. Generar ID Secuencial R00...
-                                      let nextResNum = 1001;
-                                      const resData = await api.getReservations().catch(() => []);
-                                      if (Array.isArray(resData) && resData.length > 0) {
-                                        const rIds = resData
-                                          .map((r: Reservation) => r.id?.toString() || '')
-                                          .filter((id: string) => id.startsWith('R'))
-                                          .map((id: string) => parseInt(id.replace(/\D/g, '')) || 0);
-                                        if (rIds.length > 0) nextResNum = Math.max(...rIds) + 1;
+                                      if (currentCompanions.length !== totalExpected || hasEmptyNames || (!quote.technicalSheet && !technicalSheetSaved)) {
+                                        alert('Debe cargar la ficha técnica de todos los pasajeros (con nombre y apellido) antes de pasar a Reserva');
+                                        return;
                                       }
-                                      const nextResId = 'R' + nextResNum.toString().padStart(6, '0');
+                                    }
 
-                                      const reservationData = {
-                                        id: nextResId,
-                                        quoteId: quote.id,
-                                        originalQuoteId: quote.originalQuoteId || quote.id,
-                                        clientName: quote.clientName || quote.client_name,
-                                        email: quote.email,
-                                        whatsapp: quote.whatsapp,
-                                        hotelId: quote.hotelId || quote.hotel_id,
-                                        hotelName: quote.hotelName || quote.hotel_name,
-                                        checkIn: quote.checkIn || quote.check_in,
-                                        checkOut: quote.checkOut || quote.check_out,
-                                        roomType: quote.roomType || quote.room_type,
-                                        pax: quote.pax,
-                                        children: quote.children,
-                                        infants: quote.infants,
-                                        totalAmount: quote.totalAmount || quote.total_amount,
-                                        discount: quote.discount || null,
-                                        discountAmount: quote.discountAmount || null,
-                                        companions: (quote as Quotation).companions || [],
-                                        technicalSheet: (quote as Quotation).technicalSheet || null,
-                                        plan: quote.plan || null,
-                                        status: 'Confirmada' as ReservationStatus
-                                      };
+                                    if (newStatus === 'Reserva') {
+                                      try {
+                                        let nextResNum = 1001;
+                                        const resData = await api.getReservations().catch(() => []);
+                                        if (Array.isArray(resData) && resData.length > 0) {
+                                          const rIds = resData
+                                            .map((r: Reservation) => r.id?.toString() || '')
+                                            .filter((id: string) => id.startsWith('R'))
+                                            .map((id: string) => parseInt(id.replace(/\D/g, '')) || 0);
+                                          if (rIds.length > 0) nextResNum = Math.max(...rIds) + 1;
+                                        }
+                                        const nextResId = 'R' + nextResNum.toString().padStart(6, '0');
 
-                                      const reservationRes = await api.createReservation(reservationData as Partial<Reservation>);
+                                        const reservationData = {
+                                          id: nextResId,
+                                          quoteId: quote.id,
+                                          originalQuoteId: quote.originalQuoteId || quote.id,
+                                          clientName: quote.clientName || quote.client_name,
+                                          email: quote.email,
+                                          whatsapp: quote.whatsapp,
+                                          hotelId: quote.hotelId || quote.hotel_id,
+                                          hotelName: quote.hotelName || quote.hotel_name,
+                                          checkIn: quote.checkIn || quote.check_in,
+                                          checkOut: quote.checkOut || quote.check_out,
+                                          roomType: quote.roomType || quote.room_type,
+                                          pax: quote.pax,
+                                          children: quote.children,
+                                          infants: quote.infants,
+                                          totalAmount: quote.totalAmount || quote.total_amount,
+                                          discount: quote.discount || null,
+                                          discountAmount: quote.discountAmount || null,
+                                          companions: (quote as Quotation).companions || [],
+                                          technicalSheet: (quote as Quotation).technicalSheet || null,
+                                          plan: quote.plan || null,
+                                          status: 'Confirmada' as ReservationStatus
+                                        };
 
-                                      if (!reservationRes.ok) {
+                                        const reservationRes = await api.createReservation(reservationData as Partial<Reservation>);
+                                        if (!reservationRes.ok) {
+                                          showToast('Error al crear la reserva');
+                                          return;
+                                        }
+                                      } catch (error) {
+                                        console.error('Error creating reservation:', error);
                                         showToast('Error al crear la reserva');
                                         return;
                                       }
-                                    } catch (error) {
-                                      console.error('Error creating reservation:', error);
-                                      showToast('Error al crear la reserva');
-                                      return;
                                     }
-                                  }
 
-                                  try {
+                                    try {
                                       const response = await api.updateQuote(quote.id, {
                                         status: newStatus as QuoteStatus,
                                         id: newId
                                       });
 
-                                    if (response.ok) {
-                                      setQuotes(quotes.map((q: Quotation) => q.id === quote.id ? { ...q, status: newStatus as QuoteStatus, id: newId } : q));
-                                      showToast(`Estado cambiado a: ${newStatus}${newStatus === "Reserva" ? " y Reserva creada" : ""}`);
-                                      recordActivity('UPDATE_QUOTE_STATUS', `Cambiado estado de folio ${quote.id} a ${newStatus}`);
-                                    } else {
-                                      const errorData = await response.json().catch(() => ({}));
-                                      showToast(`Error: ${errorData.message || 'No se pudo actualizar el estado'}`);
+                                      if (response.ok) {
+                                        setQuotes(quotes.map((q: Quotation) => q.id === quote.id ? { ...q, status: newStatus as QuoteStatus, id: newId } : q));
+                                        showToast(`Estado cambiado a: ${newStatus}${newStatus === "Reserva" ? " y Reserva creada" : ""}`);
+                                        recordActivity('UPDATE_QUOTE_STATUS', `Cambiado estado de folio ${quote.id} a ${newStatus}`);
+                                      } else {
+                                        const errorData = await response.json().catch(() => ({}));
+                                        showToast(`Error: ${errorData.message || 'No se pudo actualizar el estado'}`);
+                                      }
+                                    } catch (error) {
+                                      console.error('Error updating status:', error);
+                                      showToast('Error de conexión al actualizar el estado');
                                     }
-                                  } catch (error) {
-                                    console.error('Error updating status:', error);
-                                    showToast('Error de conexión al actualizar el estado');
-                                  }
-                                }}
-                                className={`px-4 py-1 rounded-full text-[8px] font-black uppercase tracking-widest cursor-pointer border-0 w-full max-w-[120px] ${quote.status === 'Nuevo' ? 'bg-red-500 !text-white' :
-                                    quote.status === 'Atendido' ? 'bg-yellow-500 !text-white' :
-                                      quote.status === 'Reserva' ? 'bg-blue-500 !text-white' :
-                                        'bg-green-500 !text-white'
-                                  }`}
-                              >
-                                <option value="Nuevo" disabled={['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(quote.status)}>Nuevo</option>
-                                <option value="Atendido" disabled={['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(quote.status)}>Atendido</option>
-                              </select>
+                                  }}
+                                  className={`px-4 py-1 rounded-full text-[8px] font-black uppercase tracking-widest cursor-pointer border-0 w-full max-w-[120px] mx-auto ${quote.status === 'Nuevo' ? 'bg-red-500 !text-white' :
+                                      quote.status === 'Atendido' ? 'bg-yellow-500 !text-white' :
+                                        quote.status === 'Reserva' ? 'bg-blue-500 !text-white' :
+                                          'bg-green-500 !text-white'
+                                    }`}
+                                >
+                                  <option value="Nuevo" disabled={['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(quote.status)}>Nuevo</option>
+                                  <option value="Atendido" disabled={['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(quote.status)}>Atendido</option>
+                                </select>
+                              )}
                             </td>
                             <td className="py-2.5 px-4">
                               <select

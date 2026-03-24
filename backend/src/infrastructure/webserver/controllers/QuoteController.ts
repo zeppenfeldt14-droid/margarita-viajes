@@ -166,22 +166,19 @@ export class QuoteController {
       const borderColor = '#EEEEEE';
 
       // --- ENCABEZADO TRIPLE ---
-      // Logo Agencia (Izquierda)
-      try {
-        const agencyLogo = config.logoImage;
-        if (agencyLogo && agencyLogo.startsWith('http')) {
-          const resp = await fetch(agencyLogo);
-          if (resp.ok) doc.image(Buffer.from(await resp.arrayBuffer()), 50, 40, { width: 80 });
-        }
-      } catch (err) {}
+      const drawWebImage = async (url: string, x: number, y: number, width: number) => {
+        try {
+          if (!url || !url.startsWith('http')) return;
+          const resp = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+          if (resp.ok) {
+            const buf = Buffer.from(await resp.arrayBuffer());
+            doc.image(buf, x, y, { width });
+          }
+        } catch (err) { console.error(`[PDF] Error loading ${url}:`, err); }
+      };
 
-      // Logo Hotel (Derecha)
-      try {
-        if (hotelLogoUrl && hotelLogoUrl.startsWith('http')) {
-          const resp = await fetch(hotelLogoUrl);
-          if (resp.ok) doc.image(Buffer.from(await resp.arrayBuffer()), 465, 40, { width: 80 });
-        }
-      } catch (err) {}
+      await drawWebImage(config.logoImage, 50, 40, 80);
+      await drawWebImage(hotelLogoUrl, 465, 40, 80);
 
       // Centro: Datos Agencia
       doc.fillColor(brandColor).fontSize(14).font('Helvetica-Bold').text(config.agencyName || 'MARGARITA VIAJES', 150, 45, { align: 'center', width: 295 });
@@ -198,36 +195,30 @@ export class QuoteController {
       doc.fillColor(brandColor).fontSize(10).text(new Date(quote.date || new Date()).toLocaleDateString() || 'S/F', 400, 142, { align: 'right' });
 
       // --- CUADRÍCULA 2x4 ---
-      const gridY = 180;
-      const rowH = 35;
+      const gridY = 185;
+      const rowH = 40;
       const colW = 240;
 
-      const drawItem = (label: string, value: string, x: number, y: number, isRight = false, valueColor = brandColor) => {
+      const drawItem = (label: string, value: string, x: number, y: number, valueColor = brandColor) => {
         doc.fillColor(labelColor).fontSize(8).font('Helvetica-Bold').text(label.toUpperCase(), x, y);
         const valX = x + 100;
         doc.fillColor(valueColor).fontSize(10).font('Helvetica-Bold').text(value?.toUpperCase() || 'NO ESPECIFICADO', valX, y, { width: 140, align: 'right' });
-        doc.moveTo(x, y + 15).lineTo(x + colW, y + 15).stroke('#FAFAFA');
+        doc.moveTo(x, y + 25).lineTo(x + colW, y + 25).stroke('#F9F9F9');
       };
 
-      // Fila 1
+      // Filas
       drawItem('HOTEL', quote.hotelName, 50, gridY);
-      drawItem('PLAN', quote.plan, 305, gridY, true, (quote.plan?.toLowerCase().includes('no especificado') ? accentColor : brandColor));
-
-      // Fila 2
+      drawItem('PLAN', quote.plan, 305, gridY, (quote.plan?.toLowerCase().includes('no especificado') ? accentColor : brandColor));
       drawItem('HABITACIÓN:', quote.roomType, 50, gridY + rowH);
-      drawItem('UBICACIÓN:', hotelLocation || 'PLAYA EL AGUA', 305, gridY + rowH);
-
-      // Fila 3
+      drawItem('UBICACIÓN:', hotelLocation || '-', 305, gridY + rowH);
       drawItem('ENTRADA:', new Date(quote.checkIn).toLocaleDateString(), 50, gridY + rowH * 2);
       drawItem('SALIDA:', new Date(quote.checkOut).toLocaleDateString(), 305, gridY + rowH * 2);
-
-      // Fila 4
       drawItem('ADULTOS:', quote.pax, 50, gridY + rowH * 3);
-      const childInfo = (parseInt(quote.children || '0') + parseInt(quote.infants || '0')).toString();
-      drawItem('NIÑOS/INFANTES:', childInfo, 305, gridY + rowH * 3);
+      const kids = (parseInt(quote.children || '0') + parseInt(quote.infants || '0')).toString();
+      drawItem('NIÑOS/INFANTES:', kids, 305, gridY + rowH * 3);
 
-      // --- BLOQUE DE TOTAL (TARJETA CON SOMBRA) ---
-      const totalY = gridY + rowH * 5;
+      // --- BLOQUE DE TOTAL ---
+      const totalY = gridY + rowH * 4 + 10;
       doc.save();
       doc.fillColor('#F8F9FA').roundedRect(50, totalY, 495, 65, 10).fill();
       doc.restore();
@@ -236,8 +227,8 @@ export class QuoteController {
       const finalPrice = Number(quote.finalAmount || quote.totalAmount || 0);
       doc.fillColor(brandColor).fontSize(32).font('Helvetica-Bold').text(`$ ${finalPrice.toLocaleString()}`, 300, totalY + 15, { align: 'right', width: 220 });
 
-      // --- FOOTER ---
-      const footerY = 640;
+      // --- FOOTER DINÁMICO ---
+      const footerY = totalY + 85;
       doc.fillColor(brandColor).fontSize(9).font('Helvetica-Bold').text('QUEDAMOS ATENTOS A SU REQUERIMIENTO:', 50, footerY);
       
       const drawFooterRow = (label: string, value: string, y: number, color = brandColor) => {
@@ -249,8 +240,7 @@ export class QuoteController {
       drawFooterRow('WHATSAPP:', config.telefono || '+58 424 6861748', footerY + 35, '#25D366');
       drawFooterRow('CORREO:', config.correo || 'margaritaviaje@gmail.com', footerY + 50, '#007bff');
 
-      // Disclaimer Rojo
-      doc.fillColor('#FF0000').fontSize(7).font('Helvetica-Bold').text('PRECIOS Y DISPONIBILIDAD SUJETOS A CAMBIOS AL MOMENTO DE RESERVA Y EMISIÓN | CONSULTAR SIEMPRE ANTES DE REALIZAR EL PAGO.', 50, 780, { align: 'center', width: 495 });
+      doc.fillColor('#FF0000').fontSize(7).font('Helvetica-Bold').text('PRECIOS Y DISPONIBILIDAD SUJETOS A CAMBIOS AL MOMENTO DE RESERVA Y EMISIÓN | CONSULTAR SIEMPRE ANTES DE REALIZAR EL PAGO.', 50, footerY + 80, { align: 'center', width: 495 });
 
       doc.end();
     } catch (error: any) {
