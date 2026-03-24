@@ -11,8 +11,6 @@ export default function UsersList() {
   const [showLogsModal, setShowLogsModal] = useState<any>(null);
   const [activeLogTab, setActiveLogTab] = useState<'operaciones' | 'conexiones'>('operaciones');
   
-  const [config, setConfig] = useState<any>({});
-  const [editingRoles, setEditingRoles] = useState(false);
   const currentUserLevel = parseInt(localStorage.getItem('user_level') || '3');
   const currentUserRole = localStorage.getItem('staff_user_role') || '';
   const currentUserAlias = localStorage.getItem('staff_user_alias') || '';
@@ -20,20 +18,6 @@ export default function UsersList() {
 
   const defaultModules = { inventory: true, quotes: true, bookings: true, operations: true, users: false, customers: true, marketing: false, settings: false };
   const [newUser, setNewUser] = useState<any>({ name: '', alias: '', email: '', password: '', role: '', dailyQuota: 20, active: true, level: 3, photo: '', inRoulette: true, modules: defaultModules });
-
-  const fetchConfig = async () => {
-    try {
-      const data = await api.getConfig();
-      setConfig(data);
-      // Set default role if not set
-      const roles = JSON.parse(data.user_roles || '["Gerente General", "Gerente Operaciones", "Supervisor de Ventas", "Vendedor 1", "Vendedor 2"]');
-      if (!newUser.role && roles.length > 0) {
-        setNewUser((prev: any) => ({ ...prev, role: roles[0] }));
-      }
-    } catch (error) {
-       console.error('Error loading config:', error);
-    }
-  };
 
   const fetchUsers = async () => {
     try {
@@ -46,7 +30,6 @@ export default function UsersList() {
 
   useEffect(() => { 
     fetchUsers(); 
-    fetchConfig();
   }, []);
 
   const handleSaveUser = async () => {
@@ -74,6 +57,24 @@ export default function UsersList() {
     } catch (error: any) {
       console.error('Error:', error);
       alert(`Error de conexiÃ³n: ${error.message || 'Error desconocido'}`);
+    }
+  };
+
+  const handleDeleteUser = async (id: string, name: string) => {
+    if (!isMasterAdmin) return alert('No tienes permisos para eliminar perfiles.');
+    if (!window.confirm(`¿Estás seguro de eliminar permanentemente el perfil de "${name}"? Esta acción no se puede deshacer.`)) return;
+
+    try {
+      const response = await api.deleteUser(id);
+      if (response.ok) {
+        alert('Perfil eliminado correctamente.');
+        fetchUsers();
+      } else {
+        alert('Error al eliminar el perfil.');
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Error de conexión al eliminar.');
     }
   };
 
@@ -145,6 +146,14 @@ export default function UsersList() {
                   }} className="bg-[#0B132B] text-white px-3 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-md">
                     EDITAR
                   </button>
+                  {isMasterAdmin && (
+                    <button 
+                      onClick={() => handleDeleteUser(u.id, u.name || u.fullName)}
+                      className="bg-red-50 text-red-500 border border-red-100 px-3 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                    >
+                      ELIMINAR
+                    </button>
+                  )}
                 </div>
               </div>
             </Card>
@@ -205,7 +214,7 @@ export default function UsersList() {
                           let lvl = 3;
                           if(role.includes('Gerente')) lvl = 1;
                           if(role.includes('Supervisor') || role.includes('Coordinador')) lvl = 2;
-                          setNewUser({ ...newUser, role: role });
+                          setNewUser({ ...newUser, role: role, level: lvl });
                         }}
                         className="w-full bg-gray-50 rounded-xl px-4 py-3 text-xs font-bold outline-none border-2 border-transparent focus:border-orange-500 transition-all text-[#0B132B]"
                         placeholder="Selecciona o escribe un nuevo rol..."
