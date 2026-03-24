@@ -49,7 +49,32 @@ export default function UsersList() {
   useEffect(() => { 
     fetchUsers(); 
     fetchLogs();
+
+    // Polling cada 60 segundos para mantener el estado "En Vivo" (v4)
+    const interval = setInterval(() => {
+      fetchUsers();
+      fetchLogs();
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, []);
+
+  // Función para determinar si el usuario está conectado basado en la bitácora (v4)
+  const isUserOnline = (userId: string, alias: string) => {
+    // Filtrar logs de este usuario que sean de tipo sesión
+    const userSessionLogs = allLogs.filter(log => 
+      (log.user_id === userId || log.user_name === alias || log.alias === alias) &&
+      (log.action_type === 'LOGIN' || log.action_type === 'LOGOUT' || log.action_type === 'LOGOUT_INACTIVITY' || (log.action && (log.action.includes('LOGIN') || log.action.includes('LOGOUT'))))
+    ).sort((a, b) => new Date(b.created_at || b.date).getTime() - new Date(a.created_at || a.date).getTime());
+
+    if (userSessionLogs.length === 0) return false;
+
+    const lastLog = userSessionLogs[0];
+    const action = lastLog.action_type || lastLog.action || '';
+    
+    // Si la última acción fue LOGIN, el usuario está conectado
+    return action.toUpperCase().includes('LOGIN');
+  };
 
   const handleSaveUser = async () => {
     if (!newUser.name || !newUser.alias || !newUser.email || (!newUser.id && !newUser.password)) {
@@ -145,12 +170,11 @@ export default function UsersList() {
             (u.alias || '').toLowerCase().includes(searchTerm.toLowerCase())
           ).map((u: any) => (
             <Card key={u.id} className="relative overflow-hidden border-2 border-gray-50 shadow-sm hover:border-orange-200 transition-all flex flex-col justify-between">
-              {/* Tarea C: Status Badge at top right */}
-              <div className="absolute top-4 right-4 z-10">
-                <span className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest ${u.isOnline ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-gray-100 text-gray-500 border border-gray-200'}`}>
-                  {u.isOnline ? 'CONECTADO' : 'DESCONECTADO'}
-                </span>
-              </div>
+              {/* Tarea A v4: Visual traffic light indicator */}
+              <div 
+                className={`w-3 h-3 rounded-full absolute top-4 right-4 z-10 shadow-sm border border-white ${isUserOnline(u.id, u.alias) ? 'bg-green-500' : 'bg-red-500'}`}
+                title={isUserOnline(u.id, u.alias) ? 'Conectado' : 'Desconectado'}
+              ></div>
 
               <div className="flex items-center gap-4 mb-6 relative">
                 <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 font-black text-2xl uppercase shadow-inner overflow-hidden shrink-0">
