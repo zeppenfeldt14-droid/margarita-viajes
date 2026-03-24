@@ -188,7 +188,7 @@ export default function Quoter() {
         finalAmount: finalPrice,
         status: 'Nuevo' as QuoteStatus,
         assignedTo: assignedSeller,
-        plan: selectedHotel?.plan || null
+        plan: selectedHotel?.plan || 'No especificado',
       };
 
       const response = await api.createQuote(newQuote);

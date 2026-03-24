@@ -24,7 +24,8 @@ export class PostgresQuoteRepository implements IQuoteRepository {
       companions: typeof dbQuote.companions === 'string' ? JSON.parse(dbQuote.companions) : dbQuote.companions,
       assignedTo: dbQuote.assigned_to,
       previousId: dbQuote.previous_id,
-      originalQuoteId: dbQuote.original_quote_id
+      originalQuoteId: dbQuote.original_quote_id,
+      plan: dbQuote.plan
     };
   }
 
@@ -62,7 +63,8 @@ export class PostgresQuoteRepository implements IQuoteRepository {
       companions: quote.companions ? JSON.stringify(quote.companions) : null,
       technical_sheet: quote.technicalSheet ? JSON.stringify(quote.technicalSheet) : null,
       previous_id: quote.previousId,
-      original_quote_id: quote.originalQuoteId
+      original_quote_id: quote.originalQuoteId,
+      plan: quote.plan
     }).returning('*');
     return this.mapToDomain(result);
   }
@@ -80,6 +82,7 @@ export class PostgresQuoteRepository implements IQuoteRepository {
     if (quote.assignedTo !== undefined) updateData.assigned_to = quote.assignedTo;
     if (quote.previousId !== undefined) updateData.previous_id = quote.previousId;
     if (quote.originalQuoteId !== undefined) updateData.original_quote_id = quote.originalQuoteId;
+    if (quote.plan !== undefined) updateData.plan = quote.plan;
     
     if (quote.companions !== undefined) {
       updateData.companions = typeof quote.companions === 'string' ? quote.companions : JSON.stringify(quote.companions);

@@ -24,6 +24,7 @@ export interface Quote {
   pdfBase64?: string;
   previousId?: string;
   originalQuoteId?: string;
+  plan?: string;
 }
 
 export interface IQuoteRepository {

@@ -248,6 +248,7 @@ export async function initDatabase(db: Knex) {
       table.string('assigned_to').nullable();
       table.text('companions'); // JSON
       table.text('technical_sheet'); // JSON
+      table.string('plan').nullable();
       table.string('original_quote_id').nullable();
       table.string('previous_id').nullable();
       table.timestamp('created_at').defaultTo(db.fn.now());

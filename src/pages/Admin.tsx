@@ -835,6 +835,10 @@ export default function AdminDashboard({ user }: AdminProps) {
                     <p className="text-sm font-bold text-[#0B132B]">{selectedQuote.roomType || '-'}</p>
                   </div>
                   <div className="space-y-1">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Plan de Comidas</p>
+                    <p className="text-sm font-black text-orange-600 uppercase">{selectedQuote.plan || selectedQuote.hotel_plan || 'No especificado'}</p>
+                  </div>
+                  <div className="space-y-1">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Pasajeros</p>
                     <p className="text-sm font-bold text-[#0B132B]">
                       {selectedQuote.pax} Adultos, {selectedQuote.children || 0} Niños, {selectedQuote.infants || 0} Infantes
