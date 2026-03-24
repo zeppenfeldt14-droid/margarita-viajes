@@ -23,6 +23,8 @@ export interface Reservation {
   originalQuoteId?: string;
   plan?: string;
   createdAt?: string;
+  includeTransfer?: boolean;
+  transferId?: string;
 }
 
 export interface IReservationRepository {

@@ -30,7 +30,9 @@ export class PostgresReservationRepository implements IReservationRepository {
       previousId: row.previous_id,
       originalQuoteId: row.original_quote_id,
       plan: row.plan,
-      createdAt: row.created_at
+      createdAt: row.created_at,
+      includeTransfer: row.include_transfer,
+      transferId: row.transfer_id
     };
   }
 
@@ -69,7 +71,9 @@ export class PostgresReservationRepository implements IReservationRepository {
       previous_id: reservation.previousId,
       original_quote_id: reservation.originalQuoteId,
       plan: reservation.plan,
-      status: reservation.status || 'Confirmada'
+      status: reservation.status || 'Confirmada',
+      include_transfer: reservation.includeTransfer || false,
+      transfer_id: reservation.transferId
     }).returning('*');
     return this.mapRowToReservation(result);
   }
@@ -83,6 +87,9 @@ export class PostgresReservationRepository implements IReservationRepository {
     if (reservation.hotelResponseImage !== undefined) updateData.hotel_response_image = reservation.hotelResponseImage;
     if (reservation.paymentProofImage !== undefined) updateData.payment_proof_image = reservation.paymentProofImage;
     if (reservation.totalAmount !== undefined) updateData.total_amount = reservation.totalAmount;
+
+    if (reservation.includeTransfer !== undefined) updateData.include_transfer = reservation.includeTransfer;
+    if (reservation.transferId !== undefined) updateData.transfer_id = reservation.transferId;
 
     const [result] = await this.db('reservations')
       .where('id', id)

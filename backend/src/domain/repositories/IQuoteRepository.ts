@@ -27,6 +27,8 @@ export interface Quote {
   plan?: string;
   season?: string;
   assignedTo?: string;
+  includeTransfer?: boolean;
+  transferId?: string;
 }
 
 export interface IQuoteRepository {

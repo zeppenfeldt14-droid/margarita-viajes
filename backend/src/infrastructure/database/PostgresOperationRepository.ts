@@ -23,7 +23,9 @@ export class PostgresOperationRepository implements IOperationRepository {
       hotelResponseImage: row.hotel_response_image,
       paymentProofImage: row.payment_proof_image,
       previousId: row.previous_id,
-      originalQuoteId: row.original_quote_id
+      originalQuoteId: row.original_quote_id,
+      includeTransfer: row.include_transfer,
+      transferId: row.transfer_id
     }));
   }
 
@@ -56,7 +58,9 @@ export class PostgresOperationRepository implements IOperationRepository {
       previous_id: operation.previousId,
       original_quote_id: operation.originalQuoteId,
       plan: operation.plan,
-      status: operation.status
+      status: operation.status,
+      include_transfer: operation.includeTransfer || false,
+      transfer_id: operation.transferId
     }).returning('*');
     return result;
   }

@@ -16,4 +16,7 @@ export interface Quote {
   totalAmount: number;
   status: QuoteStatus;
   createdAt: Date;
+  season?: string;
+  includeTransfer?: boolean;
+  transferId?: string;
 }

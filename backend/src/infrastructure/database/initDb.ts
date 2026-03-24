@@ -251,6 +251,8 @@ export async function initDatabase(db: Knex) {
       table.string('plan').nullable();
       table.string('original_quote_id').nullable();
       table.string('previous_id').nullable();
+      table.boolean('include_transfer').defaultTo(false);
+      table.string('transfer_id').nullable();
       table.timestamp('created_at').defaultTo(db.fn.now());
     });
     console.log('[Database] Tabla "quotations" creada.');
@@ -272,6 +274,8 @@ export async function initDatabase(db: Knex) {
     const hasInfants = await db.schema.hasColumn('quotations', 'infants');
     const hasPdfBase64 = await db.schema.hasColumn('quotations', 'pdf_base64');
     const hasAssignedTo = await db.schema.hasColumn('quotations', 'assigned_to');
+    const hasIncTransfer = await db.schema.hasColumn('quotations', 'include_transfer');
+    const hasTransfId = await db.schema.hasColumn('quotations', 'transfer_id');
 
     await db.schema.alterTable('quotations', (table: any) => {
       if (!hasHotelId) table.uuid('hotel_id').nullable();
@@ -279,6 +283,8 @@ export async function initDatabase(db: Knex) {
       if (!hasInfants) table.string('infants').nullable();
       if (!hasPdfBase64) table.text('pdf_base64').nullable();
       if (!hasAssignedTo) table.string('assigned_to').nullable();
+      if (!hasIncTransfer) table.boolean('include_transfer').defaultTo(false);
+      if (!hasTransfId) table.string('transfer_id').nullable();
     });
     console.log('[Database] Verificación de columnas en "quotations" completada.');
   }
@@ -318,6 +324,8 @@ export async function initDatabase(db: Knex) {
       table.string('previous_id').nullable();
       table.string('plan').nullable();
       table.string('status');
+      table.boolean('include_transfer').defaultTo(false);
+      table.string('transfer_id').nullable();
       table.timestamp('created_at').defaultTo(db.fn.now());
     });
     console.log('[Database] Tabla "reservations" creada.');
@@ -326,10 +334,15 @@ export async function initDatabase(db: Knex) {
       const hasPrevious = await db.schema.hasColumn('reservations', 'previous_id');
       const hasPlan = await db.schema.hasColumn('reservations', 'plan');
 
+      const hasIncTransferRes = await db.schema.hasColumn('reservations', 'include_transfer');
+      const hasTransfIdRes = await db.schema.hasColumn('reservations', 'transfer_id');
+
       await db.schema.alterTable('reservations', (table: any) => {
         if (!hasOriginal) table.string('original_quote_id').nullable();
         if (!hasPrevious) table.string('previous_id').nullable();
         if (!hasPlan) table.string('plan').nullable();
+        if (!hasIncTransferRes) table.boolean('include_transfer').defaultTo(false);
+        if (!hasTransfIdRes) table.string('transfer_id').nullable();
       });
   }
 
@@ -356,6 +369,8 @@ export async function initDatabase(db: Knex) {
       table.text('hotel_response_image').nullable();
       table.text('payment_proof_image').nullable();
       table.string('status');
+      table.boolean('include_transfer').defaultTo(false);
+      table.string('transfer_id').nullable();
       table.timestamp('created_at').defaultTo(db.fn.now());
     });
     console.log('[Database] Tabla "operations" creada.');
@@ -366,6 +381,8 @@ export async function initDatabase(db: Knex) {
     const hasOriginal = await db.schema.hasColumn('operations', 'original_quote_id');
     const hasPrevious = await db.schema.hasColumn('operations', 'previous_id');
     const hasPlan = await db.schema.hasColumn('operations', 'plan');
+    const hasIncTransferOp = await db.schema.hasColumn('operations', 'include_transfer');
+    const hasTransfIdOp = await db.schema.hasColumn('operations', 'transfer_id');
     
     await db.schema.alterTable('operations', (table: any) => {
       if (!hasHotelResponse) table.text('hotel_response_image').nullable();
@@ -373,6 +390,8 @@ export async function initDatabase(db: Knex) {
       if (!hasOriginal) table.string('original_quote_id').nullable();
       if (!hasPrevious) table.string('previous_id').nullable();
       if (!hasPlan) table.string('plan').nullable();
+      if (!hasIncTransferOp) table.boolean('include_transfer').defaultTo(false);
+      if (!hasTransfIdOp) table.string('transfer_id').nullable();
     });
     console.log('[Database] Verificación de columnas en "operations" completada.');
   }

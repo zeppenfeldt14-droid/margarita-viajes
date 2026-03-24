@@ -26,7 +26,9 @@ export class PostgresQuoteRepository implements IQuoteRepository {
       previousId: dbQuote.previous_id,
       originalQuoteId: dbQuote.original_quote_id,
       plan: dbQuote.plan,
-      season: dbQuote.season
+      season: dbQuote.season,
+      includeTransfer: dbQuote.include_transfer,
+      transferId: dbQuote.transfer_id
     };
   }
 
@@ -66,7 +68,9 @@ export class PostgresQuoteRepository implements IQuoteRepository {
       previous_id: quote.previousId,
       original_quote_id: quote.originalQuoteId,
       plan: quote.plan,
-      season: quote.season
+      season: quote.season,
+      include_transfer: quote.includeTransfer || false,
+      transfer_id: quote.transferId
     }).returning('*');
     return this.mapToDomain(result);
   }
@@ -86,6 +90,8 @@ export class PostgresQuoteRepository implements IQuoteRepository {
     if (quote.originalQuoteId !== undefined) updateData.original_quote_id = quote.originalQuoteId;
     if (quote.plan !== undefined) updateData.plan = quote.plan;
     if (quote.season !== undefined) updateData.season = quote.season;
+    if (quote.includeTransfer !== undefined) updateData.include_transfer = quote.includeTransfer;
+    if (quote.transferId !== undefined) updateData.transfer_id = quote.transferId;
     
     if (quote.companions !== undefined) {
       updateData.companions = typeof quote.companions === 'string' ? quote.companions : JSON.stringify(quote.companions);
