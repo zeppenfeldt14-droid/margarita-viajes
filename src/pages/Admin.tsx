@@ -403,7 +403,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                                   if (newStatus === 'Reserva') {
                                     try {
                                       // 1. Generar ID Secuencial R00...
-                                      let nextResNum = 100001;
+                                      let nextResNum = 1001;
                                       const resData = await api.getReservations().catch(() => []);
                                       if (Array.isArray(resData) && resData.length > 0) {
                                         const rIds = resData
@@ -412,7 +412,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                                           .map((id: string) => parseInt(id.replace(/\D/g, '')) || 0);
                                         if (rIds.length > 0) nextResNum = Math.max(...rIds) + 1;
                                       }
-                                      const nextResId = 'R' + nextResNum.toString().padStart(10, '0');
+                                      const nextResId = 'R' + nextResNum.toString().padStart(6, '0');
 
                                       const reservationData = {
                                         id: nextResId,
@@ -792,10 +792,15 @@ export default function AdminDashboard({ user }: AdminProps) {
                   <h3 className="text-2xl font-black italic text-[#0B132B] uppercase tracking-tighter">
                     Detalles de Cotización
                   </h3>
-                  <p className="text-sm font-bold text-orange-500 mt-1">
-                    Folio: {selectedQuote.id}
-                    {selectedQuote.originalQuoteId && <span className="text-gray-400"> (Original: {selectedQuote.originalQuoteId})</span>}
-                  </p>
+                  <div className="flex flex-col gap-0.5 mt-1">
+                    <p className="text-sm font-black text-[#0B132B] uppercase">FOLIO: {selectedQuote.id}</p>
+                    {(selectedQuote.previousId || selectedQuote.originalQuoteId) && (
+                      <p className="text-[10px] font-bold text-orange-500 italic">
+                        {selectedQuote.previousId && selectedQuote.previousId !== selectedQuote.originalQuoteId ? `Viene de: ${selectedQuote.previousId} | ` : ''} 
+                        {selectedQuote.originalQuoteId ? `Original: ${selectedQuote.originalQuoteId}` : ''}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <button onClick={() => { setSelectedQuote(null); setDiscount(0); setCustomDiscount(''); setCompanions([]); }} className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-gray-400 hover:text-red-500"><X size={20} /></button>
               </div>
@@ -1041,7 +1046,7 @@ export default function AdminDashboard({ user }: AdminProps) {
 
                       try {
                         // 4. Crear la Reserva con ID Secuencial R00...
-                        let nextResNum = 100001;
+                        let nextResNum = 1001;
                         const resData = await api.getReservations().catch(() => []);
                         if (Array.isArray(resData) && resData.length > 0) {
                           const rIds = resData
@@ -1050,12 +1055,13 @@ export default function AdminDashboard({ user }: AdminProps) {
                             .map((id: string) => parseInt(id.replace(/\D/g, '')) || 0);
                           if (rIds.length > 0) nextResNum = Math.max(...rIds) + 1;
                         }
-                        const nextResId = 'R' + nextResNum.toString().padStart(10, '0');
+                        const nextResId = 'R' + nextResNum.toString().padStart(6, '0');
 
                         const reservationData = {
                           id: nextResId,
-                          quoteId: selectedQuote.id,
+                          previousId: selectedQuote.id,
                           originalQuoteId: selectedQuote.originalQuoteId || selectedQuote.id,
+                          quoteId: selectedQuote.id,
                           clientName: selectedQuote.clientName || selectedQuote.client_name,
                           email: selectedQuote.email,
                           whatsapp: selectedQuote.whatsapp,

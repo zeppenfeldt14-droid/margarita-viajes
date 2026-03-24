@@ -6,7 +6,25 @@ export class PostgresOperationRepository implements IOperationRepository {
   constructor(private db: Knex) {}
 
   async findAll(): Promise<Operation[]> {
-    return await this.db('operations').select('*').orderBy('created_at', 'desc');
+    const rows = await this.db('operations').select('*').orderBy('created_at', 'desc');
+    return rows.map((row: any) => ({
+      ...row,
+      quoteId: row.quote_id,
+      clientName: row.client_name,
+      hotelId: row.hotel_id,
+      hotelName: row.hotel_name,
+      hotelEmail: row.hotel_email,
+      checkIn: row.check_in,
+      checkOut: row.check_out,
+      roomType: row.room_type,
+      totalAmount: Number(row.total_amount),
+      companions: typeof row.companions === 'string' ? JSON.parse(row.companions) : row.companions,
+      technicalSheet: typeof row.technical_sheet === 'string' ? JSON.parse(row.technical_sheet) : row.technical_sheet,
+      hotelResponseImage: row.hotel_response_image,
+      paymentProofImage: row.payment_proof_image,
+      previousId: row.previous_id,
+      originalQuoteId: row.original_quote_id
+    }));
   }
 
   async findById(id: string): Promise<Operation | null> {
@@ -35,6 +53,8 @@ export class PostgresOperationRepository implements IOperationRepository {
       technical_sheet: JSON.stringify(operation.technicalSheet || {}),
       hotel_response_image: operation.hotelResponseImage,
       payment_proof_image: operation.paymentProofImage,
+      previous_id: operation.previousId,
+      original_quote_id: operation.originalQuoteId,
       status: operation.status
     }).returning('*');
     return result;

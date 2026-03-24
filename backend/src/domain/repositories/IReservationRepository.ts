@@ -19,6 +19,8 @@ export interface Reservation {
   hotelResponseImage?: string;
   paymentProofImage?: string;
   status: string;
+  previousId?: string;
+  originalQuoteId?: string;
   createdAt?: string;
 }
 

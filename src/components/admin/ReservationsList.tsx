@@ -144,10 +144,17 @@ export default function ReservationsList({ hotels }: {
             <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 print-hidden">
                 <div>
                   <h3 className="text-2xl font-black italic text-[#0B132B] uppercase tracking-tighter">Detalles de Reserva Activa</h3>
-                  <p className="text-sm font-bold text-green-600 mt-1 uppercase tracking-widest">
-                    Número de Reserva: {selectedReservation.id?.startsWith('R') ? selectedReservation.id : selectedReservation.quoteId?.replace('C', 'R')}
-                    {selectedReservation.originalQuoteId && <span className="text-gray-400"> | Ref: {selectedReservation.originalQuoteId}</span>}
-                  </p>
+                  <div className="flex flex-col gap-0.5 mt-1">
+                    <p className="text-sm font-black text-[#0B132B] uppercase">
+                      FOLIO: {selectedReservation.id?.startsWith('R') ? selectedReservation.id : selectedReservation.quoteId?.replace('C', 'R')}
+                    </p>
+                    {(selectedReservation.previousId || selectedReservation.originalQuoteId) && (
+                      <p className="text-[10px] font-bold text-orange-500 italic">
+                        {selectedReservation.previousId && selectedReservation.previousId !== selectedReservation.originalQuoteId ? `Viene de: ${selectedReservation.previousId} | ` : ''} 
+                        {selectedReservation.originalQuoteId ? `Original: ${selectedReservation.originalQuoteId}` : ''}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <button onClick={() => setSelectedReservation(null)} className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-gray-400 hover:text-red-500 shadow-sm transition-all"><X size={20} /></button>
               </div>
@@ -380,6 +387,8 @@ export default function ReservationsList({ hotels }: {
                             const operationPayload = {
                                 ...selectedReservation, 
                                 id: nextSaleId,
+                                previousId: selectedReservation.id,
+                                originalQuoteId: (selectedReservation.id?.startsWith('C')) ? selectedReservation.quoteId : (selectedReservation.originalQuoteId || selectedReservation.quoteId),
                                 status: 'Confirmada',
                                 companions: passengers,
                                 technicalSheet: technicalSheet,

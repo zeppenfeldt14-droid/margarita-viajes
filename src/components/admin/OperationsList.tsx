@@ -193,7 +193,15 @@ export default function OperationsList({
             <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 print-hidden">
               <div>
                 <h3 className="text-2xl font-black italic text-[#0B132B] uppercase tracking-tighter">Detalles de Operación</h3>
-                <p className="text-sm font-bold text-blue-600 mt-1 uppercase tracking-widest">Folio de Venta: {selectedOperation?.id || 'S/F'} | REF: {selectedOperation?.quoteId}</p>
+                <div className="flex flex-col gap-0.5 mt-1">
+                  <p className="text-sm font-black text-[#0B132B] uppercase">FOLIO VENTA: {selectedOperation?.id || 'S/F'}</p>
+                  {(selectedOperation?.previousId || selectedOperation?.originalQuoteId) && (
+                    <p className="text-[10px] font-bold text-orange-500 italic">
+                      {selectedOperation.previousId && selectedOperation.previousId !== selectedOperation.originalQuoteId ? `Viene de: ${selectedOperation.previousId} | ` : ''} 
+                      {selectedOperation.originalQuoteId ? `Original: ${selectedOperation.originalQuoteId}` : ''}
+                    </p>
+                  )}
+                </div>
               </div>
               <button onClick={() => setSelectedOperation(null)} className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-gray-400 hover:text-red-500 shadow-sm transition-all"><X size={20} /></button>
             </div>

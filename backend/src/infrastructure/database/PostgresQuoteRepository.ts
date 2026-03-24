@@ -22,7 +22,9 @@ export class PostgresQuoteRepository implements IQuoteRepository {
       pdfBase64: dbQuote.pdf_base64,
       technicalSheet: typeof dbQuote.technical_sheet === 'string' ? JSON.parse(dbQuote.technical_sheet) : dbQuote.technical_sheet,
       companions: typeof dbQuote.companions === 'string' ? JSON.parse(dbQuote.companions) : dbQuote.companions,
-      assignedTo: dbQuote.assigned_to
+      assignedTo: dbQuote.assigned_to,
+      previousId: dbQuote.previous_id,
+      originalQuoteId: dbQuote.original_quote_id
     };
   }
 
@@ -58,7 +60,9 @@ export class PostgresQuoteRepository implements IQuoteRepository {
       pdf_base64: quote.pdfBase64,
       assigned_to: quote.assignedTo,
       companions: quote.companions ? JSON.stringify(quote.companions) : null,
-      technical_sheet: quote.technicalSheet ? JSON.stringify(quote.technicalSheet) : null
+      technical_sheet: quote.technicalSheet ? JSON.stringify(quote.technicalSheet) : null,
+      previous_id: quote.previousId,
+      original_quote_id: quote.originalQuoteId
     }).returning('*');
     return this.mapToDomain(result);
   }
@@ -74,6 +78,8 @@ export class PostgresQuoteRepository implements IQuoteRepository {
     if (quote.id !== undefined) updateData.folio = quote.id;
     if (quote.pdfBase64 !== undefined) updateData.pdf_base64 = quote.pdfBase64;
     if (quote.assignedTo !== undefined) updateData.assigned_to = quote.assignedTo;
+    if (quote.previousId !== undefined) updateData.previous_id = quote.previousId;
+    if (quote.originalQuoteId !== undefined) updateData.original_quote_id = quote.originalQuoteId;
     
     if (quote.companions !== undefined) {
       updateData.companions = typeof quote.companions === 'string' ? quote.companions : JSON.stringify(quote.companions);

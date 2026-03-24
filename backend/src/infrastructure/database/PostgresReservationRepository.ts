@@ -27,6 +27,8 @@ export class PostgresReservationRepository implements IReservationRepository {
       hotelResponseImage: row.hotel_response_image,
       paymentProofImage: row.payment_proof_image,
       status: row.status,
+      previousId: row.previous_id,
+      originalQuoteId: row.original_quote_id,
       createdAt: row.created_at
     };
   }
@@ -44,6 +46,7 @@ export class PostgresReservationRepository implements IReservationRepository {
 
   async create(reservation: any): Promise<Reservation> {
     const [result] = await this.db('reservations').insert({
+      id: reservation.id, // Inyectar ID R00... si viene del frontend
       quote_id: reservation.quoteId,
       client_name: reservation.clientName,
       email: reservation.email,
@@ -62,6 +65,8 @@ export class PostgresReservationRepository implements IReservationRepository {
       technical_sheet: JSON.stringify(reservation.technicalSheet || {}),
       hotel_response_image: reservation.hotelResponseImage,
       payment_proof_image: reservation.paymentProofImage,
+      previous_id: reservation.previousId,
+      original_quote_id: reservation.originalQuoteId,
       status: reservation.status || 'Confirmada'
     }).returning('*');
     return this.mapRowToReservation(result);

@@ -51,13 +51,34 @@ export type Quotation = {
   children: string; 
   infants: string; 
   assignedTo?: string; 
+  previousId?: string;
   originalQuoteId?: string; 
   technicalSheet?: any; 
   companions?: any[]; 
   plan?: string;
 }
 
-export type Reservation = { id: string; quoteId: string; originalQuoteId?: string; assignedTo?: string; clientName: string; email: string; whatsapp?: string; hotelId: string; hotelName: string; checkIn: string; checkOut: string; roomType: string; pax: string; children: string; infants: string; totalAmount: number; status: ReservationStatus; createdAt: string; }
+export type Reservation = { 
+  id: string; 
+  quoteId: string; 
+  previousId?: string;
+  originalQuoteId?: string; 
+  assignedTo?: string; 
+  clientName: string; 
+  email: string; 
+  whatsapp?: string; 
+  hotelId: string; 
+  hotelName: string; 
+  checkIn: string; 
+  checkOut: string; 
+  roomType: string; 
+  pax: string; 
+  children: string; 
+  infants: string; 
+  totalAmount: number; 
+  status: ReservationStatus; 
+  createdAt: string; 
+}
 
 export type Operation = Reservation & { technicalSheet?: { passengers: any[]; savedAt: string; }; hotelResponseImage?: string; paymentProofImage?: string; companions?: any[]; }
 

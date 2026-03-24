@@ -19,6 +19,8 @@ export interface Operation {
   status: string;
   hotelResponseImage?: string;
   paymentProofImage?: string;
+  previousId?: string;
+  originalQuoteId?: string;
   createdAt?: string;
 }
 

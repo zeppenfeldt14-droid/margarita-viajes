@@ -22,6 +22,8 @@ export interface Quote {
   companions?: any;
   technicalSheet?: any;
   pdfBase64?: string;
+  previousId?: string;
+  originalQuoteId?: string;
 }
 
 export interface IQuoteRepository {

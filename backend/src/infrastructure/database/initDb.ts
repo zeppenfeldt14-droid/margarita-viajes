@@ -248,11 +248,20 @@ export async function initDatabase(db: Knex) {
       table.string('assigned_to').nullable();
       table.text('companions'); // JSON
       table.text('technical_sheet'); // JSON
+      table.string('original_quote_id').nullable();
+      table.string('previous_id').nullable();
       table.timestamp('created_at').defaultTo(db.fn.now());
     });
     console.log('[Database] Tabla "quotations" creada.');
   } else {
-    // Verificar y agregar columnas faltantes para evitar fallas en el repositorio
+    // Verificar y agregar columnas faltantes
+    const hasOriginal = await db.schema.hasColumn('quotations', 'original_quote_id');
+    const hasPrevious = await db.schema.hasColumn('quotations', 'previous_id');
+
+    await db.schema.alterTable('quotations', (table: any) => {
+      if (!hasOriginal) table.string('original_quote_id').nullable();
+      if (!hasPrevious) table.string('previous_id').nullable();
+    });
     const hasHotelId = await db.schema.hasColumn('quotations', 'hotel_id');
     const hasChildren = await db.schema.hasColumn('quotations', 'children');
     const hasInfants = await db.schema.hasColumn('quotations', 'infants');
@@ -270,9 +279,18 @@ export async function initDatabase(db: Knex) {
   }
 
   // Tabla: reservations
+  if (await db.schema.hasTable('reservations')) {
+    const columnInfo: any = await db('reservations').columnInfo('id');
+    const isInteger = columnInfo.type.includes('int') || columnInfo.type.includes('serial');
+    if (isInteger) {
+      console.log('[Database] Migrando tabla "reservations" a String ID para folios R00...');
+      await db.schema.dropTable('reservations');
+    }
+  }
+
   if (!(await db.schema.hasTable('reservations'))) {
     await db.schema.createTable('reservations', (table: any) => {
-      table.increments('id').primary();
+      table.string('id').primary(); // Cambio a string para folios R00...
       table.string('quote_id');
       table.string('client_name');
       table.string('email');
@@ -291,10 +309,19 @@ export async function initDatabase(db: Knex) {
       table.text('technical_sheet'); // JSON
       table.text('hotel_response_image');
       table.text('payment_proof_image');
+      table.string('original_quote_id').nullable();
+      table.string('previous_id').nullable();
       table.string('status');
       table.timestamp('created_at').defaultTo(db.fn.now());
     });
     console.log('[Database] Tabla "reservations" creada.');
+  } else {
+    const hasOriginal = await db.schema.hasColumn('reservations', 'original_quote_id');
+    const hasPrevious = await db.schema.hasColumn('reservations', 'previous_id');
+    await db.schema.alterTable('reservations', (table: any) => {
+      if (!hasOriginal) table.string('original_quote_id').nullable();
+      if (!hasPrevious) table.string('previous_id').nullable();
+    });
   }
 
   // Tabla: operations
@@ -327,10 +354,14 @@ export async function initDatabase(db: Knex) {
     // Verificar y agregar columnas faltantes
     const hasHotelResponse = await db.schema.hasColumn('operations', 'hotel_response_image');
     const hasPaymentProof = await db.schema.hasColumn('operations', 'payment_proof_image');
-    
+    const hasOriginal = await db.schema.hasColumn('operations', 'original_quote_id');
+    const hasPrevious = await db.schema.hasColumn('operations', 'previous_id');
+
     await db.schema.alterTable('operations', (table: any) => {
       if (!hasHotelResponse) table.text('hotel_response_image').nullable();
       if (!hasPaymentProof) table.text('payment_proof_image').nullable();
+      if (!hasOriginal) table.string('original_quote_id').nullable();
+      if (!hasPrevious) table.string('previous_id').nullable();
     });
     console.log('[Database] Verificación de columnas en "operations" completada.');
   }
