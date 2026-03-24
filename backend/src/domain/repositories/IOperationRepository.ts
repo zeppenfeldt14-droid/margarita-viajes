@@ -25,6 +25,8 @@ export interface Operation {
   createdAt?: string;
   includeTransfer?: boolean;
   transferId?: string;
+  itinerary?: string;
+  transferProvider?: string;
 }
 
 export interface OperationSequence {
@@ -35,5 +37,6 @@ export interface IOperationRepository {
   findAll(): Promise<Operation[]>;
   findById(id: string): Promise<Operation | null>;
   create(operation: Operation): Promise<Operation>;
+  update(id: string, operation: Partial<Operation>): Promise<Operation>;
   getNextSequence(): Promise<OperationSequence>;
 }

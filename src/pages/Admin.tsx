@@ -65,7 +65,7 @@ export default function AdminDashboard({ user }: AdminProps) {
   const [config, setConfig] = useState<Record<string, string>>({});
   const [savingConfig, setSavingConfig] = useState(false);
   const [selectedOperation, setSelectedOperation] = useState<Operation | null>(null);
-  const [opFilter, setOpFilter] = useState<'activas' | 'historial' | 'todas'>('activas');
+  const [opFilter, setOpFilter] = useState<'pendientes' | 'activas' | 'historial' | 'todas'>('pendientes');
   const { hotels, transfers, quotes, users, setQuotes, refreshData } = useGlobalData();
 
   const { level, userRole, userAlias, isMaster, isDataMaster } = React.useMemo(() => {
@@ -597,7 +597,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                                   title="Vista Previa"
                                   onClick={() => {
                                     const folio = quote.id;
-                                    window.open(`https://margarita-viajes.onrender.com/api/public/quotes/${folio}/pdf`, '_blank');
+                                    window.open(`${api.getBaseUrl()}/public/quotes/${folio}/pdf`, '_blank');
                                   }}
                                   className="p-1.5 bg-gray-100 text-[#0B132B] rounded-lg hover:bg-gray-200 transition-all border border-gray-200"
                                 >

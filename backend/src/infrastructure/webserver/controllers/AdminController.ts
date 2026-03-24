@@ -338,6 +338,25 @@ export class AdminController {
     }
   }
 
+  async updateOperation(req: Request, res: Response) {
+    try {
+      const id = req.params['id'] as string;
+      const operation = await this.operationRepo.update(id, req.body);
+      
+      await this.auditRepo.log({
+        action: 'UPDATE',
+        tableName: 'operations',
+        recordId: id,
+        newValue: JSON.stringify(req.body)
+      });
+
+      return res.json(operation);
+    } catch (error: any) {
+      console.error('[AdminController] Error en updateOperation:', error);
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
   // --- RESERVATIONS ---
   async getReservations(req: Request, res: Response) {
     try {

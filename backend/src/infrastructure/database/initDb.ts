@@ -384,6 +384,9 @@ export async function initDatabase(db: Knex) {
     const hasIncTransferOp = await db.schema.hasColumn('operations', 'include_transfer');
     const hasTransfIdOp = await db.schema.hasColumn('operations', 'transfer_id');
     
+    const hasItineraryOp = await db.schema.hasColumn('operations', 'itinerary');
+    const hasTransfProvOp = await db.schema.hasColumn('operations', 'transfer_provider');
+    
     await db.schema.alterTable('operations', (table: any) => {
       if (!hasHotelResponse) table.text('hotel_response_image').nullable();
       if (!hasPaymentProof) table.text('payment_proof_image').nullable();
@@ -392,6 +395,8 @@ export async function initDatabase(db: Knex) {
       if (!hasPlan) table.string('plan').nullable();
       if (!hasIncTransferOp) table.boolean('include_transfer').defaultTo(false);
       if (!hasTransfIdOp) table.string('transfer_id').nullable();
+      if (!hasItineraryOp) table.text('itinerary').nullable();
+      if (!hasTransfProvOp) table.string('transfer_provider').nullable();
     });
     console.log('[Database] Verificación de columnas en "operations" completada.');
   }

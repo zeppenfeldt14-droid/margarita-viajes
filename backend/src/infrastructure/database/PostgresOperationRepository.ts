@@ -25,7 +25,9 @@ export class PostgresOperationRepository implements IOperationRepository {
       previousId: row.previous_id,
       originalQuoteId: row.original_quote_id,
       includeTransfer: row.include_transfer,
-      transferId: row.transfer_id
+      transferId: row.transfer_id,
+      itinerary: row.itinerary,
+      transferProvider: row.transfer_provider
     }));
   }
 
@@ -60,9 +62,35 @@ export class PostgresOperationRepository implements IOperationRepository {
       plan: operation.plan,
       status: operation.status,
       include_transfer: operation.includeTransfer || false,
-      transfer_id: operation.transferId
+      transfer_id: operation.transferId,
+      itinerary: operation.itinerary,
+      transfer_provider: operation.transferProvider
     }).returning('*');
     return result;
+  }
+
+  async update(id: string, operation: any): Promise<any> {
+    const updateData: any = {};
+    if (operation.status !== undefined) updateData.status = operation.status;
+    if (operation.assignedTo !== undefined) updateData.assigned_to = operation.assignedTo;
+    if (operation.itinerary !== undefined) updateData.itinerary = operation.itinerary;
+    if (operation.transferProvider !== undefined) updateData.transfer_provider = operation.transferProvider;
+    if (operation.hotelResponseImage !== undefined) updateData.hotel_response_image = operation.hotelResponseImage;
+    if (operation.paymentProofImage !== undefined) updateData.payment_proof_image = operation.paymentProofImage;
+
+    const [result] = await this.db('operations')
+      .where('id', id)
+      .update(updateData)
+      .returning('*');
+    
+    // Mapeo simple para retornar el objeto formateado
+    return {
+      ...result,
+      quoteId: result.quote_id,
+      clientName: result.client_name,
+      itinerary: result.itinerary,
+      transferProvider: result.transfer_provider
+    };
   }
 
   async getNextSequence(): Promise<OperationSequence> {

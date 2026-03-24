@@ -4,7 +4,7 @@ import { api } from '../../services/api';
 import { showToast } from '../Toast';
 import { Card, SectionTitle } from './Common';
 import { formatDateVisual } from '../../utils/helpers';
-import type { Operation } from '../../types';
+import type { Operation, ReservationStatus } from '../../types';
 
 export default function OperationsList({
   selectedOperation,
@@ -18,8 +18,8 @@ export default function OperationsList({
 }: {
   selectedOperation: Operation | null;
   setSelectedOperation: (op: Operation | null) => void;
-  opFilter: 'activas' | 'historial' | 'todas';
-  setOpFilter: (f: 'activas' | 'historial' | 'todas') => void;
+  opFilter: 'pendientes' | 'activas' | 'historial' | 'todas';
+  setOpFilter: (f: 'pendientes' | 'activas' | 'historial' | 'todas') => void;
   isDataMaster?: boolean;
   userAlias?: string | null;
   users?: any[];
@@ -31,6 +31,8 @@ export default function OperationsList({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMonth, setSelectedMonth] = useState<number | 'all'>('all');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [transfers, setTransfers] = useState<any[]>([]);
+  const [savingStatus, setSavingStatus] = useState(false);
 
   const MONTHS = [
     { value: 'all', label: 'Todos los Meses' },
@@ -62,7 +64,56 @@ export default function OperationsList({
 
   useEffect(() => {
     fetchOperations();
+    api.getTransfers().then(setTransfers).catch(console.error);
   }, []);
+
+  const downloadReport = () => {
+    const filtered = operations.filter((op: any) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const checkOutDate = op?.checkOut ? new Date(op.checkOut) : null;
+      const isPast = checkOutDate && checkOutDate < today;
+      const isClosed = op?.status === 'Completada' || op?.status === 'Liquidada';
+
+      if (opFilter === 'pendientes') {
+        if (op.status !== 'Pendiente' || isPast) return false;
+      } else if (opFilter === 'activas') {
+        if (op.status === 'Pendiente' || isClosed || isPast) return false;
+      } else if (opFilter === 'historial') {
+        if (!isClosed && !isPast) return false;
+      }
+
+      if (selectedMonth !== 'all') {
+        const checkInDate = op?.checkIn ? new Date(op.checkIn) : null;
+        if (!checkInDate || checkInDate.getMonth() !== selectedMonth) return false;
+      }
+
+      return true;
+    });
+
+    const headers = ['Folio', 'Cliente', 'Hotel', 'CheckIn', 'CheckOut', 'Estado', 'Itinerario', 'Proveedor'];
+    const rows = filtered.map(op => [
+      op.id,
+      op.clientName,
+      op.hotelName,
+      op.checkIn,
+      op.checkOut,
+      op.status,
+      (op.itinerary || '').replace(/,/g, ';'),
+      op.transferProvider || ''
+    ]);
+
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `reporte_operaciones_${opFilter}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -70,9 +121,9 @@ export default function OperationsList({
         <SectionTitle>Ventas (Operaciones)</SectionTitle>
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm">
         <div className="flex gap-2">
-          {(['activas', 'historial', 'todas'] as const).map(f => (
+          {(['pendientes', 'activas', 'historial', 'todas'] as const).map(f => (
             <button key={f} onClick={() => setOpFilter(f)} className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${opFilter === f ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-gray-50 text-gray-400 hover:text-blue-600 border border-transparent'}`}>
-              {f === 'activas' ? 'Ventas Activas' : f === 'historial' ? 'Historial' : 'Ver Todas'}
+              {f === 'pendientes' ? 'Ventas Pendientes' : f === 'activas' ? 'Ventas Activas' : f === 'historial' ? 'Historial' : 'Ver Todas'}
             </button>
           ))}
         </div>
@@ -98,6 +149,10 @@ export default function OperationsList({
               <option key={m.value} value={m.value}>{m.label}</option>
             ))}
           </select>
+
+          <button onClick={downloadReport} className="bg-green-600 text-white px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-green-700 transition-all shadow-lg shadow-green-500/20">
+            <Search size={14} /> Reporte
+          </button>
         </div>
       </div>
 
@@ -143,8 +198,10 @@ export default function OperationsList({
                     const isClosed = op?.status === 'Completada' || op?.status === 'Liquidada';
 
                     // Filtro de pestaña
-                    if (opFilter === 'activas') {
-                      if (isClosed || isPast) return false;
+                    if (opFilter === 'pendientes') {
+                      if (op.status !== 'Pendiente' || isPast) return false;
+                    } else if (opFilter === 'activas') {
+                      if (op.status === 'Pendiente' || isClosed || isPast) return false;
                     } else if (opFilter === 'historial') {
                       if (!isClosed && !isPast) return false;
                     }
@@ -175,6 +232,11 @@ export default function OperationsList({
 
                     return true;
                   })
+                  .sort((a, b) => {
+                    const dateA = a.checkIn ? new Date(a.checkIn).getTime() : 0;
+                    const dateB = b.checkIn ? new Date(b.checkIn).getTime() : 0;
+                    return dateA - dateB;
+                  })
                   .map(op => (
                     <tr key={op?.id || Math.random()} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                       <td className="py-5 px-4"><div className="flex flex-col"><span className="font-black italic text-blue-600">{op?.id || 'S/F'}</span><span className="text-[8px] text-gray-400 font-bold uppercase">Ref: {op?.quoteId}</span></div></td>
@@ -183,16 +245,39 @@ export default function OperationsList({
                       <td className="py-5 px-4 text-[10px] font-black uppercase"><div className="flex items-center gap-1"><Calendar size={10} className="text-blue-500" /> {formatDateVisual(op?.checkIn || 'S/F')}</div><div className="flex items-center gap-1 opacity-50"><Calendar size={10} /> {formatDateVisual(op?.checkOut || 'S/F')}</div></td>
                       <td className="py-5 px-4 text-center text-[10px]">{op?.companions?.length || 0}</td>
                       <td className="py-5 px-4">
-                        <span className={`px-4 py-1.2 rounded-full text-[8px] font-black uppercase tracking-widest ${
-                          ['Confirmada', 'Venta Cerrada', 'Venta Concretada'].includes(op?.status || '') ? 'bg-green-500 text-white' :
-                          op?.status === 'Reserva' ? 'bg-blue-500 text-white' :
-                          'bg-blue-400 text-white'
-                        }`}>
-                          {op?.status || 'Pendiente'}
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span className={`px-4 py-1.2 rounded-full text-[8px] font-black uppercase tracking-widest text-center ${
+                            ['Confirmada', 'Venta Cerrada', 'Venta Concretada'].includes(op?.status || '') ? 'bg-green-500 text-white' :
+                            op?.status === 'Reserva' ? 'bg-blue-500 text-white' :
+                            'bg-blue-400 text-white'
+                          }`}>
+                            {op?.status || 'Pendiente'}
+                          </span>
+                          
+                          {/* BADGES OPERATIVOS */}
+                          <div className="flex flex-wrap gap-1 justify-center mt-1">
+                            {(() => {
+                              const checkIn = op.checkIn ? new Date(op.checkIn) : null;
+                              if (checkIn) {
+                                const tomorrow = new Date();
+                                tomorrow.setDate(tomorrow.getDate() + 1);
+                                tomorrow.setHours(0,0,0,0);
+                                const checkInDay = new Date(checkIn);
+                                checkInDay.setHours(0,0,0,0);
+                                if (checkInDay.getTime() === tomorrow.getTime()) {
+                                  return <span className="px-2 py-0.5 bg-red-500 text-white text-[7px] font-black rounded uppercase animate-pulse">Entrada Mañana</span>;
+                                }
+                              }
+                              return null;
+                            })()}
+                            {op.includeTransfer && (
+                              <span className="px-2 py-0.5 bg-blue-100 text-blue-600 text-[7px] font-black rounded uppercase">Traslado Activo</span>
+                            )}
+                          </div>
+                        </div>
                       </td>
                       <td className="py-5 px-4 text-center">
-                        <button onClick={() => setSelectedOperation(op)} className="bg-[#0B132B] text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-orange-600 transition-all">VER</button>
+                        <button onClick={() => setSelectedOperation(op)} className="bg-[#0B132B] text-white px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all">VER</button>
                       </td>
                     </tr>
                   ))}
@@ -367,12 +452,94 @@ export default function OperationsList({
                   </div>
                 </div>
 
-                {/* BLOQUE 4: CONTACTO DEL CLIENTE */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600"><Briefcase size={18} /></div>
-                    <h4 className="text-[11px] font-black uppercase text-orange-600 tracking-[0.2em]">4. Datos de Contacto</h4>
-                  </div>
+                 {/* BLOQUE 3: CONTROL LOGÍSTICO (NUEVO) */}
+                 <div className="space-y-4 col-span-1 md:col-span-2">
+                   <div className="flex items-center gap-2 mb-2">
+                     <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600"><Briefcase size={18} /></div>
+                     <h4 className="text-[11px] font-black uppercase text-blue-600 tracking-[0.2em]">3. Control Logístico y Operativo</h4>
+                   </div>
+                   <div className="bg-gray-50/50 p-8 rounded-[2rem] border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <div className="space-y-4">
+                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Itinerario del PAX (Vuelos, Traslados, Extras)</label>
+                       <textarea 
+                         value={selectedOperation.itinerary || ''}
+                         onChange={(e) => setSelectedOperation({...selectedOperation, itinerary: e.target.value})}
+                         placeholder="Ingresar detalles de vuelos, horas de recogida y números de confirmación..."
+                         className="w-full h-32 bg-white border-2 border-gray-100 rounded-2xl p-4 text-[11px] font-bold outline-none focus:border-blue-500 transition-all"
+                       />
+                     </div>
+                     <div className="space-y-6">
+                       <div className="space-y-2">
+                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Proveedor de Traslado</label>
+                         <select 
+                           value={selectedOperation.transferProvider || ''}
+                           onChange={(e) => setSelectedOperation({...selectedOperation, transferProvider: e.target.value})}
+                           className="w-full bg-white border-2 border-gray-100 rounded-xl p-3 text-[11px] font-bold outline-none focus:border-blue-500"
+                         >
+                           <option value="">Seleccionar Proveedor...</option>
+                           {transfers.map((t: any) => (
+                             <option key={t.id} value={t.operator}>{t.operator} - {t.route}</option>
+                           ))}
+                         </select>
+                       </div>
+                       
+                       <div className="space-y-2">
+                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Estado de la Operación</label>
+                         <div className="flex flex-col gap-2">
+                           <select 
+                             value={selectedOperation.status || 'Pendiente'}
+                             onChange={(e) => {
+                               const newStatus = e.target.value;
+                               // REGLA CRÍTICA: Bloquear cambio a activa si faltan datos
+                               if (['Confirmada', 'Venta Cerrada', 'Venta Concretada'].includes(newStatus)) {
+                                 if (!selectedOperation.itinerary || !selectedOperation.transferProvider) {
+                                   showToast('❌ DEBE COMPLETAR ITINERARIO Y PROVEEDOR PARA ACTIVAR');
+                                   return;
+                                 }
+                               }
+                               setSelectedOperation({...selectedOperation, status: newStatus as ReservationStatus});
+                             }}
+                             className={`w-full border-2 rounded-xl p-3 text-[11px] font-black uppercase tracking-widest outline-none transition-all ${
+                               ['Confirmada', 'Venta Cerrada', 'Venta Concretada'].includes(selectedOperation.status || '') ? 'border-green-500 bg-green-50 text-green-700' : 'border-blue-500 bg-blue-50 text-blue-700'
+                             }`}
+                           >
+                             <option value="Pendiente">Venta Pendiente</option>
+                             <option value="Confirmada">Venta Activa (Confirmada)</option>
+                             <option value="Venta Cerrada">Venta Cerrada</option>
+                             <option value="Completada">Finalizada / Historial</option>
+                           </select>
+                           
+                           <button 
+                             onClick={async () => {
+                               setSavingStatus(true);
+                               try {
+                                 await api.saveOperation(selectedOperation.id, {
+                                   status: selectedOperation.status,
+                                   itinerary: selectedOperation.itinerary,
+                                   transferProvider: selectedOperation.transferProvider
+                                 });
+                                 showToast('✅ Cambios guardados en Centro de Control');
+                                 fetchOperations();
+                               } catch (err) { showToast('Error al guardar cambios'); }
+                               finally { setSavingStatus(false); }
+                             }}
+                             disabled={savingStatus}
+                             className="w-full bg-[#0B132B] text-white py-3 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] hover:bg-blue-600 disabled:opacity-50 transition-all"
+                           >
+                             {savingStatus ? 'Guardando...' : 'Guardar y Sincronizar'}
+                           </button>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+
+                 {/* BLOQUE 4: CONTACTO DEL CLIENTE */}
+                 <div className="space-y-4">
+                   <div className="flex items-center gap-2 mb-2">
+                     <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600"><Users size={18} /></div>
+                     <h4 className="text-[11px] font-black uppercase text-orange-600 tracking-[0.2em]">4. Datos de Contacto</h4>
+                   </div>
                   <div className="bg-orange-50/30 p-6 rounded-[2rem] border border-orange-100/50 space-y-4">
                     <div className="flex flex-col gap-1">
                       <span className="text-[9px] font-black text-gray-400 uppercase">Nombre Principal</span>
@@ -406,7 +573,7 @@ export default function OperationsList({
             <div className="p-8 border-t border-gray-100 flex gap-4 bg-gray-50/50 print-hidden">
               <button
                 onClick={() => {
-                  const url = `${api.getBaseUrl()}/admin/operations/${selectedOperation.id}/voucher`;
+                  const url = `${api.getBaseUrl()}/public/vouchers/${selectedOperation.id}`;
                   window.open(url, '_blank');
                 }}
                 className="flex-1 bg-[#0B132B] text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl flex items-center justify-center gap-2"
