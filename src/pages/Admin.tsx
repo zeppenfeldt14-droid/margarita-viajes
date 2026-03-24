@@ -78,6 +78,7 @@ export default function AdminDashboard({ user }: AdminProps) {
   const [location] = useLocation();
   const [activeTab, setActiveTab] = useState('inicio');
   const [inventorySubTab, setInventorySubTab] = useState<'hotels' | 'fullday' | 'packages' | 'transfers'>('hotels');
+  const [inventorySearch, setInventorySearch] = useState('');
 
   useEffect(() => {
     if (location === '/admin') setActiveTab('inicio');
@@ -284,16 +285,30 @@ export default function AdminDashboard({ user }: AdminProps) {
                 <SectionTitle>Gestión de Inventario</SectionTitle>
                 <button onClick={() => setShowModal(true)} className="bg-[#0B132B] text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-orange-600 transition-all flex items-center gap-3"><Plus size={18} /> Nueva Carga</button>
               </div>
-              <div className="flex bg-white/50 backdrop-blur-md p-2 rounded-3xl w-fit border border-gray-100 shadow-sm">
-                {(['hotels', 'fullday', 'packages', 'transfers'] as const).map(tab => (
-                  <button key={tab} onClick={() => setInventorySubTab(tab)} className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${inventorySubTab === tab ? 'bg-[#0B132B] text-white shadow-lg' : 'text-gray-400 hover:text-[#0B132B]'}`}>
-                    {tab === 'hotels' ? 'Hospedaje' : tab === 'fullday' ? 'Full Day' : tab === 'packages' ? 'Paquetes' : 'Traslados'}
-                  </button>
-                ))}
+              <div className="flex flex-col md:flex-row md:items-center gap-6">
+                <div className="flex bg-white/50 backdrop-blur-md p-2 rounded-3xl w-fit border border-gray-100 shadow-sm">
+                  {(['hotels', 'fullday', 'packages', 'transfers'] as const).map(tab => (
+                    <button key={tab} onClick={() => setInventorySubTab(tab)} className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${inventorySubTab === tab ? 'bg-[#0B132B] text-white shadow-lg' : 'text-gray-400 hover:text-[#0B132B]'}`}>
+                      {tab === 'hotels' ? 'Hospedaje' : tab === 'fullday' ? 'Full Day' : tab === 'packages' ? 'Paquetes' : 'Traslados'}
+                    </button>
+                  ))}
+                </div>
+                <div className="relative flex-1 md:max-w-[300px]">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                  <input 
+                    type="text" 
+                    placeholder="Buscar por nombre o ruta..." 
+                    value={inventorySearch} 
+                    onChange={(e) => setInventorySearch(e.target.value)} 
+                    className="bg-white border-2 border-gray-100 rounded-2xl pl-12 pr-6 py-3 text-[10px] font-black uppercase outline-none focus:border-orange-500 w-full" 
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {inventorySubTab === 'transfers' ? (
-                  (transfers || []).map(t => (
+                  (transfers || [])
+                  .filter((t: Transfer) => t.route?.toLowerCase().includes(inventorySearch.toLowerCase()))
+                  .map(t => (
                     <Card key={t.id} className="group hover:scale-[1.02] transition-transform">
                       <div className="flex items-center justify-between mb-6">
                         <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center text-[#0B132B] group-hover:bg-orange-50 transition-colors"><Briefcase size={28} /></div>
@@ -312,7 +327,9 @@ export default function AdminDashboard({ user }: AdminProps) {
                 ) : (
                   (hotels || []).filter((h: Hotel) => {
                     const typeMap: Record<string, string> = { hotels: 'hotel', fullday: 'full-day', packages: 'package' };
-                    return h.type === typeMap[inventorySubTab];
+                    const matchesType = h.type === typeMap[inventorySubTab];
+                    const matchesSearch = h.name?.toLowerCase().includes(inventorySearch.toLowerCase());
+                    return matchesType && matchesSearch;
                   }).map((h: Hotel) => (
                     <Card key={h.id} className="group hover:border-orange-500/20 transition-all">
                       <div className="aspect-video bg-gray-100 rounded-3xl mb-6 overflow-hidden relative">
