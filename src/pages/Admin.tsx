@@ -9,6 +9,7 @@ import {
   X, 
   Calendar,
   ShieldCheck,
+  FileText,
   Edit2,
   Image as ImageIcon,
   Upload,

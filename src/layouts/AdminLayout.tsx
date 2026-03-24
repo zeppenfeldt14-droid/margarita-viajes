@@ -1,3 +1,5 @@
+import React, { useEffect } from "react";
+import { useLocation } from "wouter";
 import { LayoutDashboard, Inbox, Hotel, FileText, Settings, Users, LogOut } from "lucide-react";
 import { api } from "../services/api";
 import { useGlobalData } from "../context/GlobalContext";
