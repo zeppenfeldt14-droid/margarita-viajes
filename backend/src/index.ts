@@ -101,6 +101,7 @@ const quoteController = new QuoteController(
   quoteRepository,
   configRepository,
   hotelRepository,
+  userRepository,
   notificationService
 );
 const adminController = new AdminController(

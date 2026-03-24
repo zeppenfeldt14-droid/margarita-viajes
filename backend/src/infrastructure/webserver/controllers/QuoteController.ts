@@ -4,14 +4,18 @@ import type { QuoteRequestDTO } from '../../../application/dtos/QuoteRequestDTO.
 import type { IQuoteRepository } from '../../../domain/repositories/IQuoteRepository.js';
 import type { IWebConfigRepository } from '../../../domain/repositories/IWebConfigRepository.js';
 import type { IHotelRepository } from '../../../domain/repositories/IHotelRepository.js';
+import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
 import { NotificationService } from '../../services/NotificationService.js';
 
 export class QuoteController {
+  private static lastAssignedIndex = -1;
+
   constructor(
     private calculateQuotePrice: CalculateQuotePrice,
     private quoteRepo: IQuoteRepository,
     private configRepo: IWebConfigRepository,
     private hotelRepo: IHotelRepository,
+    private userRepo: IUserRepository,
     private notificationService: NotificationService
   ) {}
 
@@ -27,6 +31,21 @@ export class QuoteController {
 
   async saveQuote(req: Request, res: Response) {
     try {
+      // Lógica de Asignación Round-Robin (Backend)
+      try {
+        const users = await this.userRepo.findAll();
+        const sellers = (users || []).filter(u => u.level === 3);
+
+        if (sellers.length > 0) {
+          QuoteController.lastAssignedIndex = (QuoteController.lastAssignedIndex + 1) % sellers.length;
+          const assignedSeller = sellers[QuoteController.lastAssignedIndex].alias || sellers[QuoteController.lastAssignedIndex].fullName;
+          req.body.assignedTo = assignedSeller;
+          console.log(`[QuoteController] Cotización asignada a: ${assignedSeller} (Turno: ${QuoteController.lastAssignedIndex})`);
+        }
+      } catch (err) {
+        console.error('[QuoteController] Error en asignación Round-Robin:', err);
+      }
+
       const quote = await this.quoteRepo.create(req.body);
       
       const pdfBase64 = req.body.pdfBase64;

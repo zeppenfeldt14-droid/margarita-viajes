@@ -152,22 +152,6 @@ export default function Quoter() {
     }
 
     try {
-      let assignedSeller = 'Sin Asignar';
-      try {
-        const sellers = (users || []).filter(u => u.level === 3);
-
-        if (sellers.length > 0) {
-          const lastIndexStr = localStorage.getItem('last_assigned_index');
-          let lastIndex = lastIndexStr ? parseInt(lastIndexStr) : -1;
-          let nextIndex = (lastIndex + 1) % sellers.length;
-
-          assignedSeller = sellers[nextIndex].alias || sellers[nextIndex].name;
-          localStorage.setItem('last_assigned_index', nextIndex.toString());
-        }
-      } catch (error) {
-        console.error('Error en la ruleta de asignación:', error);
-      }
-
       const newQuote = {
         id: quoteId,
         date: new Date().toISOString(),
@@ -187,7 +171,7 @@ export default function Quoter() {
         discountAmount: totalPrice - finalPrice,
         finalAmount: finalPrice,
         status: 'Nuevo' as QuoteStatus,
-        assignedTo: assignedSeller,
+        assignedTo: 'Sin Asignar',
         plan: selectedHotel?.plan || 'No especificado',
       };
 
