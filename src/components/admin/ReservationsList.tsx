@@ -6,8 +6,11 @@ import { Card, SectionTitle } from './Common';
 import type { Reservation, Hotel as HotelType } from '../../types';
 import { formatDateVisual, compressImage } from '../../utils/helpers';
 
-export default function ReservationsList({ hotels }: { 
+export default function ReservationsList({ hotels, isDataMaster, userAlias, users }: { 
   hotels: HotelType[]; 
+  isDataMaster?: boolean;
+  userAlias?: string | null;
+  users?: any[];
 }) {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,6 +76,12 @@ export default function ReservationsList({ hotels }: {
       if (selectedMonth !== 'all') {
         const checkInDate = new Date(res.checkIn);
         if (checkInDate.getMonth() !== selectedMonth) return false;
+      }
+
+      // Restricción de visibilidad por nivel (RBAC)
+      if (!isDataMaster) {
+        // Reservas asignadas específicamente a este asesor
+        if (res.assignedTo !== userAlias) return false;
       }
 
       return true;
@@ -171,6 +180,36 @@ export default function ReservationsList({ hotels }: {
                       <div className="flex flex-col"><span className="text-[10px] font-bold text-gray-400 uppercase mb-1">Nombre Completo</span><span className="text-lg font-black italic uppercase text-[#0B132B]">{selectedReservation.clientName}</span></div>
                       <div className="flex flex-col"><span className="text-[10px] font-bold text-gray-400 uppercase mb-1">Correo Electrónico</span><span className="text-sm font-bold text-[#0B132B]">{selectedReservation.email}</span></div>
                       <div className="flex flex-col"><span className="text-[10px] font-bold text-gray-400 uppercase mb-1">WhatsApp / Contacto</span><span className="text-lg font-black italic text-green-600 underline decoration-green-200">{selectedReservation.whatsapp || '-'}</span></div>
+                    </div>
+                    {/* Selector de Responsable para Master/Supervisor */}
+                    <div className="mt-6 pt-6 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase mb-1">Asesor Responsable</span>
+                        {isDataMaster ? (
+                          <select
+                            value={selectedReservation.assignedTo || ''}
+                            onChange={async (e) => {
+                              const newAsesor = e.target.value;
+                              try {
+                                const res = await api.updateReservation(selectedReservation.id, { assignedTo: newAsesor });
+                                if (res.ok) {
+                                  setSelectedReservation({ ...selectedReservation, assignedTo: newAsesor });
+                                  fetchReservations();
+                                  showToast(`Reasignado a: ${newAsesor}`);
+                                }
+                              } catch (err) { showToast('Error al reasignar'); }
+                            }}
+                            className="bg-white border border-gray-200 px-3 py-2 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer min-w-[200px]"
+                          >
+                            <option value="">Sin Asignar</option>
+                            {(users || []).map((u: any) => (
+                              <option key={u.id} value={u.alias || u.name}>{u.alias || u.name}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="text-sm font-black italic uppercase text-blue-600">{selectedReservation.assignedTo || 'SIN ASIGNAR'}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
 

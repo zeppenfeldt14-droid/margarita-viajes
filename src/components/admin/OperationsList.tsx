@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Calendar, ShieldCheck, AlertCircle, Briefcase, Users, X, Search, Printer } from 'lucide-react';
 import { api } from '../../services/api';
+import { showToast } from '../Toast';
 import { Card, SectionTitle } from './Common';
 import { formatDateVisual } from '../../utils/helpers';
 import type { Operation } from '../../types';
@@ -9,12 +10,18 @@ export default function OperationsList({
   selectedOperation,
   setSelectedOperation,
   opFilter,
-  setOpFilter
+  setOpFilter,
+  isDataMaster,
+  userAlias,
+  users
 }: {
   selectedOperation: Operation | null;
   setSelectedOperation: (op: Operation | null) => void;
   opFilter: 'activas' | 'historial' | 'todas';
   setOpFilter: (f: 'activas' | 'historial' | 'todas') => void;
+  isDataMaster?: boolean;
+  userAlias?: string | null;
+  users?: any[];
 }) {
   const [operations, setOperations] = useState<Operation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -156,6 +163,11 @@ export default function OperationsList({
                       if (!checkInDate || checkInDate.getMonth() !== selectedMonth) return false;
                     }
 
+                    // Restricción de visibilidad por nivel (RBAC)
+                    if (!isDataMaster) {
+                      if (op.assignedTo !== userAlias) return false;
+                    }
+
                     return true;
                   })
                   .map(op => (
@@ -195,6 +207,33 @@ export default function OperationsList({
                 <h3 className="text-2xl font-black italic text-[#0B132B] uppercase tracking-tighter">Detalles de Operación</h3>
                 <div className="flex flex-col gap-0.5 mt-1">
                   <p className="text-sm font-black text-[#0B132B] uppercase">FOLIO VENTA: {selectedOperation?.id || 'S/F'}</p>
+                  {isDataMaster ? (
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Asesor:</span>
+                      <select
+                        value={selectedOperation?.assignedTo || ''}
+                        onChange={async (e) => {
+                          const newAsesor = e.target.value;
+                          try {
+                            const res = await api.saveOperation(selectedOperation.id, { assignedTo: newAsesor });
+                            if (res.ok) {
+                              setSelectedOperation({ ...selectedOperation, assignedTo: newAsesor });
+                              fetchOperations();
+                              showToast(`Reasignado a: ${newAsesor}`);
+                            }
+                          } catch (err) { showToast('Error al reasignar'); }
+                        }}
+                        className="bg-white border border-gray-200 px-2 py-0.5 rounded-lg text-[10px] font-bold outline-none focus:ring-1 focus:ring-blue-500/30 cursor-pointer"
+                      >
+                        <option value="">Sin Asignar</option>
+                        {(users || []).map((u: any) => (
+                          <option key={u.id} value={u.alias || u.name}>{u.alias || u.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <p className="text-[10px] font-bold text-gray-500 uppercase">ASESOR: {selectedOperation?.assignedTo || 'SIN ASIGNAR'}</p>
+                  )}
                   {(selectedOperation?.previousId || selectedOperation?.originalQuoteId) && (
                     <p className="text-[10px] font-bold text-orange-500 italic">
                       {selectedOperation.previousId && selectedOperation.previousId !== selectedOperation.originalQuoteId ? `Viene de: ${selectedOperation.previousId} | ` : ''} 

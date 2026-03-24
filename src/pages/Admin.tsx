@@ -66,12 +66,17 @@ export default function AdminDashboard({ user }: AdminProps) {
   const [opFilter, setOpFilter] = useState<'activas' | 'historial' | 'todas'>('activas');
   const { hotels, transfers, quotes, users, setQuotes, refreshData } = useGlobalData();
 
-  const userModules = React.useMemo(() => {
-    const level = parseInt(localStorage.getItem('user_level') || '3');
-    const role = localStorage.getItem('staff_user_role');
-    const alias = localStorage.getItem('staff_user_alias');
-    const isMaster = level === 1 || role === 'Gerente General' || role === 'Gerente Operaciones' || alias === 'Gerente General' || alias === 'Gerente Operaciones';
+  const { level, userRole, userAlias, isMaster, isDataMaster } = React.useMemo(() => {
+    const l = parseInt(localStorage.getItem('user_level') || '3');
+    const r = localStorage.getItem('staff_user_role');
+    const a = localStorage.getItem('staff_user_alias');
+    const m = l === 1 || r === 'Gerente General' || r === 'Gerente Operaciones' || a === 'Gerente General' || a === 'Gerente Operaciones';
+    const dm = l === 1 || l === 2; // Nivel 1 y 2 tienen acceso global a datos
 
+    return { level: l, userRole: r, userAlias: a, isMaster: m, isDataMaster: dm };
+  }, []);
+
+  const userModules = React.useMemo(() => {
     if (isMaster) {
       return { inventory: true, quotes: true, bookings: true, operations: true, users: true, customers: true, marketing: true, settings: true };
     }
@@ -103,7 +108,7 @@ export default function AdminDashboard({ user }: AdminProps) {
       users: false, // Forzado
       settings: false // Forzado
     };
-  }, [user, users]);
+  }, [user, users, isMaster]);
 
   const [quoteFilter, setQuoteFilter] = useState<'original' | 'discounted' | 'unassigned' | 'history'>('original');
   const [quoteSearchTerm, setQuoteSearchTerm] = useState('');
@@ -268,23 +273,38 @@ export default function AdminDashboard({ user }: AdminProps) {
                 <Card className="bg-gradient-to-br from-blue-600 to-[#0B132B] text-white border-none shadow-2xl relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10"></div>
                   <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-200 mb-4">Cotizaciones Pendientes</h3>
-                  <p className="text-5xl font-black italic tracking-tighter">{(quotes || []).filter(q => q.status === 'Nuevo' || q.status === 'Atendido').length}</p>
+                  <p className="text-5xl font-black italic tracking-tighter">
+                    {(quotes || []).filter(q => {
+                      const isPending = q.status === 'Nuevo' || q.status === 'Atendido';
+                      if (!isPending) return false;
+                      // Si es Asesor (Nivel 3), solo ver lo suyo o lo sin asignar
+                      if (!isDataMaster) return q.assignedTo === userAlias || !q.assignedTo;
+                      return true;
+                    }).length}
+                  </p>
                 </Card>
                 <Card className="bg-gradient-to-br from-green-500 to-green-700 text-white border-none shadow-2xl relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10"></div>
                   <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-green-200 mb-4">Ventas del Mes</h3>
                   <p className="text-5xl font-black italic tracking-tighter">
-                    {(quotes || []).filter((q: Quotation) =>
-                      ['Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(q.status) &&
-                      new Date(q.date || "").getMonth() === new Date().getMonth()
-                    ).length}
+                    {(quotes || []).filter((q: Quotation) => {
+                      const isSale = ['Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(q.status) &&
+                        new Date(q.date || "").getMonth() === new Date().getMonth();
+                      if (!isSale) return false;
+                      if (!isDataMaster) return q.assignedTo === userAlias;
+                      return true;
+                    }).length}
                   </p>
                 </Card>
                 <Card className="bg-gradient-to-br from-orange-500 to-red-500 text-white border-none shadow-2xl relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10"></div>
                   <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-200 mb-4">Tasa de Conversión</h3>
                   <p className="text-5xl font-black italic tracking-tighter">
-                    {(quotes || []).length > 0 ? Math.round(((quotes || []).filter((q: Quotation) => ['Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(q.status)).length / (quotes || []).length) * 100) : 0}%
+                    {(() => {
+                      const visibleQuotes = (quotes || []).filter(q => isDataMaster ? true : (q.assignedTo === userAlias));
+                      const sales = visibleQuotes.filter(q => ['Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(q.status)).length;
+                      return visibleQuotes.length > 0 ? Math.round((sales / visibleQuotes.length) * 100) : 0;
+                    })()}%
                   </p>
                 </Card>
               </div>
@@ -397,6 +417,14 @@ export default function AdminDashboard({ user }: AdminProps) {
                     <tbody className="text-sm font-bold">
                       {(quotes || [])
                         .filter((q: Quotation) => {
+                          // Restricción de visibilidad por nivel (RBAC)
+                          if (!isDataMaster) {
+                            // Asesores solo ven lo suyo o lo recibido sin asignar
+                            const isAssignedToMe = q.assignedTo === userAlias;
+                            const isUnassigned = !q.assignedTo || q.assignedTo === '';
+                            if (!isAssignedToMe && !isUnassigned) return false;
+                          }
+
                           const matchesSearch = (q.clientName || q.client_name)?.toLowerCase().includes(quoteSearchTerm.toLowerCase()) || q.id?.toString().includes(quoteSearchTerm);
                           if (!matchesSearch) return false;
                           if (quoteFilter === 'original') return q.status === 'Nuevo' && !String(q.id).includes('-01');
@@ -526,11 +554,19 @@ export default function AdminDashboard({ user }: AdminProps) {
           )}
 
           {activeTab === 'bookings' && userModules?.bookings && (
-            <ReservationsList hotels={hotels} />
+            <ReservationsList hotels={hotels} isDataMaster={isDataMaster} userAlias={userAlias} users={users} />
           )}
 
           {activeTab === 'operations' && userModules?.operations && (
-            <OperationsList selectedOperation={selectedOperation} setSelectedOperation={setSelectedOperation} opFilter={opFilter} setOpFilter={setOpFilter} />
+            <OperationsList 
+              selectedOperation={selectedOperation} 
+              setSelectedOperation={setSelectedOperation} 
+              opFilter={opFilter} 
+              setOpFilter={setOpFilter}
+              isDataMaster={isDataMaster}
+              userAlias={userAlias}
+              users={users}
+            />
           )}
 
 
@@ -878,6 +914,35 @@ export default function AdminDashboard({ user }: AdminProps) {
                     <p className="text-sm font-bold text-[#0B132B]">
                       {selectedQuote.pax} Adultos, {selectedQuote.children || 0} Niños, {selectedQuote.infants || 0} Infantes
                     </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Responsable / Asesor</p>
+                    {isDataMaster ? (
+                      <select
+                        value={selectedQuote.assignedTo || ''}
+                        onChange={async (e) => {
+                          const newAsesor = e.target.value;
+                          try {
+                            const res = await api.updateQuote(selectedQuote.id, { assignedTo: newAsesor });
+                            if (res.ok) {
+                              const updated = { ...selectedQuote, assignedTo: newAsesor };
+                              setSelectedQuote(updated);
+                              refreshData();
+                              showToast(`Reasignado a: ${newAsesor}`);
+                              recordActivity('REASSIGN_QUOTE', `Reasignado folio ${selectedQuote.id} a ${newAsesor}`);
+                            }
+                          } catch (err) { showToast('Error al reasignar'); }
+                        }}
+                        className="w-full bg-white border border-gray-200 px-3 py-1.5 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer"
+                      >
+                        <option value="">Sin Asignar</option>
+                        {(users || []).map((u: any) => (
+                          <option key={u.id} value={u.alias || u.name}>{u.alias || u.name}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <p className="text-sm font-bold text-[#0B132B] uppercase italic">{selectedQuote.assignedTo || 'SIN ASIGNAR'}</p>
+                    )}
                   </div>
                 </div>
 
