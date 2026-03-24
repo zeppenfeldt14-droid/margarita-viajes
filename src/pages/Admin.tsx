@@ -1310,7 +1310,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                     <button 
                       onClick={() => {
                         const folio = selectedQuote.id || (selectedQuote as any).folio;
-                        window.open(`https://margarita-viajes.onrender.com/api/public/quotes/${folio}/pdf`, '_blank');
+                        window.open(`${api.getBaseUrl()}/public/quotes/${folio}/pdf`, '_blank');
                       }}
                       className="text-gray-400 hover:text-[#0B132B] transition-colors p-1"
                       title="Ver Vista Previa"
@@ -1321,7 +1321,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                       onClick={() => {
                         const folio = selectedQuote.id || (selectedQuote as any).folio;
                         const link = document.createElement('a');
-                        link.href = `https://margarita-viajes.onrender.com/api/public/quotes/${folio}/pdf`;
+                        link.href = `${api.getBaseUrl()}/public/quotes/${folio}/pdf`;
                         link.download = `Cotizacion_${folio}.pdf`;
                         link.target = '_blank';
                         document.body.appendChild(link);

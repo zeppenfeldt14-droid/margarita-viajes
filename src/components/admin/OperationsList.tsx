@@ -363,8 +363,8 @@ export default function OperationsList({
 
                 {/* Derecha: Logo Hotel */}
                 <div className="w-32 h-20 flex items-center justify-end shrink-0">
-                  {(selectedOperation as any)?.hotelLogo || (selectedOperation as any)?.logo ? (
-                    <img src={(selectedOperation as any)?.hotelLogo || (selectedOperation as any)?.logo} alt={selectedOperation?.hotelName} className="max-h-full max-w-full object-contain rounded-lg" crossOrigin="anonymous" />
+                  {selectedOperation?.hotelLogo || (selectedOperation as any)?.logo ? (
+                    <img src={selectedOperation?.hotelLogo || (selectedOperation as any)?.logo} alt={selectedOperation?.hotelName} className="max-h-full max-w-full object-contain rounded-lg" crossOrigin="anonymous" />
                   ) : (
                     <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-[8px] text-gray-400 font-bold text-center">SIN LOGO<br />HOTEL</div>
                   )}
@@ -477,6 +477,12 @@ export default function OperationsList({
                           <option value="Ferry">Ferry</option>
                           <option value="Cliente no Por Cliente">Cliente no Por Cliente</option>
                         </select>
+                        <textarea 
+                          placeholder="Detalles del Itinerario (Vuelos, Horarios, etc.)..."
+                          value={selectedOperation.itineraryDetails || ''}
+                          onChange={(e) => setSelectedOperation({...selectedOperation, itineraryDetails: e.target.value})}
+                          className="w-full bg-white border-2 border-gray-100 rounded-2xl p-4 text-[10px] font-bold outline-none focus:border-blue-500 transition-all min-h-[80px] mt-3"
+                        ></textarea>
                       </div>
                      <div className="space-y-6">
                        <div className="space-y-2">

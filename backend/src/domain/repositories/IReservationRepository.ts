@@ -25,6 +25,7 @@ export interface Reservation {
   createdAt?: string;
   includeTransfer?: boolean;
   transferId?: string;
+  hotelLogo?: string;
 }
 
 export interface IReservationRepository {

@@ -27,7 +27,9 @@ export class PostgresOperationRepository implements IOperationRepository {
       includeTransfer: row.include_transfer,
       transferId: row.transfer_id,
       itinerary: row.itinerary,
-      transferProvider: row.transfer_provider
+      transferProvider: row.transfer_provider,
+      hotelLogo: row.hotel_logo,
+      itineraryDetails: row.itinerary_details
     }));
   }
 
@@ -64,7 +66,9 @@ export class PostgresOperationRepository implements IOperationRepository {
       include_transfer: operation.includeTransfer || false,
       transfer_id: operation.transferId,
       itinerary: operation.itinerary,
-      transfer_provider: operation.transferProvider
+      transfer_provider: operation.transferProvider,
+      hotel_logo: operation.hotelLogo,
+      itinerary_details: operation.itineraryDetails
     }).returning('*');
     return result;
   }
@@ -77,6 +81,8 @@ export class PostgresOperationRepository implements IOperationRepository {
     if (operation.transferProvider !== undefined) updateData.transfer_provider = operation.transferProvider;
     if (operation.hotelResponseImage !== undefined) updateData.hotel_response_image = operation.hotelResponseImage;
     if (operation.paymentProofImage !== undefined) updateData.payment_proof_image = operation.paymentProofImage;
+    if (operation.hotelLogo !== undefined) updateData.hotel_logo = operation.hotelLogo;
+    if (operation.itineraryDetails !== undefined) updateData.itinerary_details = operation.itineraryDetails;
 
     const [result] = await this.db('operations')
       .where('id', id)

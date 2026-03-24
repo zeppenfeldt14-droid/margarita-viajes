@@ -445,6 +445,8 @@ export class AdminController {
           status: 'Pendiente',
           includeTransfer: reservation.includeTransfer,
           transferId: reservation.transferId,
+          hotelLogo: reservation.hotelLogo,
+          hotelResponseImage: reservation.hotelResponseImage,
           originalQuoteId: reservation.originalQuoteId || reservation.quoteId
         });
 

@@ -27,6 +27,8 @@ export interface Operation {
   transferId?: string;
   itinerary?: string;
   transferProvider?: string;
+  hotelLogo?: string;
+  itineraryDetails?: string;
 }
 
 export interface OperationSequence {

@@ -128,6 +128,22 @@ export const api = {
     const res = await fetchWithAuth('/public/coupons');
     return res.json();
   },
+  getAdminCoupons: async () => {
+    const res = await fetchWithAuth('/admin/coupons');
+    return res.json();
+  },
+  saveCoupon: async (data: any, id: string | number | null) => {
+    const url = id ? `/admin/coupons/${id}` : '/admin/coupons';
+    return fetchWithAuth(url, {
+      method: id ? 'PUT' : 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  deleteCoupon: async (id: string | number) => {
+    return fetchWithAuth(`/admin/coupons/${id}`, {
+      method: 'DELETE',
+    });
+  },
 
   // Users
   getUsers: async () => {

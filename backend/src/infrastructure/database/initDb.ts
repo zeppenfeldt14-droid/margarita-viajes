@@ -336,6 +336,7 @@ export async function initDatabase(db: Knex) {
 
       const hasIncTransferRes = await db.schema.hasColumn('reservations', 'include_transfer');
       const hasTransfIdRes = await db.schema.hasColumn('reservations', 'transfer_id');
+      const hasHotelLogoRes = await db.schema.hasColumn('reservations', 'hotel_logo');
 
       await db.schema.alterTable('reservations', (table: any) => {
         if (!hasOriginal) table.string('original_quote_id').nullable();
@@ -343,6 +344,7 @@ export async function initDatabase(db: Knex) {
         if (!hasPlan) table.string('plan').nullable();
         if (!hasIncTransferRes) table.boolean('include_transfer').defaultTo(false);
         if (!hasTransfIdRes) table.string('transfer_id').nullable();
+        if (!hasHotelLogoRes) table.text('hotel_logo').nullable();
       });
   }
 
@@ -386,6 +388,8 @@ export async function initDatabase(db: Knex) {
     
     const hasItineraryOp = await db.schema.hasColumn('operations', 'itinerary');
     const hasTransfProvOp = await db.schema.hasColumn('operations', 'transfer_provider');
+    const hasHotelLogoOp = await db.schema.hasColumn('operations', 'hotel_logo');
+    const hasItineraryDetailsOp = await db.schema.hasColumn('operations', 'itinerary_details');
     
     await db.schema.alterTable('operations', (table: any) => {
       if (!hasHotelResponse) table.text('hotel_response_image').nullable();
@@ -397,6 +401,8 @@ export async function initDatabase(db: Knex) {
       if (!hasTransfIdOp) table.string('transfer_id').nullable();
       if (!hasItineraryOp) table.text('itinerary').nullable();
       if (!hasTransfProvOp) table.string('transfer_provider').nullable();
+      if (!hasHotelLogoOp) table.text('hotel_logo').nullable();
+      if (!hasItineraryDetailsOp) table.text('itinerary_details').nullable();
     });
     console.log('[Database] Verificación de columnas en "operations" completada.');
   }
