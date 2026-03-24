@@ -15,7 +15,8 @@ export default function UsersList() {
   const [editingRoles, setEditingRoles] = useState(false);
   const currentUserLevel = parseInt(localStorage.getItem('user_level') || '3');
   const currentUserRole = localStorage.getItem('staff_user_role') || '';
-  const isMaster = currentUserLevel === 1 || currentUserRole === 'Gerente General' || currentUserRole === 'Gerente Operaciones';
+  const currentUserAlias = localStorage.getItem('staff_user_alias') || '';
+  const isMasterAdmin = currentUserLevel === 1 || currentUserAlias === 'Gerente General' || currentUserAlias === 'Gerente Operaciones' || currentUserRole === 'Gerente General' || currentUserRole === 'Gerente Operaciones';
 
   const defaultModules = { inventory: true, quotes: true, bookings: true, operations: true, users: false, customers: true, marketing: false, settings: false };
   const [newUser, setNewUser] = useState<any>({ name: '', alias: '', email: '', password: '', role: '', dailyQuota: 20, active: true, level: 3, photo: '', inRoulette: true, modules: defaultModules });
@@ -191,40 +192,43 @@ export default function UsersList() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-blue-50/50 p-6 rounded-3xl border border-blue-50">
-                <div className="space-y-2 relative">
-                  <div className="flex items-center justify-between ml-1">
-                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">ROL ASIGNADO</label>
-                    {isMaster && (
-                      <button 
-                        onClick={() => {
-                          const currentRoles = JSON.parse(config.user_roles || '["Gerente General", "Gerente Operaciones", "Supervisor de Ventas", "Vendedor 1", "Vendedor 2"]');
-                          const newRolesStr = prompt("Edita los roles (separados por coma):", currentRoles.join(", "));
-                          if (newRolesStr) {
-                            const newRoles = newRolesStr.split(",").map(r => r.trim()).filter(r => r);
-                            const newConfig = { ...config, user_roles: JSON.stringify(newRoles) };
-                            api.saveFullConfig(newConfig).then(() => {
-                              fetchConfig();
-                              alert("Roles actualizados correctamente.");
-                            });
-                          }
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Rol Asignado / Perfil</label>
+                  {isMasterAdmin ? (
+                    <div className="relative">
+                      <input
+                        type="text"
+                        list="roles-list"
+                        value={newUser.role || ''}
+                        onChange={(e) => {
+                          const role = e.target.value;
+                          let lvl = 3;
+                          if(role.includes('Gerente')) lvl = 1;
+                          if(role.includes('Supervisor') || role.includes('Coordinador')) lvl = 2;
+                          setNewUser({ ...newUser, role: role });
                         }}
-                        className="text-[8px] font-black text-orange-500 uppercase hover:underline"
-                      >
-                        [Editar]
-                      </button>
-                    )}
-                  </div>
-                  <select value={newUser.role} onChange={(e) => {
-                    const role = e.target.value;
-                    let lvl = 3;
-                    if(role.includes('Gerente')) lvl = 1;
-                    if(role.includes('Supervisor') || role.includes('Coordinador')) lvl = 2;
-                    setNewUser({...newUser, role, level: lvl});
-                  }} className="w-full bg-white border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-500/20 shadow-sm">
-                    {JSON.parse(config.user_roles || '["Gerente General", "Gerente Operaciones", "Supervisor de Ventas", "Vendedor 1", "Vendedor 2"]').map((r: string) => (
-                      <option key={r} value={r}>{r}</option>
-                    ))}
-                  </select>
+                        className="w-full bg-gray-50 rounded-xl px-4 py-3 text-xs font-bold outline-none border-2 border-transparent focus:border-orange-500 transition-all text-[#0B132B]"
+                        placeholder="Selecciona o escribe un nuevo rol..."
+                      />
+                      <datalist id="roles-list">
+                        <option value="Gerente General" />
+                        <option value="Gerente Operaciones" />
+                        <option value="Supervisor de Ventas" />
+                        <option value="Vendedor 1" />
+                        <option value="Vendedor 2" />
+                        <option value="Coordinador de Operaciones" />
+                        <option value="Supervisor Administrativo" />
+                      </datalist>
+                      <p className="text-[8px] text-orange-500 font-bold mt-1">✨ Puedes escribir un rol nuevo si no está en la lista.</p>
+                    </div>
+                  ) : (
+                    <input
+                      type="text"
+                      disabled
+                      value={newUser.role || ''}
+                      className="w-full bg-gray-200 rounded-xl px-4 py-3 text-xs font-bold outline-none text-gray-500 cursor-not-allowed"
+                    />
+                  )}
                 </div>
                 <div className="space-y-2">
                   <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">NIVEL DE ACCESO</label>
