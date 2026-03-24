@@ -530,10 +530,11 @@ export default function OperationsList({
                                setSavingStatus(true);
                                try {
                                  await api.saveOperation(selectedOperation.id, {
-                                   status: selectedOperation.status,
-                                   itinerary: selectedOperation.itinerary,
-                                   transferProvider: selectedOperation.transferProvider
-                                 });
+                                    status: selectedOperation.status,
+                                    itinerary: selectedOperation.itinerary,
+                                    itineraryDetails: selectedOperation.itineraryDetails,
+                                    transferProvider: selectedOperation.transferProvider
+                                  });
                                  showToast('✅ Cambios guardados en Centro de Control');
                                  fetchOperations();
                                } catch (err) { showToast('Error al guardar cambios'); }
@@ -586,35 +587,43 @@ export default function OperationsList({
               </div>
             </div>
             
-            <div className="p-8 border-t border-gray-100 flex gap-4 bg-gray-50/50 print-hidden">
-              <button
-                onClick={() => {
-                  const url = `${api.getBaseUrl()}/public/vouchers/${selectedOperation.id}`;
-                  window.open(url, '_blank');
-                }}
-                className="flex-1 bg-[#0B132B] text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl flex items-center justify-center gap-2"
-              >
-                <Printer size={16} /> Descargar Voucher (PDF)
-              </button>
-              <button
-                onClick={() => {
-                  const originalTitle = document.title;
-                  document.title = `Venta_${selectedOperation.id}`;
-                  window.print();
-                  document.title = originalTitle;
-                }}
-                className="flex-1 bg-gray-100 text-[#0B132B] py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-200 transition-all shadow-xl flex items-center justify-center gap-2"
-              >
-                <Printer size={16} /> Imprimir Ficha
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedOperation(null);
-                }}
-                className="flex-1 bg-white border-2 border-[#0B132B] text-[#0B132B] py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-[#0B132B] hover:text-white transition-all shadow-xl"
-              >
-                Cerrar Detalle
-              </button>
+            <div className="p-8 border-t border-gray-100 flex items-center justify-between bg-gray-50/50 print-hidden">
+              <div className="flex gap-4">
+                <button
+                  onClick={() => {
+                    const url = `${api.getBaseUrl()}/public/vouchers/${selectedOperation.id}`;
+                    window.open(url, '_blank');
+                  }}
+                  className="w-12 h-12 bg-[#0B132B] text-white rounded-2xl flex items-center justify-center hover:bg-blue-700 transition-all shadow-xl"
+                  title="Ver Vista Previa"
+                >
+                  <Eye size={20} />
+                </button>
+                <button
+                  onClick={() => {
+                    const folio = selectedOperation.id;
+                    const link = document.createElement('a');
+                    link.href = `${api.getBaseUrl()}/public/vouchers/${folio}?download=true`;
+                    link.download = `Voucher_${folio}.pdf`;
+                    link.target = '_blank';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  className="w-12 h-12 bg-gray-200 text-[#0B132B] rounded-2xl flex items-center justify-center hover:bg-gray-300 transition-all shadow-xl"
+                  title="Descargar PDF"
+                >
+                  <Download size={20} />
+                </button>
+              </div>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setSelectedOperation(null)}
+                  className="px-6 py-4 bg-white border-2 border-gray-100 text-[#0B132B] rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-50 transition-all"
+                >
+                  Cerrar
+                </button>
+              </div>
             </div>
           </div>
         </div>

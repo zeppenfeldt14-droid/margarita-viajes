@@ -82,6 +82,7 @@ export function createRouter(
 
   // Coupons
   router.get('/coupons', (req: Request, res: Response) => adminController.getCoupons(req, res));
+  router.get('/public/coupons', (req: Request, res: Response) => adminController.getCoupons(req, res));
   router.get('/admin/coupons', (req: Request, res: Response) => adminController.getCoupons(req, res));
   router.post('/admin/coupons', (req: Request, res: Response) => adminController.createCoupon(req, res));
   router.put('/admin/coupons/:id', (req: Request, res: Response) => adminController.updateCoupon(req, res));
