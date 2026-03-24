@@ -54,10 +54,8 @@ export class QuoteController {
 
       const quote = await this.quoteRepo.create(req.body);
       
-      const pdfBase64 = req.body.pdfBase64;
-      
       // Lanzar proceso de notificación en segundo plano
-      this.processQuoteNotifications(quote, pdfBase64).catch(err => 
+      this.processQuoteNotifications(quote).catch(err => 
         console.error('[QuoteController] Error en notificación de fondo:', err)
       );
 
@@ -68,9 +66,9 @@ export class QuoteController {
     }
   }
 
-  private async processQuoteNotifications(quote: any, pdfBase64?: string) {
+  private async processQuoteNotifications(quote: any) {
     console.log(`[QuoteController] Iniciando proceso de notificación para cotización ${quote.id}`);
-    await this.notificationService.processAndSend(quote, pdfBase64);
+    await this.notificationService.processAndSend(quote);
   }
 
   async getQuotePdf(req: Request, res: Response) {

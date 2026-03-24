@@ -26,18 +26,16 @@ export class NotificationService {
     console.log(`[NotificationService] Procesando notificación para cotización ${quote.id || quote.folio}`);
     
     try {
-      // 1. Enviar por Email (si hay PDF)
+      // 1. Enviar por Email (el PDF ahora es opcional como adjunto, se prioriza el link)
+      let pdfBuffer: Buffer | undefined = undefined;
       if (pdfBase64) {
-        // El frontend envía el base64 con o sin el prefijo "data:application/pdf;base64,"
         const base64Data = pdfBase64.includes(';base64,') 
           ? pdfBase64.split(';base64,')[1] 
           : pdfBase64;
-          
-        const pdfBuffer = Buffer.from(base64Data, 'base64');
-        await this.sendQuoteEmail(quote, pdfBuffer);
-      } else {
-        console.warn('[NotificationService] No se recibió PDF en base64');
+        pdfBuffer = Buffer.from(base64Data, 'base64');
       }
+
+      await this.sendQuoteEmail(quote, pdfBuffer);
 
       // 2. Enviar por WhatsApp
       await this.sendQuoteWhatsApp(quote);
@@ -47,25 +45,24 @@ export class NotificationService {
       console.error('[NotificationService] Error en el proceso global:', error);
     }
   }
-
-  async sendQuoteEmail(quote: any, pdfBuffer: Buffer) {
+  async sendQuoteEmail(quote: any, pdfBuffer?: Buffer) {
     const email = quote.clientEmail || quote.client_email || quote.email;
     if (!email) {
       console.warn('[NotificationService] No hay email para enviar la cotización');
       return;
     }
 
-    const mailOptions = {
+    const mailOptions: any = {
       from: process.env.SMTP_USER || 'margaritaviaje@gmail.com',
       to: email,
       cc: 'margaritaviaje@gmail.com',
       bcc: 'margaritaviajegerenciaop@gmail.com',
-      subject: `Cotización Margarita Viajes - ${quote.hotelName || quote.hotel_name}`,
-      text: `Hola ${quote.clientName || quote.client_name},\n\nAdjuntamos la cotización solicitada para tu viaje a ${quote.hotelName || quote.hotel_name}.\n\nPuedes descargarla directamente desde este enlace: https://margarita-viajes.onrender.com/api/public/quotes/${quote.id || quote.folio}/pdf\n\nSaludos,\nEquipo Margarita Viajes`,
+      subject: `Cotización Margarita Viajes - ${quote.hotelName || quote.hotel_name || quote.hotel}`,
+      text: `Hola ${quote.clientName || quote.client_name},\n\nAdjuntamos la cotización solicitada para tu viaje a ${quote.hotelName || quote.hotel_name || quote.hotel}.\n\nPuedes descargarla directamente desde este enlace: https://margarita-viajes.onrender.com/api/public/quotes/${quote.id || quote.folio}/pdf\n\nSaludos,\nEquipo Margarita Viajes`,
       html: `
         <div style="font-family: sans-serif; padding: 20px; color: #0B132B;">
           <h2 style="color: #ea580c;">¡Hola ${quote.clientName || quote.client_name}!</h2>
-          <p>Adjuntamos la cotización solicitada para tu viaje a <strong>${quote.hotelName || quote.hotel_name}</strong>.</p>
+          <p>Adjuntamos la cotización solicitada para tu viaje a <strong>${quote.hotelName || quote.hotel_name || quote.hotel}</strong>.</p>
           <p>También puedes descargarla o verla directamente haciendo clic en el siguiente botón:</p>
           <div style="margin: 30px 0;">
             <a href="https://margarita-viajes.onrender.com/api/public/quotes/${quote.id || quote.folio}/pdf" 
@@ -75,14 +72,17 @@ export class NotificationService {
           </div>
           <p>Saludos,<br><strong>Equipo Margarita Viajes</strong></p>
         </div>
-      `,
-      attachments: [
+      `
+    };
+
+    if (pdfBuffer) {
+      mailOptions.attachments = [
         {
           filename: `Cotizacion_${quote.id || quote.folio || 'Margarita'}.pdf`,
           content: pdfBuffer
         }
-      ]
-    };
+      ];
+    }
 
     try {
       await this.transporter.sendMail(mailOptions);
