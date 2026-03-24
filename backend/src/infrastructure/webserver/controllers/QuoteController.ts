@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+// @ts-ignore
 import PDFDocument from 'pdfkit';
 import type { CalculateQuotePrice } from '../../../application/use-cases/CalculateQuotePrice.js';
 import type { QuoteRequestDTO } from '../../../application/dtos/QuoteRequestDTO.js';
