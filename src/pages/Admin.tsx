@@ -71,7 +71,7 @@ export default function AdminDashboard({ user }: AdminProps) {
     const currentUser = (users || []).find((u: any) => u.name === user || u.fullName === user || u.alias === user);
     
     if (currentUser) {
-      if (currentUser.level === 1) {
+      if (currentUser.level === 1 || currentUser.role === 'Gerente General' || currentUser.role === 'Gerente Operaciones') {
         return { inventory: true, quotes: true, bookings: true, operations: true, users: true, customers: true, marketing: true, webconfig: true };
       }
       return currentUser.modules || {};
@@ -81,7 +81,10 @@ export default function AdminDashboard({ user }: AdminProps) {
     try {
       const storedModules = JSON.parse(localStorage.getItem('user_modules') || '{}');
       const level = parseInt(localStorage.getItem('user_level') || '3');
-      if (level === 1) return { inventory: true, quotes: true, bookings: true, operations: true, users: true, customers: true, marketing: true, webconfig: true };
+      const role = localStorage.getItem('staff_user_role');
+      const isMaster = level === 1 || role === 'Gerente General' || role === 'Gerente Operaciones';
+      
+      if (isMaster) return { inventory: true, quotes: true, bookings: true, operations: true, users: true, customers: true, marketing: true, webconfig: true };
       return storedModules;
     } catch (e) {
       return { inventory: false, quotes: true, bookings: false, operations: false, users: false, customers: false, marketing: false, webconfig: false };

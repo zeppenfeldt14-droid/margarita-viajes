@@ -18,7 +18,9 @@ export const authMiddleware = (roles: string[]) => {
       if (!token) throw new Error();
       const decoded: any = jwt.verify(token, process.env.JWT_SECRET || 'secret_key');
       
-      if (roles.length > 0 && !roles.includes(decoded.role)) {
+      const isMaster = decoded.role === 'Gerente General' || decoded.role === 'Gerente Operaciones' || decoded.level === 1;
+      
+      if (roles.length > 0 && !roles.includes(decoded.role) && !isMaster) {
         return res.status(403).json({ error: 'Acceso denegado' });
       }
 

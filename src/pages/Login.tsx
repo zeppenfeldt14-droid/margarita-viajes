@@ -47,6 +47,7 @@ export default function Login({ onLogin, onBack }: LoginProps) {
         localStorage.setItem("staff_user_id", data.user?.id || '');
         localStorage.setItem("staff_user_email", data.user?.email || '');
         localStorage.setItem("staff_user_alias", data.user?.alias || '');
+        localStorage.setItem("staff_user_role", data.user?.role || '');
         localStorage.setItem("user_level", (data.user?.level || 3).toString());
         localStorage.setItem("user_modules", JSON.stringify(data.user?.modules || {}));
         localStorage.setItem("staff_auth", "true");
