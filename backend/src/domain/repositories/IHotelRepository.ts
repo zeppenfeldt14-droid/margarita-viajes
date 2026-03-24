@@ -25,6 +25,7 @@ export interface Hotel {
   rooms?: Room[];
   seasons?: SeasonRate[];
   email?: string;
+  whatsapp?: string;
   plan?: string;
   createdAt?: Date;
 }

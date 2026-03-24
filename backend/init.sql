@@ -23,6 +23,7 @@ CREATE TABLE hotels (
     description TEXT,
     logo TEXT,
     photos JSONB,
+    whatsapp TEXT,
     type TEXT DEFAULT 'hotel',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -115,6 +116,8 @@ CREATE TABLE transfers (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     route TEXT NOT NULL,
     operator TEXT NOT NULL,
+    email TEXT,
+    whatsapp TEXT,
     net_cost DECIMAL(10, 2) NOT NULL,
     sale_price DECIMAL(10, 2) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()

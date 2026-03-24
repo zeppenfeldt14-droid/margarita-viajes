@@ -62,6 +62,7 @@ export class PostgresHotelRepository implements IHotelRepository {
         photos: JSON.stringify(hotel.photos || []),
         type: hotel.type || 'hotel',
         email: hotel.email,
+        whatsapp: hotel.whatsapp,
         plan: hotel.plan
       }).returning('*');
 
@@ -118,7 +119,7 @@ export class PostgresHotelRepository implements IHotelRepository {
 
       // 1. Actualizar datos básicos
       const updateData: any = {};
-      const validColumns = ['name', 'location', 'description', 'logo', 'type', 'email', 'plan'];
+      const validColumns = ['name', 'location', 'description', 'logo', 'type', 'email', 'whatsapp', 'plan'];
       for (const col of validColumns) {
         if (basicData[col as keyof typeof basicData] !== undefined) {
           updateData[col] = basicData[col as keyof typeof basicData];

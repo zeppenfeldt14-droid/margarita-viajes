@@ -139,8 +139,8 @@ export default function AdminDashboard({ user }: AdminProps) {
   // Inventario States
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [newHotel, setNewHotel] = useState<Partial<Hotel>>({ rooms: [], seasons: [], photos: [] });
-  const [newTransfer, setNewTransfer] = useState<Partial<Transfer>>({ route: '', netCost: 0, salePrice: 0 });
+  const [newHotel, setNewHotel] = useState<Partial<Hotel>>({ rooms: [], seasons: [], photos: [], whatsapp: '' });
+  const [newTransfer, setNewTransfer] = useState<Partial<Transfer>>({ route: '', netCost: 0, salePrice: 0, whatsapp: '' });
   const [roomName, setRoomName] = useState('');
   const [roomCapacity, setRoomCapacity] = useState('');
 
@@ -213,8 +213,8 @@ export default function AdminDashboard({ user }: AdminProps) {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingId(null);
-    setNewHotel({ rooms: [], seasons: [], photos: [] });
-    setNewTransfer({ route: '', netCost: 0, salePrice: 0 });
+    setNewHotel({ rooms: [], seasons: [], photos: [], whatsapp: '' });
+    setNewTransfer({ route: '', netCost: 0, salePrice: 0, whatsapp: '' });
     setRoomName('');
     setRoomCapacity('');
   };
@@ -313,9 +313,21 @@ export default function AdminDashboard({ user }: AdminProps) {
 
           {activeTab === 'inventory' && userModules?.inventory && (
             <div className="space-y-10 animate-in fade-in duration-500 print-hidden">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <SectionTitle>Gestión de Inventario</SectionTitle>
-                <button onClick={() => setShowModal(true)} className="bg-[#0B132B] text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-orange-600 transition-all flex items-center gap-3"><Plus size={18} /> Nueva Carga</button>
+                <div className="flex items-center gap-4 flex-1 md:justify-end">
+                  <div className="relative w-full max-w-[300px]">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <input 
+                      type="text" 
+                      placeholder="Buscar por nombre o ubicación..." 
+                      value={inventorySearch} 
+                      onChange={(e) => setInventorySearch(e.target.value)} 
+                      className="bg-white border-2 border-gray-100 rounded-2xl pl-12 pr-6 py-4 text-[10px] font-black uppercase outline-none focus:border-orange-500 w-full" 
+                    />
+                  </div>
+                  <button onClick={() => setShowModal(true)} className="bg-[#0B132B] text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-orange-600 transition-all flex items-center gap-3 shrink-0"><Plus size={18} /> Nueva Carga</button>
+                </div>
               </div>
               <div className="flex flex-col md:flex-row md:items-center gap-6">
                 <div className="flex bg-white/50 backdrop-blur-md p-2 rounded-3xl w-fit border border-gray-100 shadow-sm">
@@ -324,16 +336,6 @@ export default function AdminDashboard({ user }: AdminProps) {
                       {tab === 'hotels' ? 'Hospedaje' : tab === 'fullday' ? 'Full Day' : tab === 'packages' ? 'Paquetes' : 'Traslados'}
                     </button>
                   ))}
-                </div>
-                <div className="relative flex-1 md:max-w-[300px]">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                  <input 
-                    type="text" 
-                    placeholder="Buscar por nombre o ruta..." 
-                    value={inventorySearch} 
-                    onChange={(e) => setInventorySearch(e.target.value)} 
-                    className="bg-white border-2 border-gray-100 rounded-2xl pl-12 pr-6 py-3 text-[10px] font-black uppercase outline-none focus:border-orange-500 w-full" 
-                  />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -690,6 +692,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                       <InputField name="operator" label="Operador" value={newTransfer.operator || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTransfer(prev => ({ ...prev, operator: e.target.value }))} />
                       <select className="w-full bg-gray-50 rounded-2xl px-6 py-4 text-sm font-bold border-none outline-none ring-2 ring-gray-100" value={newTransfer.route} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setNewTransfer(prev => ({ ...prev, route: e.target.value }))}><option value="">Seleccionar Ruta...</option>{TRANSFER_ROUTES.map((r: string) => <option key={r} value={r}>{r}</option>)}</select>
                       <InputField name="email" label="Email del Operador" value={newTransfer.email || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTransfer(prev => ({ ...prev, email: e.target.value }))} />
+                      <InputField name="whatsapp" label="WhatsApp del Proveedor" value={newTransfer.whatsapp || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTransfer(prev => ({ ...prev, whatsapp: e.target.value }))} />
                       <div className="grid grid-cols-2 gap-6"><InputField name="netCost" label="Neto ($)" value={String(newTransfer.netCost || '')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTransfer(prev => ({ ...prev, netCost: Number(e.target.value) }))} /><InputField name="salePrice" label="Venta ($)" value={String(newTransfer.salePrice || '')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTransfer(prev => ({ ...prev, salePrice: Number(e.target.value) }))} /></div>
                     </div>
                   ) : (
@@ -699,6 +702,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                         <select className="w-full bg-gray-50 rounded-2xl px-6 py-4 text-sm font-bold border-none outline-none ring-2 ring-gray-100" value={newHotel.location} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setNewHotel(prev => ({ ...prev, location: e.target.value }))}><option value="">Ubicación...</option>{LOCATIONS.map((l: string) => <option key={l} value={l}>{l}</option>)}</select>
                         <textarea value={newHotel.description || ''} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewHotel(prev => ({ ...prev, description: e.target.value }))} className="w-full bg-gray-50 rounded-2xl p-5 text-sm font-bold min-h-[80px] outline-none ring-2 ring-gray-100" placeholder="Descripción..." />
                         <InputField name="email" label="Email del Hotel/Servicio" value={newHotel.email || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewHotel(prev => ({ ...prev, email: e.target.value }))} />
+                        <InputField name="whatsapp" label="WhatsApp del Proveedor" value={newHotel.whatsapp || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewHotel(prev => ({ ...prev, whatsapp: e.target.value }))} />
 
                         {(inventorySubTab === 'hotels' || inventorySubTab === 'packages') && (
                           <div className="space-y-2">
