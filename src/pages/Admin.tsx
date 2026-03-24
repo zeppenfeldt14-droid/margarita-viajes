@@ -118,9 +118,10 @@ export default function AdminDashboard({ user }: AdminProps) {
     try {
       const loggedUserId = localStorage.getItem('staff_user_id');
       const loggedUserName = localStorage.getItem('staff_user');
+      const loggedUserAlias = localStorage.getItem('staff_user_alias');
       await api.createLog({
         user_id: loggedUserId,
-        user_name: loggedUserName || user,
+        user_name: loggedUserAlias || loggedUserName || user,
         action_type: action,
         details: details
       });
@@ -170,7 +171,10 @@ export default function AdminDashboard({ user }: AdminProps) {
     setSavingConfig(true);
     try {
       const response = await api.saveFullConfig(config);
-      if (response.ok) showToast('✅ Configuración guardada');
+      if (response.ok) {
+        showToast('✅ Configuración guardada');
+        recordActivity('UPDATE_CONFIG', 'Actualizada la configuración global del sitio.');
+      }
     } catch (error) { showToast('❌ Error'); }
     finally { setSavingConfig(false); }
   };
@@ -941,6 +945,8 @@ export default function AdminDashboard({ user }: AdminProps) {
                       const updateRes = await api.updateQuote(selectedQuote.id, { status: 'Atendido' as QuoteStatus });
                       if (!updateRes.ok) {
                         console.warn('No se pudo marcar la cotización original como Atendida, pero el descuento fue generado.');
+                      } else {
+                        recordActivity('UPDATE_QUOTE_STATUS', `Cotización ${selectedQuote.id} marcada como ATENDIDO al generar descuento.`);
                       }
 
                       showToast(`Exito: Cotización enviada.`);
@@ -1058,6 +1064,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                         if (typeof refreshData === 'function') refreshData();
 
                         showToast('✅ Lista de pasajeros guardada con éxito');
+                        recordActivity('SAVE_PASSENGERS', `Guardada ficha técnica / lista de pasajeros para folio ${selectedQuote.id}`);
                       } catch (error) {
                         console.error(error);
                         showToast('❌ Error de conexión al guardar la ficha técnica.');

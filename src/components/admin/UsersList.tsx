@@ -9,7 +9,6 @@ export default function UsersList() {
   const [users, setUsers] = useState<any[]>([]);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showLogsModal, setShowLogsModal] = useState<any>(null);
-  const [activeLogTab, setActiveLogTab] = useState<'operaciones' | 'conexiones'>('operaciones');
   
   const currentUserLevel = parseInt(localStorage.getItem('user_level') || '3');
   const currentUserRole = localStorage.getItem('staff_user_role') || '';
@@ -18,6 +17,13 @@ export default function UsersList() {
 
   const defaultModules = { inventory: true, quotes: true, bookings: true, operations: true, users: false, customers: true, marketing: false, settings: false };
   const [newUser, setNewUser] = useState<any>({ name: '', alias: '', email: '', password: '', role: '', dailyQuota: 20, active: true, level: 3, photo: '', inRoulette: true, modules: defaultModules });
+  
+  // BITACORA STATES
+  const [allLogs, setAllLogs] = useState<any[]>([]);
+  const [filterMonth, setFilterMonth] = useState('');
+  const [filterStart, setFilterStart] = useState('');
+  const [filterEnd, setFilterEnd] = useState('');
+  const [isGlobalLog, setIsGlobalLog] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -28,8 +34,18 @@ export default function UsersList() {
     }
   };
 
+  const fetchLogs = async () => {
+    try {
+      const data = await api.getLogs();
+      setAllLogs(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error al cargar bitácora:', error);
+    }
+  };
+
   useEffect(() => { 
     fetchUsers(); 
+    fetchLogs();
   }, []);
 
   const handleSaveUser = async () => {
@@ -78,18 +94,25 @@ export default function UsersList() {
     }
   };
 
-  const isUserConnected = showLogsModal?.isOnline === true || showLogsModal?.is_online === true;
-
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <SectionTitle>GestiÃ³n de Perfiles y Accesos</SectionTitle>
-        <button onClick={() => {
-          setNewUser({ name: '', alias: '', email: '', password: '', role: 'Vendedor 1', dailyQuota: 20, active: true, level: 3, photo: '', inRoulette: true, modules: defaultModules });
-          setShowUserModal(true);
-        }} className="bg-[#ea580c] text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#0B132B] transition-all shadow-xl shadow-orange-500/20 flex items-center gap-2">
-          <Plus size={16}/> NUEVO PERFIL
-        </button>
+        <div className="flex gap-4">
+          <button onClick={() => {
+            setIsGlobalLog(true);
+            setShowLogsModal({ name: 'GLOBAL', alias: 'Sistema' });
+            fetchLogs();
+          }} className="bg-[#0B132B] text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl flex items-center gap-2">
+            <ShieldCheck size={16}/> BITÁCORA GLOBAL
+          </button>
+          <button onClick={() => {
+            setNewUser({ name: '', alias: '', email: '', password: '', role: 'Vendedor 1', dailyQuota: 20, active: true, level: 3, photo: '', inRoulette: true, modules: defaultModules });
+            setShowUserModal(true);
+          }} className="bg-[#ea580c] text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#0B132B] transition-all shadow-xl shadow-orange-500/20 flex items-center gap-2">
+            <Plus size={16}/> NUEVO PERFIL
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -130,10 +153,11 @@ export default function UsersList() {
                 </span>
                 <div className="flex gap-2">
                   <button onClick={() => {
-                    setActiveLogTab('operaciones');
+                    setIsGlobalLog(false);
                     setShowLogsModal(u);
+                    fetchLogs();
                   }} className="bg-blue-600 text-white px-3 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-md">
-                    BITÃCORA
+                    BITÁCORA
                   </button>
                   <button onClick={() => {
                     setNewUser({ 
@@ -307,99 +331,177 @@ export default function UsersList() {
       )}
 
       {showLogsModal && (
-        <div className="fixed inset-0 bg-[#0B132B]/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-3xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
+        <div className="fixed inset-0 bg-[#0B132B]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-8 border-b border-gray-100 flex items-center justify-between shrink-0">
               <div>
-                <h3 className="text-xl font-black italic text-[#0B132B] uppercase tracking-tighter">BitÃ¡cora de Usuario</h3>
-                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">Perfil: {showLogsModal.name} | Alias: {showLogsModal.alias || 'N/A'}</p>
+                <h2 className="text-xl font-black text-[#0B132B] uppercase tracking-tighter">Auditoría de Bitácora</h2>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+                  Enfoque: {isGlobalLog ? 'Sistema Global' : `Usuario: ${showLogsModal.name} (${showLogsModal.alias})`}
+                </p>
               </div>
-              <button onClick={() => setShowLogsModal(null)} className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gray-400 hover:text-red-500 shadow-sm border border-gray-100 transition-colors"><X size={18}/></button>
+              <button 
+                onClick={() => { setShowLogsModal(null); setIsGlobalLog(false); setFilterMonth(''); setFilterStart(''); setFilterEnd(''); }} 
+                className="w-10 h-10 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-all"
+              >
+                <X size={20} />
+              </button>
             </div>
-            
-            <div className="p-8 space-y-6 bg-white overflow-y-auto custom-scrollbar">
-              
-              {/* TABS DE BITÃCORA */}
-              <div className="flex gap-4 border-b border-gray-100 pb-4">
-                <button 
-                  onClick={() => setActiveLogTab('operaciones')} 
-                  className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeLogTab === 'operaciones' ? 'bg-[#0B132B] text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
+
+            <div className="p-6 bg-gray-50 border-b border-gray-100 flex flex-wrap gap-4 items-end shrink-0">
+              <div className="flex flex-col gap-1">
+                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Filtro por Mes</label>
+                <select 
+                  value={filterMonth} 
+                  onChange={(e) => { setFilterMonth(e.target.value); setFilterStart(''); setFilterEnd(''); }}
+                  className="bg-white border-2 border-gray-100 rounded-xl px-4 py-2 text-[10px] font-bold outline-none focus:border-blue-500 transition-all"
                 >
-                  Operaciones / Ventas
-                </button>
-                <button 
-                  onClick={() => setActiveLogTab('conexiones')} 
-                  className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeLogTab === 'conexiones' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
-                >
-                  Conexiones / Login
-                </button>
+                  <option value="">Todos los meses</option>
+                  {Array.from({ length: 12 }, (_, i) => {
+                    const d = new Date();
+                    d.setMonth(d.getMonth() - i);
+                    const val = d.toISOString().substring(0, 7);
+                    const label = d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+                    return <option key={val} value={val}>{label}</option>;
+                  })}
+                </select>
               </div>
 
-              {activeLogTab === 'operaciones' && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100">
-                      <p className="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-1">Leads Asignados</p>
-                      <p className="text-xl font-black italic text-orange-900">{showLogsModal.assignedLeads || 0}</p>
-                    </div>
-                    <div className="bg-green-50 p-4 rounded-2xl border border-green-100">
-                      <p className="text-[9px] font-black text-green-400 uppercase tracking-widest mb-1">Ventas Cerradas</p>
-                      <p className="text-xl font-black italic text-green-900">{showLogsModal.closedSales || 0}</p>
-                    </div>
-                  </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Fecha Inicio</label>
+                <input 
+                  type="date" 
+                  value={filterStart} 
+                  onChange={(e) => { setFilterStart(e.target.value); setFilterMonth(''); }}
+                  className="bg-white border-2 border-gray-100 rounded-xl px-4 py-2 text-[10px] font-bold outline-none focus:border-blue-500 transition-all"
+                />
+              </div>
 
-                  <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100 pb-2">Historial de Operaciones</h4>
-                  <div className="space-y-3">
-                    {(!showLogsModal.operationLogs || showLogsModal.operationLogs.length === 0) ? (
-                      <p className="text-center py-6 text-gray-400 text-[10px] font-bold uppercase tracking-widest">No hay operaciones registradas para este usuario.</p>
-                    ) : (
-                      showLogsModal.operationLogs.map((log: any, idx: number) => (
-                        <div key={idx} className="flex gap-4 items-start p-4 bg-gray-50 rounded-xl border border-gray-100">
-                          <span className="text-[10px] font-black text-gray-400 w-20 pt-0.5">{new Date(log.date || new Date()).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
-                          <div className="flex-1"><p className="text-xs font-bold text-[#0B132B]">{log.action}</p><p className="text-[9px] text-green-600 uppercase font-black mt-1">{log.detail}</p></div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
+              <div className="flex flex-col gap-1">
+                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Fecha Fin</label>
+                <input 
+                  type="date" 
+                  value={filterEnd} 
+                  onChange={(e) => { setFilterEnd(e.target.value); setFilterMonth(''); }}
+                  className="bg-white border-2 border-gray-100 rounded-xl px-4 py-2 text-[10px] font-bold outline-none focus:border-blue-500 transition-all"
+                />
+              </div>
 
-              {activeLogTab === 'conexiones' && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100">
-                    <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">Estado Actual</p>
-                    <p className="text-sm font-bold text-blue-900 flex items-center gap-2">
-                      {isUserConnected ? (
-                        <><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Conectado (SesiÃ³n Activa)</>
-                      ) : (
-                        <><span className="w-2 h-2 rounded-full bg-gray-400"></span> Desconectado</>
-                      )}
-                    </p>
-                  </div>
+              <button 
+                onClick={() => {
+                  const filtered = allLogs.filter(log => {
+                    const isUserMatch = isGlobalLog || log.user_id === showLogsModal.id || log.user_name === showLogsModal.alias;
+                    if (!isUserMatch) return false;
 
-                  <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100 pb-2">Registro de Accesos</h4>
-                  <div className="space-y-3">
-                    {(!showLogsModal.connectionLogs || showLogsModal.connectionLogs.length === 0) ? (
-                      <p className="text-center py-6 text-gray-400 text-[10px] font-bold uppercase tracking-widest">El usuario aÃºn no ha iniciado sesiÃ³n.</p>
-                    ) : (
-                      showLogsModal.connectionLogs.map((log: any, idx: number) => (
-                        <div key={idx} className={`flex gap-4 items-start p-4 rounded-xl border ${log.success !== false ? 'bg-gray-50 border-gray-100' : 'bg-red-50 border-red-100'}`}>
-                          <span className={`text-[10px] font-black w-24 pt-0.5 ${log.success !== false ? 'text-gray-400' : 'text-red-400'}`}>{new Date(log.date || new Date()).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
-                          <div className="flex-1">
-                            <p className={`text-xs font-bold ${log.success !== false ? 'text-green-600' : 'text-red-600'}`}>{log.action}</p>
-                            <p className={`text-[9px] uppercase mt-1 ${log.success !== false ? 'text-gray-500' : 'text-red-400'}`}>IP: {log.ip || 'Desconocida'} â€¢ Dispositivo: {log.device || 'Desconocido'}</p>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
+                    const logDate = new Date(log.created_at || log.date).toISOString();
+                    if (filterMonth && !logDate.startsWith(filterMonth)) return false;
+                    if (filterStart && logDate < filterStart) return false;
+                    if (filterEnd && logDate > filterEnd + 'T23:59:59') return false;
+                    
+                    return true;
+                  });
+
+                  const headers = ['Fecha y Hora', 'Tipo', 'Usuario', 'Acción', 'Detalle'];
+                  const csvContent = [
+                    headers.join(','),
+                    ...filtered.map(log => [
+                      `"${new Date(log.created_at || log.date).toLocaleString('es-ES')}"`,
+                      `"${log.action_type || (log.action && log.action.includes('LOGIN') ? 'CONEXION' : 'GESTION')}"`,
+                      `"${log.user_name || log.alias || 'Sistema'}"`,
+                      `"${log.action_type || log.action}"`,
+                      `"${(log.details || log.detail || '').replace(/"/g, '""')}"`
+                    ].join(','))
+                  ].join('\n');
+
+                  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                  const link = document.createElement('a');
+                  const url = URL.createObjectURL(blob);
+                  link.setAttribute('href', url);
+                  link.setAttribute('download', `Bitacora_${isGlobalLog ? 'Global' : showLogsModal.alias}_${new Date().toISOString().split('T')[0]}.csv`);
+                  link.style.visibility = 'hidden';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+                className="bg-green-600 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-green-700 transition-all flex items-center gap-2 shadow-lg shadow-green-500/20"
+              >
+                <ShieldCheck size={14} /> Descargar Reporte
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-white">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-left">
+                    <th className="pb-4 pr-4">Fecha y Hora</th>
+                    <th className="pb-4 pr-4">Tipo</th>
+                    <th className="pb-4 pr-4">Usuario</th>
+                    <th className="pb-4 pr-4">Acción</th>
+                    <th className="pb-4 pr-4">Detalle</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {allLogs.filter(log => {
+                    const isUserMatch = isGlobalLog || log.user_id === showLogsModal.id || log.user_name === showLogsModal.alias;
+                    if (!isUserMatch) return false;
+
+                    const logDate = new Date(log.created_at || log.date).toISOString();
+                    if (filterMonth && !logDate.startsWith(filterMonth)) return false;
+                    if (filterStart && logDate < filterStart) return false;
+                    if (filterEnd && logDate > filterEnd + 'T23:59:59') return false;
+                    
+                    return true;
+                  }).length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="text-center py-10 text-gray-400 text-[10px] font-bold uppercase tracking-widest">No se encontraron registros en el rango seleccionado.</td>
+                    </tr>
+                  ) : (
+                    allLogs.filter(log => {
+                      const isUserMatch = isGlobalLog || log.user_id === showLogsModal.id || log.user_name === showLogsModal.alias;
+                      if (!isUserMatch) return false;
+
+                      const logDate = new Date(log.created_at || log.date).toISOString();
+                      if (filterMonth && !logDate.startsWith(filterMonth)) return false;
+                      if (filterStart && logDate < filterStart) return false;
+                      if (filterEnd && logDate > filterEnd + 'T23:59:59') return false;
+                      
+                      return true;
+                    }).map((log: any, idx: number) => (
+                      <tr key={idx} className="hover:bg-gray-50 transition-all group">
+                        <td className="py-4 pr-4">
+                          <span className="text-[10px] font-bold text-gray-500">
+                            {new Date(log.created_at || log.date).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </td>
+                        <td className="py-4 pr-4">
+                          <span className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest ${
+                            (log.action_type === 'LOGIN' || log.action?.includes('LOGIN')) ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'
+                          }`}>
+                            {(log.action_type === 'LOGIN' || log.action?.includes('LOGIN')) ? 'Conexión' : 'Gestión'}
+                          </span>
+                        </td>
+                        <td className="py-4 pr-4">
+                          <span className="text-[10px] font-black text-gray-700 uppercase">{log.user_name || log.alias || 'Sistema'}</span>
+                        </td>
+                        <td className="py-4 pr-4">
+                          <span className="text-[10px] font-black text-[#0B132B] uppercase">{log.action_type || log.action}</span>
+                        </td>
+                        <td className="py-4 pr-4 max-w-[200px] truncate">
+                          <span className="text-[10px] font-medium text-gray-500">{log.details || log.detail}</span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
             
             <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end shrink-0">
-              <button onClick={() => setShowLogsModal(null)} className="bg-white border-2 border-gray-200 text-gray-600 px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all">
-                Cerrar BitÃ¡cora
+              <button 
+                onClick={() => { setShowLogsModal(null); setIsGlobalLog(false); }} 
+                className="bg-white border-2 border-gray-200 text-gray-600 px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all"
+              >
+                Cerrar Auditoría
               </button>
             </div>
           </div>
