@@ -341,6 +341,23 @@ export class AdminController {
   async updateOperation(req: Request, res: Response) {
     try {
       const id = req.params['id'] as string;
+      const op = await this.operationRepo.findById(id);
+
+      if (op && op.includeTransfer) {
+        const targetStatus = req.body.status;
+        if (['Confirmada', 'Venta Cerrada', 'Venta Concretada'].includes(targetStatus)) {
+          const itinerary = req.body.itinerary || op.itinerary;
+          const transferProvider = req.body.transferProvider || op.transferProvider;
+          
+          if (!itinerary || itinerary === '') {
+            return res.status(400).json({ message: '❌ DEBE COMPLETAR ITINERARIO PARA ACTIVAR' });
+          }
+          if (!transferProvider || transferProvider === '') {
+            return res.status(400).json({ message: '❌ DEBE COMPLETAR PROVEEDOR PARA ACTIVAR' });
+          }
+        }
+      }
+
       const operation = await this.operationRepo.update(id, req.body);
       
       await this.auditRepo.log({

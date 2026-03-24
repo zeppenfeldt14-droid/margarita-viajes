@@ -524,7 +524,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                                             companions: (quote as Quotation).companions || [],
                                             technicalSheet: (quote as Quotation).technicalSheet || null,
                                             plan: quote.plan || null,
-                                            status: 'Confirmada' as ReservationStatus,
+                                            status: ((quote as any).includeTransfer || (quote as any).include_transfer) ? 'Pendiente' : 'Confirmada' as ReservationStatus,
                                             includeTransfer: (quote as any).includeTransfer || (quote as any).include_transfer || false,
                                             transferId: (quote as any).transferId || (quote as any).transfer_id || null
                                           };

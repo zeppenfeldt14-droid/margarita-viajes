@@ -139,6 +139,15 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                           value={res.status}
                           onChange={async (e) => {
                             const newStatus = e.target.value;
+                            
+                            // Bloqueo v23: No cerrar si tiene traslado y faltan datos
+                            if (newStatus === 'Venta Cerrada' && (res as any).includeTransfer) {
+                              if (!(res as any).itinerary || !(res as any).transferProvider) {
+                                showToast('❌ Faltan datos logísticos en Operaciones');
+                                return;
+                              }
+                            }
+
                             try {
                               const updatedRes = await api.updateReservation(res.id, { status: newStatus });
                               if (updatedRes) {
@@ -155,6 +164,7 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                             'bg-blue-400 text-white'
                           }`}
                         >
+                          <option value="Pendiente">Pendiente</option>
                           <option value="Confirmada">Confirmada</option>
                           <option value="Venta Cerrada">Venta Cerrada</option>
                           <option value="Venta Concretada">Venta Concretada</option>

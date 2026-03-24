@@ -76,9 +76,12 @@ export default function OperationsList({
       const isClosed = op?.status === 'Completada' || op?.status === 'Liquidada';
 
       if (opFilter === 'pendientes') {
-        if (op.status !== 'Pendiente' || isPast) return false;
+        const isIncompleteTransfer = op.includeTransfer && (!op.itinerary || !op.transferProvider);
+        if (op.status !== 'Pendiente' && !isIncompleteTransfer) return false;
+        if (isPast) return false;
       } else if (opFilter === 'activas') {
-        if (op.status === 'Pendiente' || isClosed || isPast) return false;
+        const isIncompleteTransfer = op.includeTransfer && (!op.itinerary || !op.transferProvider);
+        if (op.status === 'Pendiente' || isIncompleteTransfer || isClosed || isPast) return false;
       } else if (opFilter === 'historial') {
         if (!isClosed && !isPast) return false;
       }
@@ -199,9 +202,12 @@ export default function OperationsList({
 
                     // Filtro de pestaña
                     if (opFilter === 'pendientes') {
-                      if (op.status !== 'Pendiente' || isPast) return false;
+                      const isIncompleteTransfer = op.includeTransfer && (!op.itinerary || !op.transferProvider);
+                      if (op.status !== 'Pendiente' && !isIncompleteTransfer) return false;
+                      if (isPast) return false;
                     } else if (opFilter === 'activas') {
-                      if (op.status === 'Pendiente' || isClosed || isPast) return false;
+                      const isIncompleteTransfer = op.includeTransfer && (!op.itinerary || !op.transferProvider);
+                      if (op.status === 'Pendiente' || isIncompleteTransfer || isClosed || isPast) return false;
                     } else if (opFilter === 'historial') {
                       if (!isClosed && !isPast) return false;
                     }
@@ -459,15 +465,19 @@ export default function OperationsList({
                      <h4 className="text-[11px] font-black uppercase text-blue-600 tracking-[0.2em]">3. Control Logístico y Operativo</h4>
                    </div>
                    <div className="bg-gray-50/50 p-8 rounded-[2rem] border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <div className="space-y-4">
-                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Itinerario del PAX (Vuelos, Traslados, Extras)</label>
-                       <textarea 
-                         value={selectedOperation.itinerary || ''}
-                         onChange={(e) => setSelectedOperation({...selectedOperation, itinerary: e.target.value})}
-                         placeholder="Ingresar detalles de vuelos, horas de recogida y números de confirmación..."
-                         className="w-full h-32 bg-white border-2 border-gray-100 rounded-2xl p-4 text-[11px] font-bold outline-none focus:border-blue-500 transition-all"
-                       />
-                     </div>
+                      <div className="space-y-4">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Itinerario del PAX (Punto de Inicio)</label>
+                        <select 
+                          value={selectedOperation.itinerary || ''}
+                          onChange={(e) => setSelectedOperation({...selectedOperation, itinerary: e.target.value})}
+                          className="w-full bg-white border-2 border-gray-100 rounded-2xl p-4 text-[11px] font-bold outline-none focus:border-blue-500 transition-all font-black uppercase tracking-widest"
+                        >
+                          <option value="">Seleccionar Itinerario...</option>
+                          <option value="Aeropuerto">Aeropuerto</option>
+                          <option value="Ferry">Ferry</option>
+                          <option value="Cliente no Por Cliente">Cliente no Por Cliente</option>
+                        </select>
+                      </div>
                      <div className="space-y-6">
                        <div className="space-y-2">
                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Proveedor de Traslado</label>
