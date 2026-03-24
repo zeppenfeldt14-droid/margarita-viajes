@@ -6,9 +6,11 @@ import { useGlobalData } from "../context/GlobalContext";
 
 export default function AdminLayout({ children, onLogout, userPermissions }: { children: React.ReactNode, onLogout?: () => void, userPermissions?: any }) {
   const [location, setLocation] = useLocation();
-  const { quotes } = useGlobalData();
+  const { quotes, reservations, operations } = useGlobalData();
 
   const newQuotesCount = (quotes || []).filter(q => q.status === 'Nuevo').length;
+  const pendingReservationsCount = (reservations || []).filter(r => r.status === 'Pendiente').length;
+  const pendingOperationsCount = (operations || []).filter(o => o.status === 'Pendiente').length;
 
   const NAV_ITEMS = [
     { title: "INICIO", path: "/admin", icon: <LayoutDashboard size={16} /> },
@@ -113,7 +115,17 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
                        {newQuotesCount}
                      </span>
                    )}
-                   {item.badge && item.title !== 'COTIZACIONES' && (
+                   {item.title === 'RESERVAS (HOTEL)' && pendingReservationsCount > 0 && (
+                     <span className="bg-red-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full animate-pulse shadow-lg shadow-red-500/50">
+                       {pendingReservationsCount}
+                     </span>
+                   )}
+                   {item.title === 'VENTAS (OPERACIONES)' && pendingOperationsCount > 0 && (
+                     <span className="bg-red-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full animate-pulse shadow-lg shadow-red-500/50">
+                       {pendingOperationsCount}
+                     </span>
+                   )}
+                   {item.badge && !['COTIZACIONES', 'RESERVAS (HOTEL)', 'VENTAS (OPERACIONES)'].includes(item.title) && (
                      <span className="bg-white text-orange-500 text-[10px] font-black w-5 h-5 flex flex-col items-center justify-center rounded-full">
                        {item.badge}
                      </span>

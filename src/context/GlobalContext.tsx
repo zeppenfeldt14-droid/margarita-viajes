@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { api } from '../services/api';
-import type { Hotel, Transfer, Quotation, StaffUser } from '../types';
+import type { Hotel, Transfer, Quotation, StaffUser, Reservation, Operation } from '../types';
 
 interface GlobalContextProps {
   hotels: Hotel[];
@@ -9,6 +9,10 @@ interface GlobalContextProps {
   setTransfers: React.Dispatch<React.SetStateAction<Transfer[]>>;
   quotes: Quotation[];
   setQuotes: React.Dispatch<React.SetStateAction<Quotation[]>>;
+  reservations: Reservation[];
+  setReservations: React.Dispatch<React.SetStateAction<Reservation[]>>;
+  operations: Operation[];
+  setOperations: React.Dispatch<React.SetStateAction<Operation[]>>;
   users: StaffUser[];
   setUsers: React.Dispatch<React.SetStateAction<StaffUser[]>>;
   loading: boolean;
@@ -21,6 +25,8 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [quotes, setQuotes] = useState<Quotation[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [operations, setOperations] = useState<Operation[]>([]);
   const [users, setUsers] = useState<StaffUser[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -41,11 +47,15 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
       // Peticiones administrativas (solo si hay token)
       if (token) {
         try {
-          const [quotesData, usersData] = await Promise.all([
+          const [quotesData, reservationsData, operationsData, usersData] = await Promise.all([
             api.getQuotes(),
+            api.getReservations(),
+            api.getOperations(),
             api.getUsers()
           ]);
           setQuotes(Array.isArray(quotesData) ? quotesData : []);
+          setReservations(Array.isArray(reservationsData) ? reservationsData : []);
+          setOperations(Array.isArray(operationsData) ? operationsData : []);
           setUsers(Array.isArray(usersData) ? usersData : []);
         } catch (adminError) {
           console.error('Error fetching admin data:', adminError);
@@ -77,6 +87,10 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
         setTransfers,
         quotes,
         setQuotes,
+        reservations,
+        setReservations,
+        operations,
+        setOperations,
         users,
         setUsers,
         loading,
