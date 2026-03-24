@@ -55,6 +55,7 @@ export class PostgresOperationRepository implements IOperationRepository {
       payment_proof_image: operation.paymentProofImage,
       previous_id: operation.previousId,
       original_quote_id: operation.originalQuoteId,
+      plan: operation.plan,
       status: operation.status
     }).returning('*');
     return result;

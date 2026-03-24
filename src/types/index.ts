@@ -77,6 +77,7 @@ export type Reservation = {
   infants: string; 
   totalAmount: number; 
   status: ReservationStatus; 
+  plan?: string;
   createdAt: string; 
 }
 

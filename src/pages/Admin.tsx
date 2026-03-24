@@ -1082,6 +1082,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                           discountAmount: selectedQuote.discountAmount || null,
                           companions: currentCompanions,
                           technicalSheet: selectedQuote.technicalSheet || { savedAt: new Date().toISOString(), passengers: currentCompanions },
+                          plan: selectedQuote.plan || (selectedQuote as any).hotel_plan || 'No especificado',
                           status: 'Confirmada' as ReservationStatus
                         };
 

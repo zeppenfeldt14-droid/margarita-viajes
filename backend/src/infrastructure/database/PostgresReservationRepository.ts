@@ -29,6 +29,7 @@ export class PostgresReservationRepository implements IReservationRepository {
       status: row.status,
       previousId: row.previous_id,
       originalQuoteId: row.original_quote_id,
+      plan: row.plan,
       createdAt: row.created_at
     };
   }
@@ -67,6 +68,7 @@ export class PostgresReservationRepository implements IReservationRepository {
       payment_proof_image: reservation.paymentProofImage,
       previous_id: reservation.previousId,
       original_quote_id: reservation.originalQuoteId,
+      plan: reservation.plan,
       status: reservation.status || 'Confirmada'
     }).returning('*');
     return this.mapRowToReservation(result);

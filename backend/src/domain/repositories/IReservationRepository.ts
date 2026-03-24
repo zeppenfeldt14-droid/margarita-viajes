@@ -21,6 +21,7 @@ export interface Reservation {
   status: string;
   previousId?: string;
   originalQuoteId?: string;
+  plan?: string;
   createdAt?: string;
 }
 

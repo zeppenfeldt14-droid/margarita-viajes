@@ -21,6 +21,7 @@ export interface Operation {
   paymentProofImage?: string;
   previousId?: string;
   originalQuoteId?: string;
+  plan?: string;
   createdAt?: string;
 }
 

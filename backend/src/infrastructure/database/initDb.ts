@@ -258,10 +258,12 @@ export async function initDatabase(db: Knex) {
     // Verificar y agregar columnas faltantes
     const hasOriginal = await db.schema.hasColumn('quotations', 'original_quote_id');
     const hasPrevious = await db.schema.hasColumn('quotations', 'previous_id');
+    const hasPlan = await db.schema.hasColumn('quotations', 'plan');
 
     await db.schema.alterTable('quotations', (table: any) => {
       if (!hasOriginal) table.string('original_quote_id').nullable();
       if (!hasPrevious) table.string('previous_id').nullable();
+      if (!hasPlan) table.string('plan').nullable();
     });
     const hasHotelId = await db.schema.hasColumn('quotations', 'hotel_id');
     const hasChildren = await db.schema.hasColumn('quotations', 'children');
@@ -312,17 +314,21 @@ export async function initDatabase(db: Knex) {
       table.text('payment_proof_image');
       table.string('original_quote_id').nullable();
       table.string('previous_id').nullable();
+      table.string('plan').nullable();
       table.string('status');
       table.timestamp('created_at').defaultTo(db.fn.now());
     });
     console.log('[Database] Tabla "reservations" creada.');
   } else {
-    const hasOriginal = await db.schema.hasColumn('reservations', 'original_quote_id');
-    const hasPrevious = await db.schema.hasColumn('reservations', 'previous_id');
-    await db.schema.alterTable('reservations', (table: any) => {
-      if (!hasOriginal) table.string('original_quote_id').nullable();
-      if (!hasPrevious) table.string('previous_id').nullable();
-    });
+      const hasOriginal = await db.schema.hasColumn('reservations', 'original_quote_id');
+      const hasPrevious = await db.schema.hasColumn('reservations', 'previous_id');
+      const hasPlan = await db.schema.hasColumn('reservations', 'plan');
+
+      await db.schema.alterTable('reservations', (table: any) => {
+        if (!hasOriginal) table.string('original_quote_id').nullable();
+        if (!hasPrevious) table.string('previous_id').nullable();
+        if (!hasPlan) table.string('plan').nullable();
+      });
   }
 
   // Tabla: operations
@@ -357,12 +363,14 @@ export async function initDatabase(db: Knex) {
     const hasPaymentProof = await db.schema.hasColumn('operations', 'payment_proof_image');
     const hasOriginal = await db.schema.hasColumn('operations', 'original_quote_id');
     const hasPrevious = await db.schema.hasColumn('operations', 'previous_id');
-
+    const hasPlan = await db.schema.hasColumn('operations', 'plan');
+    
     await db.schema.alterTable('operations', (table: any) => {
       if (!hasHotelResponse) table.text('hotel_response_image').nullable();
       if (!hasPaymentProof) table.text('payment_proof_image').nullable();
       if (!hasOriginal) table.string('original_quote_id').nullable();
       if (!hasPrevious) table.string('previous_id').nullable();
+      if (!hasPlan) table.string('plan').nullable();
     });
     console.log('[Database] Verificación de columnas en "operations" completada.');
   }
