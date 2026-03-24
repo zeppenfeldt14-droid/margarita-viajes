@@ -59,6 +59,7 @@ export class NotificationService {
       from: process.env.SMTP_USER || 'margaritaviaje@gmail.com',
       to: email,
       cc: 'margaritaviaje@gmail.com',
+      bcc: 'margaritaviajegerenciaop@gmail.com',
       subject: `Cotización Margarita Viajes - ${quote.hotelName || quote.hotel_name}`,
       text: `Hola ${quote.clientName || quote.client_name},\n\nAdjuntamos la cotización solicitada para tu viaje a ${quote.hotelName || quote.hotel_name}.\n\nSaludos,\nEquipo Margarita Viajes`,
       attachments: [
