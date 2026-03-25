@@ -358,48 +358,50 @@ export default function AdminDashboard({ user }: AdminProps) {
           )}
 
           {activeTab === 'quotes' && (
-            <div className="space-y-8 animate-in fade-in duration-500 print-hidden">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <SectionTitle>Gestión de Cotizaciones</SectionTitle>
-                <div className="flex flex-wrap items-center gap-4">
-                  <div className="flex bg-gray-100 p-1.5 rounded-2xl overflow-hidden border border-gray-200">
-                    {(['original', 'discounted', 'history'] as const).map(f => (
-                      <button key={f} onClick={() => setQuoteFilter(f)} className={`px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${quoteFilter === f ? 'bg-[#0B132B] text-white shadow-lg' : 'text-gray-400 hover:text-[#0B132B]'}`}>
-                        {f === 'original' ? 'Originales' : f === 'discounted' ? 'Con Desc.' : 'Historial'}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="relative">
-                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                    <input type="text" placeholder="Buscar..." value={quoteSearchTerm} onChange={(e) => setQuoteSearchTerm(e.target.value)} className="bg-white border-2 border-gray-100 rounded-2xl pl-14 pr-6 py-4 text-[10px] font-black uppercase outline-none focus:border-orange-500 w-[250px]" />
+            <div className="space-y-6 animate-in fade-in duration-500 print-hidden h-[calc(100vh-120px)] flex flex-col">
+              {/* Bloque Unificado de Cabecera (v51) */}
+              <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-6 shrink-0">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <SectionTitle className="mb-0">Gestión de Cotizaciones</SectionTitle>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
+                      {(['original', 'discounted', 'history'] as const).map(f => (
+                        <button key={f} onClick={() => setQuoteFilter(f)} className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${quoteFilter === f ? 'bg-[#0B132B] text-white shadow-lg' : 'text-gray-400 hover:text-[#0B132B]'}`}>
+                          {f === 'original' ? 'Originales' : f === 'discounted' ? 'Con Desc.' : 'Historial'}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="relative flex-1 md:flex-none">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                      <input type="text" placeholder="Buscar cliente o folio..." value={quoteSearchTerm} onChange={(e) => setQuoteSearchTerm(e.target.value)} className="bg-gray-50 border-2 border-transparent rounded-xl pl-11 pr-4 py-3 text-[10px] font-bold uppercase outline-none focus:border-[#0B132B] focus:bg-white w-full md:w-[250px] transition-all" />
+                    </div>
                   </div>
                 </div>
               </div>
-              <Card>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">
-                        <th className="pb-6 px-4">COTIZACIÓN / CLIENTE</th>
-                        <th className="pb-6 px-4">FECHAS</th>
-                        <th className="pb-6 px-4 text-center">TOTAL</th>
-                        <th className="pb-6 px-4 text-center">ESTADO</th>
-                        <th className="pb-6 px-4">ASESOR</th>
-                        <th className="pb-6 px-4 text-right">ACCIONES</th>
+
+              {/* Contenedor de Tabla con Scroll y Sticky Header (v51) */}
+              <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden flex flex-col flex-1">
+                <div className="overflow-x-auto overflow-y-auto custom-scrollbar flex-1">
+                  <table className="w-full text-left border-separate border-spacing-0">
+                    <thead className="sticky top-0 z-20 bg-white">
+                      <tr className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                        <th className="py-5 px-6 border-b border-gray-100 bg-white bg-opacity-100">COTIZACIÓN / CLIENTE</th>
+                        <th className="py-5 px-6 border-b border-gray-100 bg-white bg-opacity-100">FECHAS</th>
+                        <th className="py-5 px-6 border-b border-gray-100 bg-white bg-opacity-100 text-center">TOTAL</th>
+                        <th className="py-5 px-6 border-b border-gray-100 bg-white bg-opacity-100 text-center">ESTADO</th>
+                        <th className="py-5 px-6 border-b border-gray-100 bg-white bg-opacity-100">ASESOR</th>
+                        <th className="py-5 px-6 border-b border-gray-100 bg-white bg-opacity-100 text-right">ACCIONES</th>
                       </tr>
                     </thead>
                     <tbody className="text-sm font-bold">
                       {(quotes || [])
                         .filter((q: Quotation) => {
                           if (!q) return false;
-                          // Restricción de visibilidad por nivel (RBAC)
                           if (!isDataMaster) {
-                            // Asesores solo ven lo suyo o lo recibido sin asignar
                             const isAssignedToMe = q?.assignedTo === userAlias;
                             const isUnassigned = !q?.assignedTo || q?.assignedTo === '';
                             if (!isAssignedToMe && !isUnassigned) return false;
                           }
-
                           const matchesSearch = (q?.clientName || q?.client_name)?.toLowerCase().includes(quoteSearchTerm.toLowerCase()) || q?.id?.toString().includes(quoteSearchTerm);
                           if (!matchesSearch) return false;
                           if (quoteFilter === 'original') return q?.status === 'Nuevo' && !String(q?.id).includes('-01');
@@ -408,36 +410,27 @@ export default function AdminDashboard({ user }: AdminProps) {
                           return true;
                         })
                         .map((quote: Quotation) => (
-                          <tr key={quote.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                            <td className="py-2.5 px-4 text-[10px] font-black uppercase text-center">
-                              <div className="flex flex-col items-center">
-                                <span className="font-black italic text-orange-600 text-[11px] leading-tight">{quote.id}</span>
+                          <tr key={quote.id} className="group border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                            <td className="py-4 px-6">
+                              <div className="flex flex-col">
+                                <span className="font-black italic text-orange-600 text-[11px] leading-tight mb-1">{quote.id}</span>
                                 <span className="font-black italic uppercase text-[#0B132B] truncate max-w-[200px]">{quote.clientName || quote.client_name}</span>
-                                <span className="text-[8px] tracking-tight text-gray-500 mt-0.5">{quote.hotelName || quote.hotel_name}</span>
-                                <div className="flex flex-col gap-1 mt-1">
-                                  {((quote as any).season || (quote as any).temp) && (
-                                    <span className="bg-orange-50 text-orange-600 text-[7px] px-2 py-0.5 rounded-full font-black uppercase border border-orange-100 w-fit mx-auto">
-                                      Temporada: {(quote as any).season || (quote as any).temp}
-                                    </span>
-                                  )}
-                                  {quote.plan && (
-                                    <span className="bg-slate-50 text-slate-600 text-[7px] px-2 py-0.5 rounded-full font-black uppercase border border-slate-100 w-fit mx-auto">
-                                      Plan: {quote.plan}
-                                    </span>
-                                  )}
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">{quote.hotelName || quote.hotel_name}</span>
+                                  {quote.plan && <span className="text-[7px] bg-slate-50 text-slate-400 px-1.5 py-0.5 rounded-md border border-slate-100 font-black uppercase">{quote.plan}</span>}
                                 </div>
                               </div>
                             </td>
-                            <td className="py-2.5 px-4">
+                            <td className="py-4 px-6">
                               <div className="flex flex-col gap-0.5 whitespace-nowrap">
-                                <div className="flex items-center gap-1 text-[9px] font-black uppercase text-gray-500"><Calendar size={9} /> {formatDateVisual(quote.checkIn || quote.check_in)}</div>
-                                <div className="flex items-center gap-1 text-[9px] font-black uppercase text-gray-300"><Calendar size={9} /> {formatDateVisual(quote.checkOut || quote.check_out)}</div>
+                                <div className="flex items-center gap-1.5 text-[9px] font-black uppercase text-gray-500"><Calendar size={10} className="text-gray-300" /> {formatDateVisual(quote.checkIn || quote.check_in)}</div>
+                                <div className="flex items-center gap-1.5 text-[9px] font-black uppercase text-gray-300"><Calendar size={10} className="text-gray-200" /> {formatDateVisual(quote.checkOut || quote.check_out)}</div>
                               </div>
                             </td>
-                            <td className="py-2.5 px-4 text-center">
-                              <div className="font-black italic text-orange-600 text-[11px]">$ {Number(quote.totalAmount || quote.total_amount).toLocaleString()}</div>
+                            <td className="py-4 px-6 text-center">
+                              <div className="font-black italic text-teal-600 text-sm">$ {Number(quote.totalAmount || quote.total_amount).toLocaleString()}</div>
                             </td>
-                            <td className="py-2.5 px-4 text-center">
+                            <td className="py-4 px-6 text-center">
                               <div className="flex justify-center">
                                 {['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(quote.status) ? (
                                   <div className="bg-blue-600 !text-white px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest text-center shadow-sm border border-blue-700 w-full max-w-[120px]">
@@ -446,17 +439,14 @@ export default function AdminDashboard({ user }: AdminProps) {
                                 ) : (
                                   <select
                                     value={quote.status}
-                                    onChange={async (e: React.ChangeEvent<HTMLSelectElement>) => {
+                                    onChange={async (e) => {
                                       const newStatus = e.target.value;
-                                      let newId = quote.id;
-
                                       if (newStatus === 'Reserva') {
-                                        const totalExpected = parseInt(quote.pax || '0') + parseInt(quote.children || '0');
+                                        const totalExpected = (parseInt(quote.pax || '0') + parseInt(quote.children || '0')) || 0;
                                         const currentCompanions = (quote as Quotation).companions || [];
-                                        const hasEmptyNames = currentCompanions.some((c: { name: string }) => !c.name || c.name.trim() === '');
-
-                                        if (currentCompanions.length !== totalExpected || hasEmptyNames || (!quote.technicalSheet && !technicalSheetSaved)) {
-                                          alert('Debe cargar la ficha técnica de todos los pasajeros (con nombre y apellido) antes de pasar a Reserva');
+                                        const hasEmptyNames = currentCompanions.some((c: any) => !c.name || c.name.trim() === '');
+                                        if (currentCompanions.length < totalExpected || hasEmptyNames || (!quote.technicalSheet && !technicalSheetSaved)) {
+                                          alert('Debe cargar la ficha técnica de todos los pasajeros antes de pasar a Reserva');
                                           return;
                                         }
                                       }
@@ -466,18 +456,13 @@ export default function AdminDashboard({ user }: AdminProps) {
                                           let nextResNum = 1001;
                                           const resData = await api.getReservations().catch(() => []);
                                           if (Array.isArray(resData) && resData.length > 0) {
-                                            const rIds = resData
-                                              .map((r: Reservation) => r.id?.toString() || '')
-                                              .filter((id: string) => id.startsWith('R'))
-                                              .map((id: string) => parseInt(id.replace(/\D/g, '')) || 0);
+                                            const rIds = resData.map((r: any) => parseInt(r.id?.toString().replace(/\D/g, '') || '0')).filter(n => !isNaN(n));
                                             if (rIds.length > 0) nextResNum = Math.max(...rIds) + 1;
                                           }
                                           const nextResId = 'R' + nextResNum.toString().padStart(6, '0');
-
-                                          const reservationData = {
+                                          const res = await api.createReservation({
                                             id: nextResId,
                                             quoteId: quote.id,
-                                            originalQuoteId: quote.originalQuoteId || quote.id,
                                             clientName: quote.clientName || quote.client_name,
                                             email: quote.email,
                                             whatsapp: quote.whatsapp,
@@ -485,65 +470,38 @@ export default function AdminDashboard({ user }: AdminProps) {
                                             hotelName: quote.hotelName || quote.hotel_name,
                                             checkIn: quote.checkIn || quote.check_in,
                                             checkOut: quote.checkOut || quote.check_out,
-                                            roomType: quote.roomType || quote.room_type,
                                             pax: quote.pax,
                                             children: quote.children,
                                             infants: quote.infants,
                                             totalAmount: quote.totalAmount || quote.total_amount,
-                                            discount: quote.discount || null,
-                                            discountAmount: quote.discountAmount || null,
-                                            companions: (quote as Quotation).companions || [],
-                                            technicalSheet: (quote as Quotation).technicalSheet || null,
-                                            plan: quote.plan || null,
-                                            status: ((quote as any).includeTransfer || (quote as any).include_transfer) ? 'Pendiente' : 'Confirmada' as ReservationStatus,
-                                            includeTransfer: (quote as any).includeTransfer || (quote as any).include_transfer || false,
-                                            transferId: (quote as any).transferId || (quote as any).transfer_id || null
-                                          };
-
-                                          const reservationRes = await api.createReservation(reservationData as Partial<Reservation>);
-                                          if (!reservationRes.ok) {
-                                            showToast('Error al crear la reserva');
-                                            return;
-                                          }
-                                        } catch (error) {
-                                          console.error('Error creating reservation:', error);
-                                          showToast('Error al crear la reserva');
-                                          return;
-                                        }
+                                            companions: (quote as any).companions || [],
+                                            technicalSheet: (quote as any).technicalSheet || null,
+                                            plan: quote.plan,
+                                            status: 'Confirmada'
+                                          });
+                                          if (!res.ok) { showToast('Error al crear reserva'); return; }
+                                        } catch (err) { showToast('Error de sistema'); return; }
                                       }
 
-                                      try {
-                                        const response = await api.updateQuote(quote.id, {
-                                          status: newStatus as QuoteStatus,
-                                          id: newId
-                                        });
-
-                                        if (response.ok) {
-                                          setQuotes(quotes.map((q: Quotation) => q.id === quote.id ? { ...q, status: newStatus as QuoteStatus, id: newId } : q));
-                                          showToast(`Estado cambiado a: ${newStatus}${newStatus === "Reserva" ? " y Reserva creada" : ""}`);
-                                          recordActivity('UPDATE_QUOTE_STATUS', `Cambiado estado de folio ${quote.id} a ${newStatus}`);
-                                        } else {
-                                          const errorData = await response.json().catch(() => ({}));
-                                          showToast(`Error: ${errorData.message || 'No se pudo actualizar el estado'}`);
-                                        }
-                                      } catch (error) {
-                                        console.error('Error updating status:', error);
-                                        showToast('Error de conexión al actualizar el estado');
+                                      const resp = await api.updateQuote(quote.id, { status: newStatus as any });
+                                      if (resp.ok) {
+                                        setQuotes(prev => prev.map(q => q.id === quote.id ? { ...q, status: newStatus as any } : q));
+                                        showToast(`Estado: ${newStatus}`);
                                       }
                                     }}
-                                    className={`px-4 py-1 rounded-full text-[8px] font-black uppercase tracking-widest cursor-pointer border-0 w-full max-w-[120px] ${quote.status === 'Nuevo' ? 'bg-red-500 !text-white' :
-                                        quote.status === 'Atendido' ? 'bg-yellow-500 !text-white' :
-                                          quote.status === 'Reserva' ? 'bg-blue-500 !text-white' :
-                                            'bg-green-500 !text-white'
-                                      }`}
+                                    className={`px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest cursor-pointer border-0 w-full max-w-[120px] shadow-sm ${
+                                      quote.status === 'Nuevo' ? 'bg-red-500 !text-white' :
+                                      quote.status === 'Atendido' ? 'bg-yellow-500 !text-white' :
+                                      'bg-green-500 !text-white'
+                                    }`}
                                   >
-                                    <option value="Nuevo" disabled={['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(quote.status)}>Nuevo</option>
-                                    <option value="Atendido" disabled={['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(quote.status)}>Atendido</option>
+                                    <option value="Nuevo">Nuevo</option>
+                                    <option value="Atendido">Atendido</option>
                                   </select>
                                 )}
                               </div>
                             </td>
-                            <td className="py-2.5 px-4">
+                            <td className="py-4 px-6">
                               <select
                                 value={quote.assignedTo || ''}
                                 disabled={!isDataMaster}
@@ -551,32 +509,25 @@ export default function AdminDashboard({ user }: AdminProps) {
                                   try {
                                     await api.updateQuote(quote.id, { assignedTo: e.target.value });
                                     setQuotes(prev => prev.map(q => q.id === quote.id ? { ...q, assignedTo: e.target.value } : q));
-                                    showToast(`Asignado a ${e.target.value}`, 'success');
-                                  } catch (err: any) {
-                                    showToast(err.message, 'error');
-                                  }
+                                    showToast(`Asignado a ${e.target.value}`);
+                                  } catch (err) {}
                                 }}
-                                className="bg-gray-50 border-0 px-4 py-1 rounded-full text-[8px] font-black uppercase outline-none ring-1 ring-inset ring-gray-200 focus:ring-orange-500 w-full max-w-[130px] cursor-pointer"
+                                className="bg-gray-50 border-0 px-4 py-1.5 rounded-full text-[8px] font-black uppercase outline-none ring-1 ring-inset ring-gray-100 focus:ring-orange-500 w-full max-w-[120px] cursor-pointer"
                               >
                                 <option value="">SIN ASIGNAR</option>
-                                {users.map(u => (
-                                  <option key={u.id} value={u.alias}>{u.alias}</option>
-                                ))}
+                                {users.map(u => <option key={u.id} value={u.alias}>{u.alias}</option>)}
                               </select>
                             </td>
-                            <td className="py-2.5 px-4 text-right">
+                            <td className="py-4 px-6 text-right">
                               <div className="flex items-center justify-end gap-2">
                                 <button 
                                   title="Vista Previa"
-                                  onClick={() => {
-                                    const folio = quote.id;
-                                    window.open(`${api.getBaseUrl()}/public/quotes/${folio}/pdf`, '_blank');
-                                  }}
-                                  className="p-1.5 bg-gray-100 text-[#0B132B] rounded-lg hover:bg-gray-200 transition-all border border-gray-200"
+                                  onClick={() => window.open(`${api.getBaseUrl()}/public/quotes/${quote.id}/pdf`, '_blank')}
+                                  className="p-2 bg-gray-50 text-[#0B132B] rounded-xl hover:bg-gray-100 transition-all border border-gray-100 shadow-sm"
                                 >
                                   <Eye size={14} />
                                 </button>
-                                <button onClick={() => setSelectedQuote(quote)} className="bg-[#0B132B] text-white px-4 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-orange-600 transition-all border-0 ring-1 ring-inset ring-white/10">VER</button>
+                                <button onClick={() => setSelectedQuote(quote)} className="bg-[#0B132B] text-white px-5 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-orange-600 transition-all shadow-lg hover:shadow-orange-500/20">VER</button>
                               </div>
                             </td>
                           </tr>
@@ -585,7 +536,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                     </tbody>
                   </table>
                 </div>
-              </Card>
+              </div>
             </div>
           )}
 
