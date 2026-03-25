@@ -189,7 +189,7 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
           <div className="bg-white w-full max-w-5xl max-h-[95vh] rounded-[3rem] shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in duration-300 print-card print:rounded-none print:max-h-none print:shadow-none print:w-full print:block">
             <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 print-hidden">
               <div>
-                <h3 className="text-2xl font-black italic text-[#0B132B] uppercase tracking-tighter">Detalles de Reserva Activa</h3>
+                <h3 className="text-2xl font-black italic text-[#0B132B] uppercase tracking-tighter">Gestión de Reserva: {selectedReservation.id?.startsWith('R') ? selectedReservation.id : selectedReservation.quoteId?.replace('C', 'R')}</h3>
                 <div className="flex flex-col gap-0.5 mt-1">
                   <p className="text-sm font-black text-[#0B132B] uppercase">
                     FOLIO: {selectedReservation.id?.startsWith('R') ? selectedReservation.id : selectedReservation.quoteId?.replace('C', 'R')} |
@@ -387,7 +387,7 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                         }}
                         className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-2"
                       >
-                        <ShieldCheck size={16} /> CERRAR VENTA
+                        <ShieldCheck size={16} /> CONFIRMAR VENTA
                       </button>
                       <button
                         onClick={() => {
@@ -410,7 +410,8 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                       <div className="flex items-center gap-4">
                         <div className={`px-6 py-2 rounded-full text-[9px] font-black uppercase tracking-widest shadow-md ${
                           selectedReservation.status === 'Reserva' ? 'bg-blue-500 text-white' :
-                          ['Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(selectedReservation.status) ? 'bg-green-500 text-white' :
+                          ['Venta Cerrada', 'Venta Concretada'].includes(selectedReservation.status) ? 'bg-green-500 text-white' :
+                          selectedReservation.status === 'Confirmada' ? 'bg-blue-600 text-white' :
                           'bg-[#0B132B] text-white'
                         }`}>
                           ESTADO: {selectedReservation.status}
@@ -508,7 +509,7 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                 const mailtoLink = `mailto:${emailConfig.recipient}?subject=${encodeURIComponent(emailConfig.subject)}&body=${encodeURIComponent(emailConfig.body)}`;
                 window.location.href = mailtoLink;
                 setShowEmailModal(false);
-              }} className="flex-1 bg-blue-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-2"><Mail size={16} /> Abrir en Gestor de Correos</button>
+              }} className="flex-1 bg-blue-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-2"><Mail size={16} /> Enviar correo a hotel</button>
             </div>
           </div>
         </div>
