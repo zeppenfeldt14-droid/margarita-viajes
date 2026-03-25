@@ -499,53 +499,37 @@ export default function OperationsList({
                          </select>
                        </div>
                        
-                       <div className="space-y-2">
-                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Estado de la Operación</label>
-                         <div className="flex flex-col gap-2">
-                           <select 
-                             value={selectedOperation.status || 'Pendiente'}
-                             onChange={(e) => {
-                               const newStatus = e.target.value;
-                               // REGLA CRÍTICA: Bloquear cambio a activa si faltan datos
-                               if (['Confirmada', 'Venta Cerrada', 'Venta Concretada'].includes(newStatus)) {
-                                 if (!selectedOperation.itinerary || !selectedOperation.transferProvider) {
-                                   showToast('❌ DEBE COMPLETAR ITINERARIO Y PROVEEDOR PARA ACTIVAR');
-                                   return;
-                                 }
-                               }
-                               setSelectedOperation({...selectedOperation, status: newStatus as ReservationStatus});
-                             }}
-                             className={`w-full border-2 rounded-xl p-3 text-[11px] font-black uppercase tracking-widest outline-none transition-all ${
-                               ['Confirmada', 'Venta Cerrada', 'Venta Concretada'].includes(selectedOperation.status || '') ? 'border-green-500 bg-green-50 text-green-700' : 'border-blue-500 bg-blue-50 text-blue-700'
-                             }`}
-                           >
-                             <option value="Pendiente">Venta Pendiente</option>
-                             <option value="Confirmada">Venta Activa (Confirmada)</option>
-                             <option value="Venta Cerrada">Venta Cerrada</option>
-                             <option value="Completada">Finalizada / Historial</option>
-                           </select>
-                           
-                           <button 
-                             onClick={async () => {
-                               setSavingStatus(true);
-                               try {
-                                 await api.saveOperation(selectedOperation.id, {
-                                     status: selectedOperation.status,
-                                     itinerary: selectedOperation.itinerary,
-                                     itineraryDetails: selectedOperation.itineraryDetails,
-                                     transferProvider: selectedOperation.transferProvider
-                                   });
-                                 showToast('✅ Cambios guardados en Centro de Control');
-                                 fetchOperations();
-                               } catch (err) { showToast('Error al guardar cambios'); }
-                               finally { setSavingStatus(false); }
-                             }}
-                             disabled={savingStatus}
-                             className="w-full bg-[#0B132B] text-white py-3 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] hover:bg-blue-600 disabled:opacity-50 transition-all"
-                           >
-                             {savingStatus ? 'Guardando...' : 'Guardar y Sincronizar'}
-                           </button>
+                       <div className="space-y-4">
+                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Estado Actual</label>
+                         <div className={`w-full border-2 rounded-xl p-4 text-[11px] font-black uppercase tracking-widest text-center ${
+                            ['Confirmada', 'Venta Cerrada', 'Venta Concretada'].includes(selectedOperation.status || '') ? 'border-green-500 bg-green-50 text-green-700' : 'border-blue-500 bg-blue-50 text-blue-700'
+                          }`}>
+                           {selectedOperation.status === 'Pendiente' ? 'Venta Pendiente' : 
+                            selectedOperation.status === 'Confirmada' ? 'Venta Activa (Confirmada)' : 
+                            selectedOperation.status === 'Venta Cerrada' ? 'Venta Cerrada' : 
+                            selectedOperation.status || 'Pendiente'}
                          </div>
+                         
+                         <button 
+                           onClick={async () => {
+                             setSavingStatus(true);
+                             try {
+                               await api.saveOperation(selectedOperation.id, {
+                                   status: selectedOperation.status,
+                                   itinerary: selectedOperation.itinerary,
+                                   itineraryDetails: selectedOperation.itineraryDetails,
+                                   transferProvider: selectedOperation.transferProvider
+                                 });
+                               showToast('✅ Detalles logísticos guardados');
+                               fetchOperations();
+                             } catch (err) { showToast('Error al guardar cambios'); }
+                             finally { setSavingStatus(false); }
+                           }}
+                           disabled={savingStatus}
+                           className="w-full bg-gray-100 text-[#0B132B] py-3 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] hover:bg-gray-200 disabled:opacity-50 transition-all border border-gray-200"
+                         >
+                           {savingStatus ? 'Guardando...' : 'Actualizar Datos Logísticos'}
+                         </button>
                        </div>
                      </div>
                    </div>
@@ -655,7 +639,64 @@ export default function OperationsList({
                   <Download size={20} />
                 </button>
               </div>
-              <div className="flex gap-4">
+              <div className="flex gap-3">
+                {selectedOperation.status === 'Pendiente' && (
+                  <button
+                    onClick={async () => {
+                      if (!selectedOperation.itinerary || !selectedOperation.transferProvider) {
+                        showToast('⚠️ Complete los datos de traslado para activar');
+                        return;
+                      }
+                      setSavingStatus(true);
+                      try {
+                        await api.saveOperation(selectedOperation.id, {
+                          status: 'Confirmada',
+                          itinerary: selectedOperation.itinerary,
+                          transferProvider: selectedOperation.transferProvider,
+                          itineraryDetails: selectedOperation.itineraryDetails
+                        });
+                        showToast('🚀 ¡OPERACIÓN ACTIVADA!');
+                        setSelectedOperation(null);
+                        fetchOperations();
+                      } catch (e) { showToast('❌ Error al activar'); }
+                      finally { setSavingStatus(false); }
+                    }}
+                    disabled={savingStatus || (!selectedOperation.itinerary || !selectedOperation.transferProvider)}
+                    className={`px-6 py-4 rounded-2xl font-black text-[9px] uppercase tracking-widest transition-all shadow-lg flex items-center gap-2 ${
+                      (!selectedOperation.itinerary || !selectedOperation.transferProvider) 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-2 border-dashed border-gray-200' 
+                      : 'bg-green-500 text-white hover:bg-green-600'
+                    }`}
+                  >
+                    <ShieldCheck size={16} /> 
+                    {(!selectedOperation.itinerary || !selectedOperation.transferProvider) ? 'Faltan Datos' : 'Activar Operación'}
+                  </button>
+                )}
+
+                {['Pendiente', 'Confirmada'].includes(selectedOperation.status || '') && (
+                  <button
+                    onClick={async () => {
+                      setSavingStatus(true);
+                      try {
+                        await api.saveOperation(selectedOperation.id, {
+                          status: 'Venta Cerrada',
+                          itinerary: selectedOperation.itinerary,
+                          transferProvider: selectedOperation.transferProvider,
+                          itineraryDetails: selectedOperation.itineraryDetails
+                        });
+                        showToast('✅ VENTA CERRADA CORRECTAMENTE');
+                        setSelectedOperation(null);
+                        fetchOperations();
+                      } catch (e) { showToast('❌ Error al cerrar'); }
+                      finally { setSavingStatus(false); }
+                    }}
+                    disabled={savingStatus}
+                    className="px-6 py-4 bg-blue-600 text-white rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg flex items-center gap-2"
+                  >
+                    <Briefcase size={16} /> Marcar como Cerrada
+                  </button>
+                )}
+
                 <button
                   onClick={() => setSelectedOperation(null)}
                   className="px-6 py-4 bg-white border-2 border-gray-100 text-[#0B132B] rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-50 transition-all"
