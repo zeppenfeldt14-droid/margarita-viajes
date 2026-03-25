@@ -196,23 +196,20 @@ export default function Quoter() {
     }
   };
 
-  if (!selectedHotel) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
-        <h2 className="text-2xl font-black italic uppercase mb-4">Hotel No Encontrado</h2>
-        <button onClick={() => setLocation('/')} className="bg-[#0B132B] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest">Volver al Inicio</button>
-      </div>
-    );
-  }
-
-  const nextPhoto = () => setCurrentPhotoIdx((prev) => (prev + 1) % (selectedHotel.photos?.length || 1));
-  const prevPhoto = () => setCurrentPhotoIdx((prev) => (prev - 1 + (selectedHotel.photos?.length || 1)) % (selectedHotel.photos?.length || 1));
+  const nextPhoto = () => {
+    if (!selectedHotel) return;
+    setCurrentPhotoIdx((prev) => (prev + 1) % (selectedHotel.photos?.length || 1));
+  }; 
+  const prevPhoto = () => {
+    if (!selectedHotel) return;
+    setCurrentPhotoIdx((prev) => (prev - 1 + (selectedHotel.photos?.length || 1)) % (selectedHotel.photos?.length || 1));
+  };
 
   const [isGenerating, setIsGenerating] = useState(false);
 
   const enviarCotizacionWhatsApp = async () => {
-    if (!formData.name || !formData.email || !formData.whatsapp) {
-      showToast('⚠️ Nombre, Email y WhatsApp son obligatorios.', 'error');
+    if (!selectedHotel || !formData.name || !formData.email || !formData.whatsapp) {
+      showToast('⚠️ Datos incompletos.', 'error');
       return;
     }
 
@@ -280,6 +277,15 @@ export default function Quoter() {
       setIsGenerating(false);
     }
   };
+
+  if (!selectedHotel) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
+        <h2 className="text-2xl font-black italic uppercase mb-4">Hotel No Encontrado</h2>
+        <button onClick={() => setLocation('/')} className="bg-[#0B132B] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest">Volver al Inicio</button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] selection:bg-orange-100">
