@@ -226,7 +226,7 @@ export default function Quoter() {
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff'
-      });
+      } as any);
       
       const imgData = canvas.toDataURL('image/jpeg', 0.8);
       const pdf = new jsPDF('p', 'mm', 'a4');
