@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, ShieldCheck, AlertCircle, Briefcase, Users, X, Search, Printer } from 'lucide-react';
+import { Calendar, ShieldCheck, AlertCircle, Briefcase, Users, X, Search, Printer, Eye, Download } from 'lucide-react';
 import { api } from '../../services/api';
 import { showToast } from '../Toast';
 import { Card, SectionTitle } from './Common';
@@ -177,7 +177,7 @@ export default function OperationsList({
         </Card>
       ) : (
         <Card>
-          <div className="overflow-x-auto">
+          <div className="w-full overflow-x-auto pb-4 hide-scrollbar">
             <table className="w-full text-left">
               <thead>
                 <tr className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">
@@ -530,11 +530,11 @@ export default function OperationsList({
                                setSavingStatus(true);
                                try {
                                  await api.saveOperation(selectedOperation.id, {
-                                    status: selectedOperation.status,
-                                    itinerary: selectedOperation.itinerary,
-                                    itineraryDetails: selectedOperation.itineraryDetails,
-                                    transferProvider: selectedOperation.transferProvider
-                                  });
+                                     status: selectedOperation.status,
+                                     itinerary: selectedOperation.itinerary,
+                                     itineraryDetails: selectedOperation.itineraryDetails,
+                                     transferProvider: selectedOperation.transferProvider
+                                   });
                                  showToast('✅ Cambios guardados en Centro de Control');
                                  fetchOperations();
                                } catch (err) { showToast('Error al guardar cambios'); }
