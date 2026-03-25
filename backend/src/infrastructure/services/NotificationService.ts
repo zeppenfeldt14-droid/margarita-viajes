@@ -55,8 +55,7 @@ export class NotificationService {
     }
 
     if (!process.env.SMTP_PASS) {
-      console.error('[NotificationService] ERROR CRÍTICO: SMTP_PASS no está configurado. El correo NO se enviará.');
-      return;
+      throw new Error('Configuración SMTP incompleta: Falta la variable de entorno SMTP_PASS (App Password de Google).');
     }
 
     const mailOptions: any = {

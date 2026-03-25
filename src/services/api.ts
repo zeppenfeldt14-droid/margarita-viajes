@@ -189,11 +189,19 @@ export const api = {
     subject?: string;
     message?: string;
     documentId: string;
-    documentType: 'quote' | 'reservation' | 'voucher';
+    documentType: 'quote' | 'reservation' | 'operation';
   }) => {
+    const payload = {
+      type: data.documentType,
+      id: data.documentId,
+      method: data.type,
+      recipient: data.recipient,
+      target: data.target
+    };
+
     return fetchWithAuth('/communications/dispatch', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
   },
   getBaseUrl: () => API_URL

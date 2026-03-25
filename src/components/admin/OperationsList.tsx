@@ -581,7 +581,7 @@ export default function OperationsList({
                         target: 'provider',
                         recipient: selectedOperation.transferProvider || '',
                         documentId: selectedOperation.id,
-                        documentType: 'voucher'
+                        documentType: 'operation'
                       });
                       if (res.ok) showToast('✅ Itinerario enviado al proveedor (WA)');
                       else showToast('❌ Error al notificar proveedor');
@@ -600,7 +600,7 @@ export default function OperationsList({
                         target: 'client',
                         recipient: selectedOperation.email,
                         documentId: selectedOperation.id,
-                        documentType: 'voucher'
+                        documentType: 'operation'
                       });
                       if (res.ok) showToast('✅ Voucher enviado al cliente (Email)');
                       else showToast('❌ Error al enviar voucher');

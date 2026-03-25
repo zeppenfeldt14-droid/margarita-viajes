@@ -14,8 +14,13 @@ export class CommunicationController {
 
   async dispatch(req: Request, res: Response) {
     const { type, id, method } = req.body;
+    console.log(`[CommunicationController] Recibida solicitud de despacho:`, { type, id, method });
 
     try {
+      if (!type || !id || !method) {
+        return res.status(400).json({ error: 'Faltan parámetros requeridos: type, id, o method' });
+      }
+
       if (type === 'quote') {
         const quote = await this.quoteRepo.findById(id);
         if (!quote) return res.status(404).json({ error: 'Cotización no encontrada' });
@@ -37,9 +42,11 @@ export class CommunicationController {
         if (method === 'email') {
           await this.notificationService.sendVoucherEmail(operation);
         }
+      } else {
+        return res.status(400).json({ error: `Tipo de documento desconocido: ${type}` });
       }
 
-      return res.json({ success: true, message: `Despacho iniciado vía ${method}` });
+      return res.json({ success: true, message: `Despacho iniciado vía ${method} para ${type} ${id}` });
     } catch (error: any) {
       console.error('[CommunicationController] Error:', error);
       return res.status(500).json({ error: error.message });
