@@ -1,11 +1,12 @@
 import React, { useEffect } from "react";
 import { useLocation } from "wouter";
-import { LayoutDashboard, Inbox, Hotel, FileText, Settings, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, Inbox, Hotel, FileText, Settings, Users, LogOut, Menu, X as CloseIcon } from "lucide-react";
 import { api } from "../services/api";
 import { useGlobalData } from "../context/GlobalContext";
 
 export default function AdminLayout({ children, onLogout, userPermissions }: { children: React.ReactNode, onLogout?: () => void, userPermissions?: any }) {
   const [location, setLocation] = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
   const { quotes, reservations, operations } = useGlobalData();
 
   const newQuotesCount = (quotes || []).filter(q => q?.status === 'Nuevo').length;
@@ -71,10 +72,15 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
     <div className="flex h-screen bg-[#F8F9FB] font-sans selection:bg-orange-200">
       
       {/* SIDEBAR */}
-      <aside className="w-[280px] bg-[#0A0E17] text-white flex flex-col justify-between hidden md:flex">
+      <aside className={`
+        fixed inset-y-0 left-0 z-[100] w-[280px] bg-[#0A0E17] text-white flex flex-col justify-between 
+        transition-transform duration-300 transform 
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
+        md:relative md:translate-x-0 md:flex
+      `}>
         <div>
           {/* Logo Area */}
-          <div className="h-24 flex items-center px-8 border-b border-white/5">
+          <div className="h-24 flex items-center justify-between px-8 border-b border-white/5">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden border border-white/10 shadow-inner">
                 {userPhoto ? (
@@ -85,11 +91,14 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
                   </div>
                 )}
               </div>
-              <div className="flex flex-col text-[10px] font-bold text-white leading-tight uppercase tracking-widest truncate max-w-[150px]">
+              <div className="flex flex-col text-[10px] font-bold text-white leading-tight uppercase tracking-widest truncate max-w-[120px]">
                 <span className="truncate">{userName}</span>
                 <span className="text-gray-500 truncate">{userRole}</span>
               </div>
             </div>
+            <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-gray-400 hover:text-white transition-colors">
+              <CloseIcon size={20} />
+            </button>
           </div>
 
           {/* Navigation */}
@@ -99,7 +108,7 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
               return (
                 <button
                   key={item.title}
-                  onClick={() => setLocation(item.path)}
+                  onClick={() => { setLocation(item.path); setIsSidebarOpen(false); }}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
                     isActive 
                       ? "bg-orange-500 text-white font-black shadow-lg shadow-orange-500/20" 
@@ -125,11 +134,6 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
                        {pendingOperationsCount}
                      </span>
                    )}
-                   {item.badge && !['COTIZACIONES', 'RESERVAS (HOTEL)', 'VENTAS (OPERACIONES)'].includes(item.title) && (
-                     <span className="bg-white text-orange-500 text-[10px] font-black w-5 h-5 flex flex-col items-center justify-center rounded-full">
-                       {item.badge}
-                     </span>
-                   )}
                 </button>
               );
             })}
@@ -151,13 +155,29 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
         </div>
       </aside>
 
+      {/* MOBILE OVERLAY */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        ></div>
+      )}
+
       {/* RENDER CONTENT */}
       <main className="flex-1 flex flex-col overflow-hidden relative">
          {/* Top Header Placeholder for Mobile / Global actions */}
-         <header className="h-24 bg-white border-b border-gray-100 flex items-center px-10 shrink-0 shadow-sm z-10 w-full relative">
-            <h1 className="text-2xl font-black text-[#0B132B] italic tracking-tight uppercase">
-              {NAV_ITEMS.find(n => location === n.path || (n.path !== '/admin' && location.startsWith(n.path)))?.title || "DASHBOARD"}
-            </h1>
+         <header className="h-24 bg-white border-b border-gray-100 flex items-center px-6 md:px-10 shrink-0 shadow-sm z-10 w-full relative justify-between">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="md:hidden w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-[#0B132B] hover:bg-gray-100 transition-all border border-gray-100"
+              >
+                <Menu size={20} />
+              </button>
+              <h1 className="text-xl md:text-2xl font-black text-[#0B132B] italic tracking-tight uppercase">
+                {NAV_ITEMS.find(n => location === n.path || (n.path !== '/admin' && location.startsWith(n.path)))?.title || "DASHBOARD"}
+              </h1>
+            </div>
          </header>
          
          {/* Scrollable Area */}

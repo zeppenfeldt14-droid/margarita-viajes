@@ -114,7 +114,7 @@ export default function CustomersList({ quotes }: { quotes: any[] }) {
         </div>
       </div>
       <div className="bg-white rounded-[2rem] shadow-xl border border-gray-50 overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="w-full overflow-x-auto pb-4 hide-scrollbar">
           <table className="w-full text-left">
             <thead>
               <tr className="text-[10px] font-black text-[#0B132B] uppercase tracking-[0.2em] border-b border-gray-100 bg-gray-50/50">

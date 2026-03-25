@@ -556,6 +556,7 @@ export default function UsersList() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-white">
+            <div className="w-full overflow-x-auto pb-4 hide-scrollbar">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-left">
@@ -634,6 +635,7 @@ export default function UsersList() {
                   )}
                 </tbody>
               </table>
+            </div>
             </div>
             
             <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end shrink-0">

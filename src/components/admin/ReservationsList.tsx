@@ -124,7 +124,7 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
         
         {loading ? <Card><div className="text-center py-20 uppercase font-black text-[10px] text-gray-400 tracking-widest">Cargando...</div></Card> : (
           <Card>
-            <div className="overflow-x-auto">
+            <div className="w-full overflow-x-auto pb-4 hide-scrollbar">
               <table className="w-full text-left font-bold text-sm">
                 <thead><tr className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100"><th className="pb-6 px-4">FOLIO</th><th className="pb-6 px-4">CLIENTE</th><th className="pb-6 px-4">FECHAS</th><th className="pb-6 px-4 text-center">TOTAL</th><th className="pb-6 px-4">ESTADO</th><th className="pb-6 px-4 text-center">ACCIONES</th></tr></thead>
                 <tbody>

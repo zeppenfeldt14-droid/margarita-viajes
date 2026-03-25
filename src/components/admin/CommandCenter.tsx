@@ -140,7 +140,7 @@ export default function CommandCenter() {
              </span>
            </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
            <div className="bg-white/50 p-4 rounded-2xl border border-white/60">
               <p className="text-[9px] font-black text-gray-400 uppercase mb-1">Rendimiento Operativo</p>
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">

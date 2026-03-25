@@ -236,7 +236,7 @@ export default function Quoter() {
                 )}
               </div>
               <div>
-                <h2 className="text-5xl font-black italic uppercase tracking-tighter text-[#0B132B] mb-1">{selectedHotel.name}</h2>
+                <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter text-[#0B132B] mb-1">{selectedHotel.name}</h2>
                 <div className="flex items-center gap-2 text-orange-500 font-black uppercase text-[10px] tracking-widest">
                   <MapPin size={14} /> {selectedHotel.location}
                 </div>
@@ -278,8 +278,8 @@ export default function Quoter() {
             </div>
           </div>
 
-          <div className="bg-white rounded-[3rem] shadow-2xl p-10 md:p-14 border border-gray-50 flex flex-col space-y-8 animate-in slide-in-from-right-8 duration-700">
-            <div className={`grid ${selectedHotel.type === 'full-day' ? 'grid-cols-1' : 'grid-cols-2'} gap-6`}>
+          <div className="bg-white rounded-[3rem] shadow-2xl p-6 md:p-14 border border-gray-50 flex flex-col space-y-8 animate-in slide-in-from-right-8 duration-700">
+            <div className={`grid ${selectedHotel.type === 'full-day' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-6`}>
               <div className="space-y-2">
                 <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{selectedHotel.type === 'full-day' ? 'FECHA DEL PASEO' : 'LLEGADA'}</label>
                 <div className="relative">
@@ -302,7 +302,7 @@ export default function Quoter() {
               )}
             </div>
 
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="space-y-2">
                 <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">ADULTOS (13+)</label>
                 <select
@@ -350,7 +350,7 @@ export default function Quoter() {
             {parseInt(formData.children) > 0 && (
               <div className="space-y-3 animate-in slide-in-from-top-2 duration-300">
                 <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest ml-1">Edad de cada niño:</p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {(formData.childAges || []).map((age, idx) => (
                     <div key={idx} className="flex items-center gap-2 bg-orange-50 p-3 rounded-xl">
                       <span className="text-[9px] font-bold text-orange-600">Niño {idx + 1}:</span>
@@ -497,13 +497,13 @@ export default function Quoter() {
 
               <div className="space-y-4">
                 <input type="text" placeholder="Nombre completo..." value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold outline-none ring-2 ring-gray-50 focus:ring-orange-500/10" />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input type="email" placeholder="Correo electrónico..." value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold outline-none ring-2 ring-gray-50 focus:ring-orange-500/10" />
                   <input type="tel" placeholder="WhatsApp (Opcional)..." value={formData.whatsapp} onChange={e => setFormData({ ...formData, whatsapp: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold outline-none ring-2 ring-gray-50 focus:ring-orange-500/10" />
                 </div>
               </div>
 
-              <div className="flex gap-4 mt-8">
+              <div className="flex flex-col sm:flex-row gap-4 mt-8">
                 <button
                   onClick={enviarCotizacion}
                   className="flex-1 bg-gray-100 hover:bg-gray-200 text-[#0B132B] py-5 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center justify-center gap-2"
