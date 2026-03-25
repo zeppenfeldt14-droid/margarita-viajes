@@ -185,6 +185,7 @@ export default function Quoter() {
       if (!response.ok) throw new Error('El servidor rechazó la petición');
       
       setIsSuccess(true);
+      showToast('Cotización enviada con éxito al correo y WhatsApp.', 'success');
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
     } catch (error) {
@@ -292,8 +293,7 @@ export default function Quoter() {
                   <div className="space-y-4 max-w-sm mx-auto">
                     <button
                       onClick={() => {
-                        const baseUrl = window.location.origin.includes('localhost') ? 'https://margarita-viajes.onrender.com' : window.location.origin;
-                        const pdfLink = `${baseUrl}/api/public/quotes/${quoteId}/pdf`;
+                        const pdfLink = `${window.location.origin}/api/public/quotes/${quoteId}/pdf`;
                         const text = encodeURIComponent(`Hola, acabo de cotizar ${selectedHotel?.name}.\nAquí puedes descargar mi cotización: ${pdfLink}\n\nMi folio es: ${quoteId}`);
                         window.open(`https://wa.me/${(activeConfig.telefono || '584246861748').replace(/\D/g, '')}?text=${text}`, '_blank');
                       }}

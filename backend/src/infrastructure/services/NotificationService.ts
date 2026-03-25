@@ -47,8 +47,15 @@ export class NotificationService {
   }
   async sendQuoteEmail(quote: any, pdfBuffer?: Buffer) {
     const email = quote.clientEmail || quote.client_email || quote.email;
+    console.log(`[NotificationService] Intentando enviar email a: ${email} para cotización ${quote.id || quote.folio}`);
+    
     if (!email) {
-      console.warn('[NotificationService] No hay email para enviar la cotización');
+      console.warn('[NotificationService] No se puede enviar email: campo "email" está vacío');
+      return;
+    }
+
+    if (!process.env.SMTP_PASS) {
+      console.error('[NotificationService] ERROR CRÍTICO: SMTP_PASS no está configurado. El correo NO se enviará.');
       return;
     }
 
@@ -58,14 +65,14 @@ export class NotificationService {
       cc: 'margaritaviaje@gmail.com',
       bcc: 'margaritaviajegerenciaop@gmail.com',
       subject: `Cotización Margarita Viajes - ${quote.hotelName || quote.hotel_name || quote.hotel}`,
-      text: `Hola ${quote.clientName || quote.client_name},\n\nAdjuntamos la cotización solicitada para tu viaje a ${quote.hotelName || quote.hotel_name || quote.hotel}.\n\nPuedes descargarla directamente desde este enlace: https://margarita-viajes.onrender.com/api/public/quotes/${quote.id || quote.folio}/pdf\n\nSaludos,\nEquipo Margarita Viajes`,
+      text: `Hola ${quote.clientName || quote.client_name || 'Cliente'},\n\nAdjuntamos la cotización solicitada para tu viaje a ${quote.hotelName || quote.hotel_name || quote.hotel}.\n\nPuedes descargarla directamente desde este enlace: ${process.env.APP_URL || 'https://margarita-viajes.onrender.com'}/api/public/quotes/${quote.id || quote.folio}/pdf\n\nSaludos,\nEquipo Margarita Viajes`,
       html: `
         <div style="font-family: sans-serif; padding: 20px; color: #0B132B;">
-          <h2 style="color: #ea580c;">¡Hola ${quote.clientName || quote.client_name}!</h2>
+          <h2 style="color: #ea580c;">¡Hola ${quote.clientName || quote.client_name || 'Cliente'}!</h2>
           <p>Adjuntamos la cotización solicitada para tu viaje a <strong>${quote.hotelName || quote.hotel_name || quote.hotel}</strong>.</p>
           <p>También puedes descargarla o verla directamente haciendo clic en el siguiente botón:</p>
           <div style="margin: 30px 0;">
-            <a href="https://margarita-viajes.onrender.com/api/public/quotes/${quote.id || quote.folio}/pdf" 
+            <a href="${process.env.APP_URL || 'https://margarita-viajes.onrender.com'}/api/public/quotes/${quote.id || quote.folio}/pdf" 
                style="background-color: #0B132B; color: white; padding: 15px 25px; text-decoration: none; border-radius: 10px; font-weight: bold;">
                Descargar Cotización en PDF
             </a>
@@ -87,17 +94,25 @@ export class NotificationService {
     try {
       await this.transporter.sendMail(mailOptions);
       console.log(`[NotificationService] Email enviado con éxito a ${email}`);
-    } catch (error) {
-      console.error('[NotificationService] Error enviando email:', error);
+    } catch (error: any) {
+      console.error('[NotificationService] FALLO AL ENVIAR EMAIL:', error.message);
     }
   }
 
   async sendQuoteWhatsApp(quote: any) {
     const phoneNumber = quote.clientPhone || quote.client_phone || quote.whatsapp;
-    if (!phoneNumber) return;
+    console.log(`[NotificationService] Intentando enviar WhatsApp a: ${phoneNumber}`);
+    
+    if (!phoneNumber) {
+      console.warn('[NotificationService] No se puede enviar WhatsApp: campo "phone" está vacío');
+      return;
+    }
 
     const fromPhone = process.env.TWILIO_PHONE_NUMBER;
     if (!this.twilioClient || !fromPhone) {
+      console.warn('[NotificationService] Twilio no configurado. Ignorando envío de WhatsApp automático.');
+      return;
+    }
       console.warn('[NotificationService] Twilio WhatsApp no configurado');
       return;
     }
