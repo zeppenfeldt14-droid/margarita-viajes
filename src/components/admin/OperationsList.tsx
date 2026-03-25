@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, ShieldCheck, AlertCircle, Briefcase, Users, X, Search, Printer, Eye, Download } from 'lucide-react';
+import { Calendar, ShieldCheck, AlertCircle, Briefcase, Users, X, Search, Printer, Eye, Download, Phone, Mail } from 'lucide-react';
 import { api } from '../../services/api';
 import { showToast } from '../Toast';
 import { Card, SectionTitle } from './Common';

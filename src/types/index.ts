@@ -59,6 +59,8 @@ export type Quotation = {
   season?: string;
   includeTransfer?: boolean;
   transferId?: string;
+  client_email?: string;
+  client_phone?: string;
 }
 
 export type Reservation = { 
@@ -87,6 +89,6 @@ export type Reservation = {
   createdAt: string; 
 }
 
-export type Operation = Reservation & { technicalSheet?: { passengers: any[]; savedAt: string; }; hotelResponseImage?: string; paymentProofImage?: string; companions?: any[]; itinerary?: string; transferProvider?: string; }
+export type Operation = Reservation & { technicalSheet?: { passengers: any[]; savedAt: string; }; hotelResponseImage?: string; paymentProofImage?: string; companions?: any[]; itinerary?: string; itineraryDetails?: string; transferProvider?: string; hotelLogo?: string; }
 
 export type StaffUser = { id: string; name: string; email: string; role: string; status: boolean; photo?: string; alias: string; password?: string; modules: { inventory: boolean; quotes: boolean; bookings: boolean; operations: boolean; users: boolean; customers: boolean; marketing: boolean; webconfig: boolean; }; targetHours: number; level: number; connectionLogs: { date: string; connectedHours: number }[]; actionLogs: { date: string; action: string; module: string }[]; }

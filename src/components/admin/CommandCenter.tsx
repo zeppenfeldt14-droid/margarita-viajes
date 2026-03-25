@@ -1,32 +1,26 @@
-import React, { useMemo } from 'react';
 import { 
   Users, 
   TrendingUp, 
-  Clock, 
   AlertCircle, 
   ClipboardList, 
-  MapPin, 
-  Plane, 
   Hotel as HotelIcon,
-  Activity
+  Activity,
+  Phone,
+  Mail
 } from 'lucide-react';
 import { 
   BarChart, 
   Bar, 
   XAxis, 
   YAxis, 
-  CartesianGrid, 
   Tooltip, 
   ResponsiveContainer, 
   PieChart, 
   Pie, 
-  Cell,
-  AreaChart,
-  Area
+  Cell
 } from 'recharts';
 import { motion } from 'framer-motion';
 import { useGlobalData } from '../../context/GlobalContext';
-import { Card } from './Common';
 import { formatDateVisual } from '../../utils/helpers';
 
 export default function CommandCenter() {
