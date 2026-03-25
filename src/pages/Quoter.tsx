@@ -220,14 +220,8 @@ export default function Quoter() {
       onclone: (clonedDoc) => {
         const style = clonedDoc.createElement('style');
         style.innerHTML = `
-          * { oklch: none !important; color-scheme: light !important; }
-          [class*="oklch"] { color: #0B132B !important; background-color: transparent !important; }
-          .bg-white { background-color: #ffffff !important; }
-          .text-[#0B132B] { color: #0B132B !important; }
-          .text-orange-500 { color: #f97316 !important; }
-          .bg-slate-100 { background-color: #f1f5f9 !important; }
-          .bg-[#0B132B] { background-color: #0B132B !important; }
-          .text-white { color: #ffffff !important; }
+          * { -webkit-print-color-adjust: exact !important; color-scheme: light !important; }
+          body { background: white !important; }
         `;
         clonedDoc.head.appendChild(style);
       }
@@ -681,78 +675,84 @@ export default function Quoter() {
       </footer>
       <ToastContainer />
 
-      {/* CONTENEDOR DE PDF (Visibilidad controlada v49) */}
+      {/* CONTENEDOR DE PDF AISLADO (v50: Estilos Inline Puros para evadir oklch) */}
       <div 
         id="pdf-content" 
-        className={`fixed top-0 left-0 w-[800px] bg-white p-12 font-sans overflow-hidden z-[-1] transition-opacity duration-300 ${showPdfPreview ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
-        style={{ transform: showPdfPreview ? 'none' : 'translateX(-9999px)' }}
+        style={{ 
+          position: 'fixed', top: 0, left: 0, width: '800px', 
+          backgroundColor: '#ffffff', padding: '48px', fontFamily: 'Arial, sans-serif',
+          zIndex: -1, opacity: showPdfPreview ? 1 : 0,
+          visibility: showPdfPreview ? 'visible' : 'hidden',
+          transform: showPdfPreview ? 'none' : 'translateX(-9999px)',
+          color: '#0B132B', lineHeight: '1.5'
+        }}
       >
-        {/* ENCABEZADO DEL PDF: 3 COLUMNAS (AGENCIA - INFO - HOTEL) */}
-        <div className="flex items-center justify-between border-b-2 border-gray-200 pb-6 mb-6">
+        {/* ENCABEZADO: 3 COLUMNAS */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid #e5e7eb', paddingBottom: '24px', marginBottom: '24px' }}>
           
-          {/* Izquierda: Logo Agencia */}
-          <div className="w-32 h-20 flex items-center justify-start shrink-0">
+          {/* Logo Agencia */}
+          <div style={{ width: '128px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
             {activeConfig?.logoImage ? (
-              <img src={activeConfig.logoImage} alt="Margarita Viajes" className="max-h-full max-w-full object-contain" crossOrigin="anonymous" />
+              <img src={activeConfig.logoImage} alt="Logo" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} crossOrigin="anonymous" />
             ) : (
-              <span className="font-black text-orange-500 text-xl leading-none">Margarita Viajes</span>
+              <span style={{ fontWeight: '900', color: '#f97316', fontSize: '20px' }}>Margarita Viajes</span>
             )}
           </div>
 
-          {/* Centro: Datos Agencia */}
-          <div className="flex-1 text-center px-4">
-            <h2 className="font-black text-lg uppercase text-[#0B132B]">{activeConfig?.agencyName || activeConfig?.nombreEmpresa || 'Margarita Viajes'}</h2>
-            <p className="font-bold text-xs text-gray-600 mt-1">RIF: {activeConfig?.rif || 'J-40156646-4'} | RTN: {activeConfig?.rtn || '13314'}</p>
-            <p className="text-[11px] text-gray-500 italic mt-2 max-w-sm mx-auto leading-tight">{activeConfig?.direccion || 'Calle La Ceiba, Sector El Otro Lado del Río, La Asunción'}</p>
+          {/* Datos Agencia */}
+          <div style={{ flex: 1, textAlign: 'center', padding: '0 16px' }}>
+            <h2 style={{ fontWeight: '900', fontSize: '18px', textTransform: 'uppercase', color: '#0B132B', margin: '0' }}>{activeConfig?.agencyName || 'Margarita Viajes C.A.'}</h2>
+            <p style={{ fontWeight: 'bold', fontSize: '12px', color: '#4b5563', margin: '4px 0 0' }}>RIF: {activeConfig?.rif || 'J-40156646-4'} | RTN: {activeConfig?.rtn || '13314'}</p>
+            <p style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', margin: '8px auto 0', maxWidth: '384px' }}>{activeConfig?.direccion || 'Calle La Ceiba, Sector El Otro Lado del Río, La Asunción'}</p>
           </div>
 
-          {/* Derecha: Logo Hotel */}
-          <div className="w-32 h-20 flex items-center justify-end shrink-0">
-            {selectedHotel?.logo || (selectedHotel as any)?.logoImage ? (
-              <img src={selectedHotel?.logo || (selectedHotel as any)?.logoImage} alt={selectedHotel?.name} className="max-h-full max-w-full object-contain rounded-lg" crossOrigin="anonymous" />
+          {/* Logo Hotel */}
+          <div style={{ width: '128px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+            {selectedHotel?.logo ? (
+              <img src={selectedHotel.logo} alt="Hotel" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', borderRadius: '8px' }} crossOrigin="anonymous" />
             ) : (
-              <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-[8px] text-gray-400 font-bold text-center">SIN LOGO<br />HOTEL</div>
+              <div style={{ width: '64px', height: '64px', backgroundColor: '#f3f4f6', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', color: '#9ca3af', fontWeight: 'bold', textAlign: 'center' }}>SIN LOGO<br/>HOTEL</div>
             )}
           </div>
-
         </div>
 
-        {/* RESTO DEL CONTENIDO PARA PDF (EMULACIÓN) */}
-        <div className="space-y-6">
-          <div className="bg-slate-100 p-4 rounded-xl flex justify-between font-black text-xs uppercase text-[#0B132B]">
+        {/* CONTENIDO PRINCIPAL */}
+        <div>
+          <div style={{ backgroundColor: '#f1f5f9', padding: '16px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', fontWeight: '900', fontSize: '12px', textTransform: 'uppercase', color: '#0B132B', marginBottom: '24px' }}>
             <span>Estimado Cliente: {formData.name}</span>
             <span>Folio: {quoteId}</span>
           </div>
 
-          <table className="w-full text-left border-collapse">
+          <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', marginBottom: '24px' }}>
             <tbody>
-              <tr className="border-b border-gray-100">
-                <td className="py-3 font-bold text-gray-500 text-[10px] uppercase w-1/4">Hotel/Servicio:</td>
-                <td className="py-3 font-black text-[#0B132B] uppercase">{selectedHotel.name}</td>
-                <td className="py-3 font-bold text-gray-500 text-[10px] uppercase w-1/4">Check-In:</td>
-                <td className="py-3 font-black text-[#0B132B] uppercase">{formData.checkIn}</td>
+              <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                <td style={{ padding: '12px 0', fontWeight: 'bold', color: '#6b7280', fontSize: '10px', textTransform: 'uppercase', width: '25%' }}>Hotel/Servicio:</td>
+                <td style={{ padding: '12px 0', fontWeight: '900', color: '#0B132B', textTransform: 'uppercase' }}>{selectedHotel.name}</td>
+                <td style={{ padding: '12px 0', fontWeight: 'bold', color: '#6b7280', fontSize: '10px', textTransform: 'uppercase', width: '25%' }}>Check-In:</td>
+                <td style={{ padding: '12px 0', fontWeight: '900', color: '#0B132B', textTransform: 'uppercase' }}>{formData.checkIn}</td>
               </tr>
-              <tr className="border-b border-gray-100">
-                <td className="py-3 font-bold text-gray-500 text-[10px] uppercase">Plan Seleccionado:</td>
-                <td className="py-3 font-black text-orange-500 uppercase">{selectedHotel.plan || 'No especificado'}</td>
-                <td className="py-3 font-bold text-gray-500 text-[10px] uppercase">Check-Out:</td>
-                <td className="py-3 font-black text-[#0B132B] uppercase">{formData.checkOut}</td>
+              <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                <td style={{ padding: '12px 0', fontWeight: 'bold', color: '#6b7280', fontSize: '10px', textTransform: 'uppercase' }}>Plan Seleccionado:</td>
+                <td style={{ padding: '12px 0', fontWeight: '900', color: '#f97316', textTransform: 'uppercase' }}>{selectedHotel.plan || 'No especificado'}</td>
+                <td style={{ padding: '12px 0', fontWeight: 'bold', color: '#6b7280', fontSize: '10px', textTransform: 'uppercase' }}>Check-Out:</td>
+                <td style={{ padding: '12px 0', fontWeight: '900', color: '#0B132B', textTransform: 'uppercase' }}>{formData.checkOut}</td>
               </tr>
-              <tr className="border-b border-gray-100">
-                <td className="py-3 font-bold text-gray-500 text-[10px] uppercase">Categoría:</td>
-                <td className="py-3 font-black text-[#0B132B] uppercase">{selectedHotel.type === 'full-day' ? 'SERVICIO FULL DAY' : (selectedHotel.rooms.find(r => r.id === formData.roomType)?.name || 'Estándar')}</td>
-                <td className="py-3 font-bold text-gray-500 text-[10px] uppercase">Pasajeros:</td>
-                <td className="py-3 font-black text-[#0B132B] uppercase">{formData.pax} Adultos / {formData.children} Niños</td>
+              <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                <td style={{ padding: '12px 0', fontWeight: 'bold', color: '#6b7280', fontSize: '10px', textTransform: 'uppercase' }}>Categoría:</td>
+                <td style={{ padding: '12px 0', fontWeight: '900', color: '#0B132B', textTransform: 'uppercase' }}>{selectedHotel.type === 'full-day' ? 'SERVICIO FULL DAY' : (selectedHotel.rooms.find(r => r.id === formData.roomType)?.name || 'Estándar')}</td>
+                <td style={{ padding: '12px 0', fontWeight: 'bold', color: '#6b7280', fontSize: '10px', textTransform: 'uppercase' }}>Pasajeros:</td>
+                <td style={{ padding: '12px 0', fontWeight: '900', color: '#0B132B', textTransform: 'uppercase' }}>{Number(formData.pax) + Number(formData.children)} Personas</td>
               </tr>
             </tbody>
           </table>
 
-          <div className="bg-[#0B132B] p-8 rounded-3xl text-white flex justify-between items-center mt-10">
-            <span className="font-black italic uppercase tracking-widest text-sm">Total Neto a Pagar</span>
-            <span className="text-4xl font-black italic">$ {finalPrice.toLocaleString()}</span>
+          {/* TOTAL */}
+          <div style={{ backgroundColor: '#0B132B', padding: '32px', borderRadius: '24px', color: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '40px' }}>
+            <span style={{ fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '14px' }}>Total Neto a Pagar</span>
+            <span style={{ fontSize: '36px', fontWeight: '900', fontStyle: 'italic' }}>$ {finalPrice.toLocaleString()}</span>
           </div>
 
-          <p className="text-[10px] font-bold text-red-600 text-center mt-20 uppercase px-12 leading-relaxed">
+          <p style={{ fontSize: '10px', fontWeight: 'bold', color: '#dc2626', textAlign: 'center', marginTop: '80px', textTransform: 'uppercase', padding: '0 48px', lineHeight: '1.5' }}>
             PRECIOS Y DISPONIBILIDAD SUJETOS A CAMBIOS AL MOMENTO DE RESERVA Y EMISIÓN | CONSULTAR SIEMPRE ANTES DE REALIZAR EL PAGO.
           </p>
         </div>

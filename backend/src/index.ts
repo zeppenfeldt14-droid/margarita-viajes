@@ -56,7 +56,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-app.use(express.json({ limit: '100mb' }));
+app.use(express.json({ limit: '50mb' }));
 
 // Health check para monitorear el backend en Render
 app.get('/health', (req: Request, res: Response) => {
@@ -66,7 +66,7 @@ app.get('/health', (req: Request, res: Response) => {
     environment: process.env.NODE_ENV || 'development'
   });
 });
-app.use(express.urlencoded({ limit: '100mb', extended: true }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Configuración Estricta de Base de Datos para Persistencia Real
 const databaseUrl = process.env.DATABASE_URL;
@@ -139,6 +139,18 @@ app.use('/api', createRouter(quoteController, adminController, authController, l
 // Debe ir AL FINAL de todas las definiciones de ruta de la API
 app.use('/api', (req: Request, res: Response) => {
   res.status(404).json({ error: `Ruta API no encontrada: ${req.originalUrl}` });
+});
+
+// --- MANEJADOR DE ERRORES GLOBAL (v50) ---
+// Evita que un payload masivo o error inesperado apague el servidor (Status 1)
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ error: 'El PDF/Archivo es demasiado pesado para el servidor (Límite 50MB).' });
+  }
+  console.error('❌ Error Crítico (No-Crash):', err);
+  if (!res.headersSent) {
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
 });
 
 
