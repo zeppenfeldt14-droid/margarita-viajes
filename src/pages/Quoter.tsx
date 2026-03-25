@@ -222,7 +222,21 @@ export default function Quoter() {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        onclone: (clonedDoc) => {
+          const style = clonedDoc.createElement('style');
+          style.innerHTML = `
+            * { color-scheme: light !important; }
+            [class*="oklch"] { color: #0B132B !important; background-color: transparent !important; }
+            .bg-white { background-color: #ffffff !important; }
+            .text-[#0B132B] { color: #0B132B !important; }
+            .text-orange-500 { color: #f97316 !important; }
+            .bg-slate-100 { background-color: #f1f5f9 !important; }
+            .bg-[#0B132B] { background-color: #0B132B !important; }
+            .text-white { color: #ffffff !important; }
+          `;
+          clonedDoc.head.appendChild(style);
+        }
       } as any);
       
       const imgData = canvas.toDataURL('image/jpeg', 0.8);
