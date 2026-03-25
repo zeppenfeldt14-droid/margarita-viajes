@@ -27,6 +27,15 @@ export class AdminController {
     private notificationService: NotificationService
   ) {}
 
+  private cleanForAudit(data: any): string {
+    if (!data) return '';
+    if (typeof data === 'string') return data;
+    const clean = { ...data };
+    const blackList = ['hotelResponseImage', 'paymentProofImage', 'pdfBase64', 'hotelLogo', 'photos', 'logo', 'image'];
+    blackList.forEach(key => { if (clean[key]) clean[key] = '[OMITIDO_POR_PESO]'; });
+    return JSON.stringify(clean);
+  }
+
   async getUsers(req: Request, res: Response) {
     try {
       const users = await this.userRepo.findAll();
@@ -134,7 +143,7 @@ export class AdminController {
         action: 'CREATE',
         tableName: 'hotels',
         recordId: hotel.id,
-        newValue: JSON.stringify(hotel)
+        newValue: this.cleanForAudit(hotel)
       });
 
       return res.status(201).json(hotel);
@@ -171,7 +180,7 @@ export class AdminController {
         action: 'UPDATE',
         tableName: 'hotels',
         recordId: id,
-        newValue: JSON.stringify(req.body)
+        newValue: this.cleanForAudit(req.body)
       });
 
       return res.status(200).json({ message: 'Hotel updated' });
@@ -212,7 +221,7 @@ export class AdminController {
   async createTransfer(req: Request, res: Response) {
     try {
       const transfer = await this.transferRepo.create(req.body);
-      await this.auditRepo.log({ action: 'CREATE', tableName: 'transfers', recordId: transfer.id, newValue: JSON.stringify(transfer) });
+      await this.auditRepo.log({ action: 'CREATE', tableName: 'transfers', recordId: transfer.id, newValue: this.cleanForAudit(transfer) });
       return res.status(201).json(transfer);
     } catch (error: any) {
       return res.status(500).json({ message: error.message });
@@ -330,7 +339,7 @@ export class AdminController {
         action: 'CREATE',
         tableName: 'operations',
         recordId: operation.id,
-        newValue: JSON.stringify(operation)
+        newValue: this.cleanForAudit(operation)
       });
       return res.status(201).json(operation);
     } catch (error: any) {
@@ -364,7 +373,7 @@ export class AdminController {
         action: 'UPDATE',
         tableName: 'operations',
         recordId: id,
-        newValue: JSON.stringify(req.body)
+        newValue: this.cleanForAudit(req.body)
       });
 
       return res.json(operation);
@@ -395,7 +404,7 @@ export class AdminController {
         action: 'CREATE',
         tableName: 'reservations',
         recordId: reservation.id,
-        newValue: JSON.stringify(reservation)
+        newValue: this.cleanForAudit(reservation)
       });
       return res.status(201).json(reservation);
     } catch (error: any) {
@@ -409,6 +418,13 @@ export class AdminController {
       
       // Sincronización v24: Auto-generar Operación
       await this.syncOperationFromReservation(reservation);
+
+      await this.auditRepo.log({
+        action: 'UPDATE',
+        tableName: 'reservations',
+        recordId: req.params['id'] as string,
+        newValue: this.cleanForAudit(req.body)
+      });
 
       return res.json(reservation);
     } catch (error: any) {

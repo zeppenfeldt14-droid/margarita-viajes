@@ -11,8 +11,8 @@ export class PostgresAuditRepository implements IAuditRepository {
       action: audit.action,
       table_name: audit.tableName,
       record_id: audit.recordId,
-      old_data: audit.oldValue,
-      new_data: audit.newValue
+      old_data: typeof audit.oldValue === 'object' ? JSON.stringify(audit.oldValue) : audit.oldValue,
+      new_data: typeof audit.newValue === 'object' ? JSON.stringify(audit.newValue) : audit.newValue
     });
   }
 }
