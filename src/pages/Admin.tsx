@@ -392,19 +392,20 @@ export default function AdminDashboard({ user }: AdminProps) {
                     <tbody className="text-sm font-bold">
                       {(quotes || [])
                         .filter((q: Quotation) => {
+                          if (!q) return false;
                           // Restricción de visibilidad por nivel (RBAC)
                           if (!isDataMaster) {
                             // Asesores solo ven lo suyo o lo recibido sin asignar
-                            const isAssignedToMe = q.assignedTo === userAlias;
-                            const isUnassigned = !q.assignedTo || q.assignedTo === '';
+                            const isAssignedToMe = q?.assignedTo === userAlias;
+                            const isUnassigned = !q?.assignedTo || q?.assignedTo === '';
                             if (!isAssignedToMe && !isUnassigned) return false;
                           }
 
-                          const matchesSearch = (q.clientName || q.client_name)?.toLowerCase().includes(quoteSearchTerm.toLowerCase()) || q.id?.toString().includes(quoteSearchTerm);
+                          const matchesSearch = (q?.clientName || q?.client_name)?.toLowerCase().includes(quoteSearchTerm.toLowerCase()) || q?.id?.toString().includes(quoteSearchTerm);
                           if (!matchesSearch) return false;
-                          if (quoteFilter === 'original') return q.status === 'Nuevo' && !String(q.id).includes('-01');
-                          if (quoteFilter === 'discounted') return String(q.id).includes('-01');
-                          if (quoteFilter === 'history') return q.status === 'Atendido' || q.status === 'Reserva' || q.status === 'Nuevo';
+                          if (quoteFilter === 'original') return q?.status === 'Nuevo' && !String(q?.id).includes('-01');
+                          if (quoteFilter === 'discounted') return String(q?.id).includes('-01');
+                          if (quoteFilter === 'history') return q?.status === 'Atendido' || q?.status === 'Reserva' || q?.status === 'Nuevo';
                           return true;
                         })
                         .map((quote: Quotation) => (
@@ -654,9 +655,9 @@ export default function AdminDashboard({ user }: AdminProps) {
                     <div className="bg-blue-50/50 p-8 rounded-[2rem] border border-blue-100">
                       <h5 className="text-[10px] font-black uppercase tracking-widest text-blue-800 mb-4 flex items-center gap-2"><Globe size={16} /> Resumen de la Plataforma</h5>
                       <div className="space-y-4">
-                        <div className="flex justify-between items-center border-b border-blue-100/50 pb-2"><span className="text-[11px] font-bold text-blue-600/70">Usuarios Activos</span><span className="text-sm font-black italic text-blue-900">{(users || []).filter(u => (u as any).active !== false).length}</span></div>
-                        <div className="flex justify-between items-center border-b border-blue-100/50 pb-2"><span className="text-[11px] font-bold text-blue-600/70">Hoteles en Inventario</span><span className="text-sm font-black italic text-blue-900">{hotels?.length || 0}</span></div>
-                        <div className="flex justify-between items-center"><span className="text-[11px] font-bold text-blue-600/70">Cotizaciones Totales</span><span className="text-sm font-black italic text-blue-900">{quotes?.length || 0}</span></div>
+                        <div className="flex justify-between items-center border-b border-blue-100/50 pb-2"><span className="text-[11px] font-bold text-blue-600/70">Usuarios Activos</span><span className="text-sm font-black italic text-blue-900">{(users || []).filter(u => u && (u as any).active !== false).length}</span></div>
+                        <div className="flex justify-between items-center border-b border-blue-100/50 pb-2"><span className="text-[11px] font-bold text-blue-600/70">Hoteles en Inventario</span><span className="text-sm font-black italic text-blue-900">{(hotels || []).filter(h => !!h).length}</span></div>
+                        <div className="flex justify-between items-center"><span className="text-[11px] font-bold text-blue-600/70">Cotizaciones Totales</span><span className="text-sm font-black italic text-blue-900">{(quotes || []).filter(q => !!q).length}</span></div>
                       </div>
                     </div>
                   </div>

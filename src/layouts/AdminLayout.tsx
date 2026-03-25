@@ -8,9 +8,9 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
   const [location, setLocation] = useLocation();
   const { quotes, reservations, operations } = useGlobalData();
 
-  const newQuotesCount = (quotes || []).filter(q => q.status === 'Nuevo').length;
-  const pendingReservationsCount = (reservations || []).filter(r => r.status === 'Pendiente').length;
-  const pendingOperationsCount = (operations || []).filter(o => o.status === 'Pendiente').length;
+  const newQuotesCount = (quotes || []).filter(q => q?.status === 'Nuevo').length;
+  const pendingReservationsCount = (reservations || []).filter(r => r?.status === 'Pendiente').length;
+  const pendingOperationsCount = (operations || []).filter(o => o?.status === 'Pendiente').length;
 
   const NAV_ITEMS = [
     { title: "INICIO", path: "/admin", icon: <LayoutDashboard size={16} /> },

@@ -96,14 +96,14 @@ export default function OperationsList({
 
     const headers = ['Folio', 'Cliente', 'Hotel', 'CheckIn', 'CheckOut', 'Estado', 'Itinerario', 'Proveedor'];
     const rows = filtered.map(op => [
-      op.id,
-      op.clientName,
-      op.hotelName,
-      op.checkIn,
-      op.checkOut,
-      op.status,
-      (op.itinerary || '').replace(/,/g, ';'),
-      op.transferProvider || ''
+      op?.id,
+      op?.clientName,
+      op?.hotelName,
+      op?.checkIn,
+      op?.checkOut,
+      op?.status,
+      (op?.itinerary || '').replace(/,/g, ';'),
+      op?.transferProvider || ''
     ]);
 
     const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
@@ -202,12 +202,12 @@ export default function OperationsList({
 
                     // Filtro de pestaña
                     if (opFilter === 'pendientes') {
-                      const isIncompleteTransfer = op.includeTransfer && (!op.itinerary || !op.transferProvider);
-                      if (op.status !== 'Pendiente' && !isIncompleteTransfer) return false;
+                      const isIncompleteTransfer = op?.includeTransfer && (!op?.itinerary || !op?.transferProvider);
+                      if (op?.status !== 'Pendiente' && !isIncompleteTransfer) return false;
                       if (isPast) return false;
                     } else if (opFilter === 'activas') {
-                      const isIncompleteTransfer = op.includeTransfer && (!op.itinerary || !op.transferProvider);
-                      if (op.status === 'Pendiente' || isIncompleteTransfer || isClosed || isPast) return false;
+                      const isIncompleteTransfer = op?.includeTransfer && (!op?.itinerary || !op?.transferProvider);
+                      if (op?.status === 'Pendiente' || isIncompleteTransfer || isClosed || isPast) return false;
                     } else if (opFilter === 'historial') {
                       if (!isClosed && !isPast) return false;
                     }

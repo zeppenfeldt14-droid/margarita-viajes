@@ -64,20 +64,20 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
 
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = !searchTerm || 
-        (res.clientName?.toLowerCase().includes(searchLower)) ||
-        (res.id?.toLowerCase().includes(searchLower)) ||
-        (res.quoteId?.toLowerCase().includes(searchLower));
+        (res?.clientName?.toLowerCase().includes(searchLower)) ||
+        (res?.id?.toLowerCase().includes(searchLower)) ||
+        (res?.quoteId?.toLowerCase().includes(searchLower));
       
       if (!matchesSearch) return false;
 
-      if (selectedMonth !== 'all') {
+      if (selectedMonth !== 'all' && res?.checkIn) {
         const checkInDate = new Date(res.checkIn);
         if (checkInDate.getMonth() !== selectedMonth) return false;
       }
 
       if (!isDataMaster) {
-        const isAssignedToMe = res.assignedTo === userAlias;
-        const isUnassigned = !res.assignedTo || res.assignedTo === '';
+        const isAssignedToMe = res?.assignedTo === userAlias;
+        const isUnassigned = !res?.assignedTo || res?.assignedTo === '';
         if (!isAssignedToMe && !isUnassigned) return false;
       }
 
