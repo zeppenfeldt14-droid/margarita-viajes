@@ -123,4 +123,68 @@ export class NotificationService {
       console.error('[NotificationService] Error enviando WhatsApp:', error);
     }
   }
+
+  async sendVoucherEmail(operation: any, pdfBuffer?: Buffer) {
+    const email = operation.email || operation.clientEmail || operation.client_email;
+    if (!email) return console.warn('[NotificationService] No hay email para enviar el voucher');
+
+    const mailOptions: any = {
+      from: process.env.SMTP_USER || 'margaritaviaje@gmail.com',
+      to: email,
+      cc: 'margaritaviaje@gmail.com',
+      subject: `Voucher de Viaje Margarita Viajes - ${operation.clientName || 'Cliente'}`,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; color: #0B132B;">
+          <h2 style="color: #0ea5e9;">¡Tu voucher está listo!</h2>
+          <p>Hola <strong>${operation.clientName}</strong>, adjuntamos tu comprobante oficial para tu estadía en <strong>${operation.hotelName}</strong>.</p>
+          <p>Puedes acceder a tu voucher digital en cualquier momento desde este enlace:</p>
+          <div style="margin: 30px 0;">
+            <a href="https://margarita-viajes.onrender.com/api/public/vouchers/${operation.id}" 
+               style="background-color: #0ea5e9; color: white; padding: 15px 25px; text-decoration: none; border-radius: 10px; font-weight: bold;">
+               Ver Voucher Digital
+            </a>
+          </div>
+          <p>¡Feliz viaje!<br><strong>Equipo Margarita Viajes</strong></p>
+        </div>
+      `
+    };
+
+    if (pdfBuffer) {
+      mailOptions.attachments = [{ filename: `Voucher_${operation.id}.pdf`, content: pdfBuffer }];
+    }
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(`[NotificationService] Voucher enviado a ${email}`);
+    } catch (error) {
+      console.error('[NotificationService] Error enviando voucher:', error);
+    }
+  }
+
+  async sendReservationEmail(reservation: any, pdfBuffer?: Buffer) {
+    const email = reservation.email || reservation.clientEmail;
+    if (!email) return;
+
+    const mailOptions: any = {
+      from: process.env.SMTP_USER || 'margaritaviaje@gmail.com',
+      to: email,
+      subject: `Confirmación de Reserva Margarita Viajes - ${reservation.id}`,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; color: #0B132B;">
+          <h2 style="color: #10b981;">Reserva Confirmada</h2>
+          <p>Hola <strong>${reservation.clientName}</strong>, te re-enviamos los detalles de tu reservación para <strong>${reservation.hotelName}</strong>.</p>
+          <p><strong>Folio:</strong> ${reservation.id}</p>
+          <p><strong>Check-in:</strong> ${reservation.checkIn}</p>
+          <p>Saludos,<br><strong>Equipo Margarita Viajes</strong></p>
+        </div>
+      `
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(`[NotificationService] Confirmación re-enviada a ${email}`);
+    } catch (error) {
+      console.error('[NotificationService] Error re-enviando reserva:', error);
+    }
+  }
 }

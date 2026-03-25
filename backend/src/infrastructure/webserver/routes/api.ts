@@ -4,13 +4,15 @@ import { QuoteController } from '../controllers/QuoteController.js';
 import { AdminController } from '../controllers/AdminController.js';
 import { AuthController } from '../controllers/AuthController.js';
 import { LogController } from '../controllers/LogController.js';
+import { CommunicationController } from '../controllers/CommunicationController.js';
 import { authMiddleware } from '../middlewares/auth.js';
 
 export function createRouter(
   quoteController: QuoteController, 
   adminController: AdminController,
   authController: AuthController,
-  logController: LogController
+  logController: LogController,
+  communicationController: CommunicationController
 ) {
   const router = express.Router();
 
@@ -91,6 +93,9 @@ export function createRouter(
   // Logs: Lectura solo Master (Nivel 1), Escritura para TODOS (Nivel 1, 2, 3)
   router.get('/admin/logs', masterAuth, (req: Request, res: Response) => logController.getLogs(req, res));
   router.post('/admin/logs', (req: Request, res: Response) => logController.createLog(req, res));
+
+  // Communications (NUEVO v33)
+  router.post('/communications/dispatch', (req: Request, res: Response) => communicationController.dispatch(req, res));
 
   return router;
 }

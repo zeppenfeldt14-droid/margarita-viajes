@@ -182,6 +182,20 @@ export const api = {
       body: JSON.stringify(logData),
     });
   },
+  dispatchCommunication: async (data: {
+    type: 'email' | 'whatsapp';
+    target: 'client' | 'provider';
+    recipient: string;
+    subject?: string;
+    message?: string;
+    documentId: string;
+    documentType: 'quote' | 'reservation' | 'voucher';
+  }) => {
+    return fetchWithAuth('/communications/dispatch', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
   getBaseUrl: () => API_URL
 };
 

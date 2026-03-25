@@ -145,6 +145,8 @@ export default function Quoter() {
 
   const finalPrice = calculateDiscountedPrice(totalPrice, discountPercent);
 
+  const [isSuccess, setIsSuccess] = useState(false);
+
   const enviarCotizacion = async () => {
     if (!formData.name || !formData.email) {
       alert("Por favor completa tu nombre y correo de contacto.");
@@ -181,9 +183,9 @@ export default function Quoter() {
       const response = await api.createQuote(newQuote);
 
       if (!response.ok) throw new Error('El servidor rechazó la petición');
-
-      alert(`¡Cotización ${quoteId} enviada con éxito!\nRevisa tu correo electrónico.`);
-      setLocation("/");
+      
+      setIsSuccess(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
 
     } catch (error) {
       console.error('Error de conexión:', error);
@@ -278,255 +280,289 @@ export default function Quoter() {
             </div>
           </div>
 
-          <div className="bg-white rounded-[3rem] shadow-2xl p-6 md:p-14 border border-gray-50 flex flex-col space-y-8 animate-in slide-in-from-right-8 duration-700">
-            <div className={`grid ${selectedHotel.type === 'full-day' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-6`}>
-              <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{selectedHotel.type === 'full-day' ? 'FECHA DEL PASEO' : 'LLEGADA'}</label>
-                <div className="relative">
-                  <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-orange-500" size={18} />
-                  <input type="date" min={minDate} value={formData.checkIn} onChange={e => {
-                    const val = e.target.value;
-                    setFormData(prev => ({ ...prev, checkIn: val, checkOut: selectedHotel.type === 'full-day' ? val : prev.checkOut }));
-                  }} className="w-full bg-gray-50 rounded-2xl py-4 pl-14 pr-6 text-xs font-bold ring-2 ring-gray-100 outline-none focus:ring-orange-500/20" />
-                </div>
-              </div>
-
-              {selectedHotel.type !== 'full-day' && (
-                <div className="space-y-2">
-                  <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">SALIDA</label>
-                  <div className="relative">
-                    <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-orange-500" size={18} />
-                    <input type="date" min={formData.checkIn || minDate} value={formData.checkOut} onChange={e => setFormData({ ...formData, checkOut: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-4 pl-14 pr-6 text-xs font-bold ring-2 ring-gray-100 outline-none focus:ring-orange-500/20" />
+            <div className={`bg-white rounded-[3rem] shadow-2xl p-6 md:p-14 border border-gray-50 flex flex-col space-y-8 animate-in slide-in-from-right-8 duration-700 ${isSuccess ? 'justify-center' : ''}`}>
+              {isSuccess ? (
+                <div className="text-center py-10 animate-in fade-in zoom-in duration-500">
+                  <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8">
+                    <Check size={48} />
                   </div>
-                </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">ADULTOS (13+)</label>
-                <select
-                  value={formData.pax}
-                  onChange={e => setFormData({ ...formData, pax: e.target.value })}
-                  className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold ring-2 ring-gray-100 outline-none focus:ring-orange-500/20 transition-all uppercase"
-                >
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">NIÑOS (4-{childAgeLimit})</label>
-                <select
-                  value={formData.children}
-                  onChange={e => setFormData({ ...formData, children: e.target.value })}
-                  className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold ring-2 ring-gray-100 outline-none focus:ring-orange-500/20 transition-all uppercase"
-                >
-                  <option value="0">0</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">INFANTES (0-3)</label>
-                <select
-                  value={formData.infants}
-                  onChange={e => setFormData({ ...formData, infants: e.target.value })}
-                  className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold ring-2 ring-gray-100 outline-none focus:ring-orange-500/20 transition-all uppercase"
-                >
-                  <option value="0">0</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                </select>
-              </div>
-            </div>
-
-            {parseInt(formData.children) > 0 && (
-              <div className="space-y-3 animate-in slide-in-from-top-2 duration-300">
-                <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest ml-1">Edad de cada niño:</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {(formData.childAges || []).map((age, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-orange-50 p-3 rounded-xl">
-                      <span className="text-[9px] font-bold text-orange-600">Niño {idx + 1}:</span>
-                      <select
-                        value={age}
-                        onChange={(e) => {
-                          const newAges = [...(formData.childAges || [])];
-                          newAges[idx] = parseInt(e.target.value);
-                          setFormData({ ...formData, childAges: newAges });
-                        }}
-                        className="flex-1 bg-white rounded-lg py-2 px-2 text-xs font-bold outline-none"
-                      >
-                        {[...Array(13)].map((_, i) => (
-                          <option key={i} value={i}>{i} años</option>
-                        ))}
-                      </select>
-                      {age < 4 && <span className="text-[8px] text-green-600 font-bold">(Gratis)</span>}
-                      {age > childAgeLimit && <span className="text-[8px] text-red-500 font-bold">(Adulto)</span>}
-                    </div>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between bg-blue-50 p-3 rounded-xl">
-                  <span className="text-[9px] font-black text-blue-600 uppercase">Ocupación habitación:</span>
-                  <span className="text-xs font-black text-blue-600">{occupancy.adults} Adultos + {occupancy.childrenSharingRoom} Niños = {occupancy.roomCapacity} personas</span>
-                </div>
-              </div>
-            )}
-
-            {seasonError && (
-              <div className="space-y-4 animate-in fade-in duration-300">
-                <div className="bg-red-50 text-red-500 p-6 rounded-[1.5rem] border border-red-100 flex items-center gap-4">
-                  <div className="w-10 h-10 bg-red-500 text-white rounded-xl flex items-center justify-center shrink-0">
-                    <X size={18} />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest">Fecha No Disponible</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {!formData.checkIn && (
-              <div className="space-y-4 animate-in fade-in duration-300">
-                <div className="bg-green-100 text-green-700 p-6 rounded-[1.5rem] border border-green-200 flex items-center gap-4">
-                  <div className="w-10 h-10 bg-green-500 text-white rounded-xl flex items-center justify-center shrink-0">
-                    <Calendar size={18} />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest">Seleccione otra fecha</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {!seasonError && (
-              <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
-                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                  {selectedHotel.type === 'full-day' ? 'TARIFA / PERSONA' : 'TIPO DE HABITACIÓN'}
-                </label>
-                <select value={formData.roomType} onChange={e => setFormData({ ...formData, roomType: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold ring-2 ring-gray-100 outline-none uppercase italic">
-                  <option value="">-- {selectedHotel.type === 'full-day' ? 'Selecciona Tarifa' : 'Selecciona Categoría'} --</option>
-                  {selectedHotel.rooms
-                    .filter(r => selectedHotel.type === 'full-day' ? true : r.capacity >= occupancy.roomCapacity)
-                    .map(r => (
-                      <option key={r.id} value={r.id}>
-                        {r.name} {selectedHotel.type !== 'full-day' && `(Cap: ${r.capacity} Personas)`}
-                      </option>
-                    ))}
-                </select>
-                {priceInfo && (
-                  <div className="flex items-center gap-4 text-[10px] font-bold text-gray-400 mt-2">
-                    <span>Temporada: {priceInfo.season}</span>
-                    <span>×</span>
-                    <span>{priceInfo.nights} noche{priceInfo.nights > 1 ? 's' : ''}</span>
-                    <span>×</span>
-                    <span>{priceInfo.pax} pax</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {selectedHotel.type !== 'full-day' && !seasonError && (
-              <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
-                <div className="p-6 bg-slate-50 rounded-[1.5rem] border border-gray-100 flex items-center justify-between group cursor-pointer" onClick={() => setFormData({ ...formData, includeTransfer: !formData.includeTransfer })}>
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${formData.includeTransfer ? 'bg-orange-500 text-white' : 'bg-white text-gray-300'}`}>
-                      <Plane size={24} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Servicio Opcional</p>
-                      <p className="text-xs font-black uppercase text-[#0B132B]">Incluir Traslado (Aeropuerto/Ferry)</p>
-                    </div>
-                  </div>
-                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${formData.includeTransfer ? 'bg-orange-500 border-orange-500 text-white' : 'border-gray-200'}`}>
-                    {formData.includeTransfer && <Check size={16} strokeWidth={4} />}
-                  </div>
-                </div>
-
-                {formData.includeTransfer && (
-                  <div className="px-6 space-y-3 animate-in slide-in-from-top-2 duration-300">
-                    <select
-                      value={formData.transferId}
-                      onChange={e => setFormData({ ...formData, transferId: e.target.value })}
-                      className="w-full bg-gray-50 rounded-xl py-3 px-4 text-[10px] font-black text-[#0B132B] uppercase ring-2 ring-gray-100 outline-none"
+                  <h2 className="text-4xl font-black italic uppercase text-[#0B132B] mb-4 tracking-tighter">¡Cotización Lista!</h2>
+                  <p className="text-gray-500 font-bold mb-8 uppercase text-xs tracking-widest">Folio: {quoteId}</p>
+                  
+                  <div className="space-y-4 max-w-sm mx-auto">
+                    <button
+                      onClick={() => {
+                        const baseUrl = window.location.origin.includes('localhost') ? 'https://margarita-viajes.onrender.com' : window.location.origin;
+                        const pdfLink = `${baseUrl}/api/public/quotes/${quoteId}/pdf`;
+                        const text = encodeURIComponent(`Hola, acabo de cotizar ${selectedHotel?.name}.\nAquí puedes descargar mi cotización: ${pdfLink}\n\nMi folio es: ${quoteId}`);
+                        window.open(`https://wa.me/${(activeConfig.telefono || '584246861748').replace(/\D/g, '')}?text=${text}`, '_blank');
+                      }}
+                      className="w-full bg-green-500 hover:bg-green-600 text-white py-5 rounded-2xl font-black text-xs tracking-widest uppercase transition-all flex items-center justify-center gap-3 shadow-xl shadow-green-500/20"
                     >
-                      <option value="">-- Selecciona Ruta --</option>
-                      {availableTransfers.map(t => (
-                        <option key={t.id} value={t.id}>{t.route} - ${t.salePrice}</option>
-                      ))}
-                    </select>
+                      <MessageCircle size={20} /> Enviar por WhatsApp
+                    </button>
+                    <button
+                      onClick={() => setLocation('/')}
+                      className="w-full bg-gray-100 hover:bg-gray-200 text-[#0B132B] py-5 rounded-2xl font-black text-xs tracking-widest uppercase transition-all"
+                    >
+                      Volver al Inicio
+                    </button>
                   </div>
-                )}
-              </div>
-            )}
-
-            <div className="border-t border-dashed border-gray-200 pt-8">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex gap-2">
-                  <input type="text" placeholder="Código de descuento" value={couponCode} onChange={(e) => setCouponCode(e.target.value)} className="bg-white border-2 border-gray-100 rounded-xl px-4 py-2 text-[10px] font-black uppercase outline-none focus:border-orange-500" />
-                  <button onClick={applyCoupon} className="bg-[#0B132B] text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-orange-600 transition-all">Aplicar</button>
                 </div>
-              </div>
-              <div className="flex items-center justify-between mb-8 pt-4 border-t border-dashed border-gray-200">
-                <div className="flex flex-col items-start gap-2">
-                  {priceInfo?.season && (
-                    <span className="bg-orange-600 text-white text-[10px] px-3 py-1.5 rounded-full font-black uppercase shadow-sm border border-orange-700 flex items-center justify-center w-fit">
-                      Temporada: {priceInfo.season}
-                    </span>
+              ) : (
+                <>
+                  <div className={`grid ${selectedHotel.type === 'full-day' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-6`}>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{selectedHotel.type === 'full-day' ? 'FECHA DEL PASEO' : 'LLEGADA'}</label>
+                      <div className="relative">
+                        <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-orange-500" size={18} />
+                        <input type="date" min={minDate} value={formData.checkIn} onChange={e => {
+                          const val = e.target.value;
+                          setFormData(prev => ({ ...prev, checkIn: val, checkOut: selectedHotel.type === 'full-day' ? val : prev.checkOut }));
+                        }} className="w-full bg-gray-50 rounded-2xl py-4 pl-14 pr-6 text-xs font-bold ring-2 ring-gray-100 outline-none focus:ring-orange-500/20" />
+                      </div>
+                    </div>
+
+                    {selectedHotel.type !== 'full-day' && (
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">SALIDA</label>
+                        <div className="relative">
+                          <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-orange-500" size={18} />
+                          <input type="date" min={formData.checkIn || minDate} value={formData.checkOut} onChange={e => setFormData({ ...formData, checkOut: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-4 pl-14 pr-6 text-xs font-bold ring-2 ring-gray-100 outline-none focus:ring-orange-500/20" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">ADULTOS (13+)</label>
+                      <select
+                        value={formData.pax}
+                        onChange={e => setFormData({ ...formData, pax: e.target.value })}
+                        className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold ring-2 ring-gray-100 outline-none focus:ring-orange-500/20 transition-all uppercase"
+                      >
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">NIÑOS (4-{childAgeLimit})</label>
+                      <select
+                        value={formData.children}
+                        onChange={e => setFormData({ ...formData, children: e.target.value })}
+                        className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold ring-2 ring-gray-100 outline-none focus:ring-orange-500/20 transition-all uppercase"
+                      >
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">INFANTES (0-3)</label>
+                      <select
+                        value={formData.infants}
+                        onChange={e => setFormData({ ...formData, infants: e.target.value })}
+                        className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold ring-2 ring-gray-100 outline-none focus:ring-orange-500/20 transition-all uppercase"
+                      >
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {parseInt(formData.children) > 0 && (
+                    <div className="space-y-3 animate-in slide-in-from-top-2 duration-300">
+                      <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest ml-1">Edad de cada niño:</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {(formData.childAges || []).map((age, idx) => (
+                          <div key={idx} className="flex items-center gap-2 bg-orange-50 p-3 rounded-xl">
+                            <span className="text-[9px] font-bold text-orange-600">Niño {idx + 1}:</span>
+                            <select
+                              value={age}
+                              onChange={(e) => {
+                                const newAges = [...(formData.childAges || [])];
+                                newAges[idx] = parseInt(e.target.value);
+                                setFormData({ ...formData, childAges: newAges });
+                              }}
+                              className="flex-1 bg-white rounded-lg py-2 px-2 text-xs font-bold outline-none"
+                            >
+                              {[...Array(13)].map((_, i) => (
+                                <option key={i} value={i}>{i} años</option>
+                              ))}
+                            </select>
+                            {age < 4 && <span className="text-[8px] text-green-600 font-bold">(Gratis)</span>}
+                            {age > childAgeLimit && <span className="text-[8px] text-red-500 font-bold">(Adulto)</span>}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex items-center justify-between bg-blue-50 p-3 rounded-xl">
+                        <span className="text-[9px] font-black text-blue-600 uppercase">Ocupación habitación:</span>
+                        <span className="text-xs font-black text-blue-600">{occupancy.adults} Adultos + {occupancy.childrenSharingRoom} Niños = {occupancy.roomCapacity} personas</span>
+                      </div>
+                    </div>
                   )}
-                  {selectedHotel.plan && (
-                    <span className="bg-[#0B132B] text-white text-[10px] px-3 py-1.5 rounded-full font-black uppercase shadow-sm border border-slate-700 flex items-center justify-center w-fit">
-                      PLAN: {selectedHotel.plan}
-                    </span>
+
+                  {seasonError && (
+                    <div className="space-y-4 animate-in fade-in duration-300">
+                      <div className="bg-red-50 text-red-500 p-6 rounded-[1.5rem] border border-red-100 flex items-center gap-4">
+                        <div className="w-10 h-10 bg-red-500 text-white rounded-xl flex items-center justify-center shrink-0">
+                          <X size={18} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest">Fecha No Disponible</p>
+                        </div>
+                      </div>
+                    </div>
                   )}
-                </div>
-                <div className="text-right flex-1">
-                  {discountPercent > 0 && <span className="block text-sm font-bold text-red-500 line-through mb-1">$ {totalPrice.toLocaleString()}</span>}
-                  <span className="block text-3xl font-black italic text-[#0B132B] uppercase tracking-tighter shadow-sm">
-                    $ {finalPrice.toLocaleString()}
-                  </span>
-                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em]">Total a Pagar {discountPercent > 0 ? `(-${discountPercent}%)` : ''}</span>
-                </div>
-              </div>
 
-              <div className="space-y-4">
-                <input type="text" placeholder="Nombre completo..." value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold outline-none ring-2 ring-gray-50 focus:ring-orange-500/10" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input type="email" placeholder="Correo electrónico..." value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold outline-none ring-2 ring-gray-50 focus:ring-orange-500/10" />
-                  <input type="tel" placeholder="WhatsApp (Opcional)..." value={formData.whatsapp} onChange={e => setFormData({ ...formData, whatsapp: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold outline-none ring-2 ring-gray-50 focus:ring-orange-500/10" />
-                </div>
-              </div>
+                  {!formData.checkIn && (
+                    <div className="space-y-4 animate-in fade-in duration-300">
+                      <div className="bg-green-100 text-green-700 p-6 rounded-[1.5rem] border border-green-200 flex items-center gap-4">
+                        <div className="w-10 h-10 bg-green-500 text-white rounded-xl flex items-center justify-center shrink-0">
+                          <Calendar size={18} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest">Seleccione otra fecha</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-              <div className="flex flex-col sm:flex-row gap-4 mt-8">
-                <button
-                  onClick={enviarCotizacion}
-                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-[#0B132B] py-5 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center justify-center gap-2"
-                >
-                  <Mail size={16} /> Enviar al Correo
-                </button>
+                  {!seasonError && (
+                    <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
+                      <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                        {selectedHotel.type === 'full-day' ? 'TARIFA / PERSONA' : 'TIPO DE HABITACIÓN'}
+                      </label>
+                      <select value={formData.roomType} onChange={e => setFormData({ ...formData, roomType: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold ring-2 ring-gray-100 outline-none uppercase italic">
+                        <option value="">-- {selectedHotel.type === 'full-day' ? 'Selecciona Tarifa' : 'Selecciona Categoría'} --</option>
+                        {selectedHotel.rooms
+                          .filter(r => selectedHotel.type === 'full-day' ? true : r.capacity >= occupancy.roomCapacity)
+                          .map(r => (
+                            <option key={r.id} value={r.id}>
+                              {r.name} {selectedHotel.type !== 'full-day' && `(Cap: ${r.capacity} Personas)`}
+                            </option>
+                          ))}
+                      </select>
+                      {priceInfo && (
+                        <div className="flex items-center gap-4 text-[10px] font-bold text-gray-400 mt-2">
+                          <span>Temporada: {priceInfo.season}</span>
+                          <span>×</span>
+                          <span>{priceInfo.nights} noche{priceInfo.nights > 1 ? 's' : ''}</span>
+                          <span>×</span>
+                          <span>{priceInfo.pax} pax</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                <button
-                  onClick={() => window.open(`https://wa.me/${(activeConfig.telefono || '584246861748').replace(/\D/g, '')}?text=Hola, quiero cotizar ${selectedHotel?.name}`)}
-                  className="flex-1 bg-green-500 hover:bg-green-600 text-white py-5 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center justify-center gap-2 shadow-xl shadow-green-500/20"
-                >
-                  <MessageCircle size={16} /> Vía WhatsApp
-                </button>
+                  {selectedHotel.type !== 'full-day' && !seasonError && (
+                    <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+                      <div className="p-6 bg-slate-50 rounded-[1.5rem] border border-gray-100 flex items-center justify-between group cursor-pointer" onClick={() => setFormData({ ...formData, includeTransfer: !formData.includeTransfer })}>
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${formData.includeTransfer ? 'bg-orange-500 text-white' : 'bg-white text-gray-300'}`}>
+                            <Plane size={24} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Servicio Opcional</p>
+                            <p className="text-xs font-black uppercase text-[#0B132B]">Incluir Traslado (Aeropuerto/Ferry)</p>
+                          </div>
+                        </div>
+                        <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${formData.includeTransfer ? 'bg-orange-500 border-orange-500 text-white' : 'border-gray-200'}`}>
+                          {formData.includeTransfer && <Check size={16} strokeWidth={4} />}
+                        </div>
+                      </div>
+
+                      {formData.includeTransfer && (
+                        <div className="px-6 space-y-3 animate-in slide-in-from-top-2 duration-300">
+                          <select
+                            value={formData.transferId}
+                            onChange={e => setFormData({ ...formData, transferId: e.target.value })}
+                            className="w-full bg-gray-50 rounded-xl py-3 px-4 text-[10px] font-black text-[#0B132B] uppercase ring-2 ring-gray-100 outline-none"
+                          >
+                            <option value="">-- Selecciona Ruta --</option>
+                            {availableTransfers.map(t => (
+                              <option key={t.id} value={t.id}>{t.route} - ${t.salePrice}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="border-t border-dashed border-gray-200 pt-8">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex gap-2">
+                        <input type="text" placeholder="Código de descuento" value={couponCode} onChange={(e) => setCouponCode(e.target.value)} className="bg-white border-2 border-gray-100 rounded-xl px-4 py-2 text-[10px] font-black uppercase outline-none focus:border-orange-500" />
+                        <button onClick={applyCoupon} className="bg-[#0B132B] text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-orange-600 transition-all">Aplicar</button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between mb-8 pt-4 border-t border-dashed border-gray-200">
+                      <div className="flex flex-col items-start gap-2">
+                        {priceInfo?.season && (
+                          <span className="bg-orange-600 text-white text-[10px] px-3 py-1.5 rounded-full font-black uppercase shadow-sm border border-orange-700 flex items-center justify-center w-fit">
+                            Temporada: {priceInfo.season}
+                          </span>
+                        )}
+                        {selectedHotel.plan && (
+                          <span className="bg-[#0B132B] text-white text-[10px] px-3 py-1.5 rounded-full font-black uppercase shadow-sm border border-slate-700 flex items-center justify-center w-fit">
+                            PLAN: {selectedHotel.plan}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-right flex-1">
+                        {discountPercent > 0 && <span className="block text-sm font-bold text-red-500 line-through mb-1">$ {totalPrice.toLocaleString()}</span>}
+                        <span className="block text-3xl font-black italic text-[#0B132B] uppercase tracking-tighter shadow-sm">
+                          $ {finalPrice.toLocaleString()}
+                        </span>
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em]">Total a Pagar {discountPercent > 0 ? `(-${discountPercent}%)` : ''}</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <input type="text" placeholder="Nombre completo..." value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold outline-none ring-2 ring-gray-50 focus:ring-orange-500/10" />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="email" placeholder="Correo electrónico..." value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold outline-none ring-2 ring-gray-50 focus:ring-orange-500/10" />
+                        <input type="tel" placeholder="WhatsApp (Opcional)..." value={formData.whatsapp} onChange={e => setFormData({ ...formData, whatsapp: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold outline-none ring-2 ring-gray-50 focus:ring-orange-500/10" />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-4 mt-8">
+                      <button
+                        onClick={enviarCotizacion}
+                        className="flex-1 bg-gray-100 hover:bg-gray-200 text-[#0B132B] py-5 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center justify-center gap-2"
+                      >
+                        <Mail size={16} /> Enviar al Correo
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          const text = encodeURIComponent(`Hola, estoy interesado en cotizar ${selectedHotel?.name} para ${formData.pax} adultos.`);
+                          window.open(`https://wa.me/${(activeConfig.telefono || '584246861748').replace(/\D/g, '')}?text=${text}`, '_blank');
+                        }}
+                        className="flex-1 bg-green-500 hover:bg-green-600 text-white py-5 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center justify-center gap-2 shadow-xl shadow-green-500/20"
+                      >
+                        <MessageCircle size={16} /> Consultar WhatsApp
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div className="flex items-center justify-center gap-2 pt-4 border-t border-gray-100">
+                <ShieldCheck className="text-green-500" size={16} />
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.1em]">Transacción Protegida - Margarita Viajes</span>
               </div>
             </div>
-
-            <div className="flex items-center justify-center gap-2 pt-4">
-              <ShieldCheck className="text-green-500" size={16} />
-              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.1em]">Transacción Protegida - Margarita Viajes</span>
-            </div>
-
           </div>
-        </div>
       </main>
 
 

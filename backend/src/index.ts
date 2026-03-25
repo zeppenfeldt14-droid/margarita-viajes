@@ -20,6 +20,7 @@ import { QuoteController } from './infrastructure/webserver/controllers/QuoteCon
 import { AdminController } from './infrastructure/webserver/controllers/AdminController.js';
 import { AuthController } from './infrastructure/webserver/controllers/AuthController.js';
 import { LogController } from './infrastructure/webserver/controllers/LogController.js';
+import { CommunicationController } from './infrastructure/webserver/controllers/CommunicationController.js';
 import dotenv from 'dotenv';
 import { createRouter } from './infrastructure/webserver/routes/api.js';
 import { NotificationService } from './infrastructure/services/NotificationService.js';
@@ -123,10 +124,16 @@ const adminController = new AdminController(
 );
 const authController = new AuthController(userRepository);
 const logController = new LogController(logRepository);
+const communicationController = new CommunicationController(
+  reservationRepository,
+  operationRepository,
+  quoteRepository,
+  notificationService
+);
 
 // --- RUTAS DE LA API ---
 // IMPORTANTE: Registrar las rutas ANTES de cualquier manejador general de 404
-app.use('/api', createRouter(quoteController, adminController, authController, logController));
+app.use('/api', createRouter(quoteController, adminController, authController, logController, communicationController));
 
 // Manejador global de 404 para la API  ...
 // Debe ir AL FINAL de todas las definiciones de ruta de la API
