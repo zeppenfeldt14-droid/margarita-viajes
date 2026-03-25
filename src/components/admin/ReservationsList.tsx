@@ -417,6 +417,25 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                         </div>
                         <div className="flex items-center gap-2">
                           <button
+                            title="Re-enviar Confirmación"
+                            onClick={async () => {
+                              try {
+                                const res = await api.dispatchCommunication({
+                                  type: 'email',
+                                  target: 'client',
+                                  recipient: selectedReservation.email,
+                                  documentId: selectedReservation.id,
+                                  documentType: 'reservation'
+                                });
+                                if (res.ok) showToast('✅ Confirmación enviada al cliente');
+                                else showToast('❌ Error al enviar confirmación');
+                              } catch (e) { showToast('❌ Error de comunicación'); }
+                            }}
+                            className="w-10 h-10 bg-green-50 text-green-600 rounded-xl flex items-center justify-center hover:bg-green-100 transition-all shadow-sm border border-green-200"
+                          >
+                            <Mail size={18} />
+                          </button>
+                          <button
                             title="Ver Vista Previa"
                             onClick={() => {
                               const url = `${api.getBaseUrl()}/public/vouchers/${selectedReservation.id}`;

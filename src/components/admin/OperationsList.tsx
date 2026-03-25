@@ -590,11 +590,50 @@ export default function OperationsList({
             <div className="p-8 border-t border-gray-100 flex items-center justify-between bg-gray-50/50 print-hidden">
               <div className="flex gap-4">
                 <button
+                  onClick={async () => {
+                    try {
+                      const res = await api.dispatchCommunication({
+                        type: 'whatsapp',
+                        target: 'provider',
+                        recipient: selectedOperation.transferProvider || '',
+                        documentId: selectedOperation.id,
+                        documentType: 'voucher'
+                      });
+                      if (res.ok) showToast('✅ Itinerario enviado al proveedor (WA)');
+                      else showToast('❌ Error al notificar proveedor');
+                    } catch (e) { showToast('❌ Error de comunicación'); }
+                  }}
+                  className="w-12 h-12 bg-green-500 text-white rounded-2xl flex items-center justify-center hover:bg-green-600 transition-all shadow-xl"
+                  title="Notificar Proveedor (WhatsApp)"
+                >
+                  <Phone size={20} />
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await api.dispatchCommunication({
+                        type: 'email',
+                        target: 'client',
+                        recipient: selectedOperation.email,
+                        documentId: selectedOperation.id,
+                        documentType: 'voucher'
+                      });
+                      if (res.ok) showToast('✅ Voucher enviado al cliente (Email)');
+                      else showToast('❌ Error al enviar voucher');
+                    } catch (e) { showToast('❌ Error de comunicación'); }
+                  }}
+                  className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center hover:bg-blue-700 transition-all shadow-xl"
+                  title="Enviar Voucher (Email)"
+                >
+                  <Mail size={20} />
+                </button>
+                <div className="w-px h-12 bg-gray-200 mx-2"></div>
+                <button
                   onClick={() => {
                     const url = `${api.getBaseUrl()}/public/vouchers/${selectedOperation.id}`;
                     window.open(url, '_blank');
                   }}
-                  className="w-12 h-12 bg-[#0B132B] text-white rounded-2xl flex items-center justify-center hover:bg-blue-700 transition-all shadow-xl"
+                  className="w-12 h-12 bg-gray-100 text-[#0B132B] rounded-2xl flex items-center justify-center hover:bg-gray-200 transition-all shadow-md border border-gray-200"
                   title="Ver Vista Previa"
                 >
                   <Eye size={20} />
@@ -610,7 +649,7 @@ export default function OperationsList({
                     link.click();
                     document.body.removeChild(link);
                   }}
-                  className="w-12 h-12 bg-gray-200 text-[#0B132B] rounded-2xl flex items-center justify-center hover:bg-gray-300 transition-all shadow-xl"
+                  className="w-12 h-12 bg-gray-100 text-[#0B132B] rounded-2xl flex items-center justify-center hover:bg-gray-200 transition-all shadow-md border border-gray-200"
                   title="Descargar PDF"
                 >
                   <Download size={20} />

@@ -180,9 +180,52 @@ export default function CommandCenter() {
               </div>
             </div>
           ))}
-          <button className="w-full py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[8px] font-black uppercase tracking-widest transition-colors mt-2 text-gray-400">
-            Ver todo el equipo
+          <button className="w-full py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[8px] font-black uppercase tracking-widest transition-colors mt-2 text-gray-400 border border-white/5">
+            Canal Interno
           </button>
+        </div>
+      </motion.div>
+
+      {/* NUEVO: CONTACTO RÁPIDO */}
+      <motion.div 
+        whileHover={{ y: -5 }}
+        className="col-span-1 md:col-span-1 bg-white p-6 rounded-[2.5rem] shadow-xl border border-gray-100 group"
+      >
+        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-2">
+          <Mail size={14} className="text-orange-500" /> Contacto Rápido
+        </h3>
+        <div className="space-y-4">
+          {(quotes || []).slice(0, 2).map((q, i) => (
+            <div key={i} className="p-3 bg-gray-50 rounded-2xl flex items-center justify-between group/item hover:bg-orange-50 transition-all border border-transparent hover:border-orange-100">
+               <div className="flex flex-col">
+                 <span className="text-[10px] font-black uppercase text-[#0B132B] truncate max-w-[80px]">{q.clientName || q.client_name}</span>
+                 <span className="text-[8px] font-bold text-gray-400 uppercase">{q.id}</span>
+               </div>
+               <div className="flex gap-1">
+                 <button 
+                  onClick={async () => {
+                    const recipient = q.email || q.client_email;
+                    if (!recipient) return alert('Sin email');
+                    window.location.href = `mailto:${recipient}?subject=Seguimiento Cotización ${q.id}`;
+                  }}
+                  className="w-8 h-8 bg-white text-blue-600 rounded-lg flex items-center justify-center shadow-sm hover:bg-blue-600 hover:text-white transition-all"
+                 >
+                   <Mail size={12} />
+                 </button>
+                 <button 
+                  onClick={() => {
+                    const phone = q.whatsapp || q.client_phone || '';
+                    if (!phone) return alert('Sin teléfono');
+                    window.open(`https://wa.me/${phone.replace(/\D/g, '')}?text=Hola, te contacto de Margarita Viajes por tu cotización ${q.id}`, '_blank');
+                  }}
+                  className="w-8 h-8 bg-white text-green-600 rounded-lg flex items-center justify-center shadow-sm hover:bg-green-600 hover:text-white transition-all"
+                 >
+                   <Phone size={12} />
+                 </button>
+               </div>
+            </div>
+          ))}
+          {quotes.length === 0 && <p className="text-[9px] text-gray-400 text-center py-4 font-bold uppercase italic tracking-widest">Sin leads recientes</p>}
         </div>
       </motion.div>
 
