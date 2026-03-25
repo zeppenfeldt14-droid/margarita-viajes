@@ -34,11 +34,20 @@ export default function CommandCenter() {
 
   // 1. Tráfico PAX Hoy (Cerradas/Confirmadas hoy)
   const todayPax = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
-    return (operations || []).filter(op => {
-      const opDate = new Date(op.createdAt || "").toISOString().split('T')[0];
-      return opDate === today && ['Confirmada', 'Venta Cerrada', 'Confirmada'].includes(op.status);
-    }).reduce((acc, op) => acc + Number(op.pax || 0) + Number(op.children || 0) + Number(op.infants || 0), 0);
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      return (operations || []).filter(op => {
+        if (!op.createdAt) return false;
+        try {
+          const opDate = new Date(op.createdAt).toISOString().split('T')[0];
+          return opDate === today && ['Confirmada', 'Venta Cerrada', 'Reserva', 'Venta Concretada'].includes(op.status);
+        } catch (e) {
+          return false;
+        }
+      }).reduce((acc, op) => acc + Number(op.pax || 0) + Number(op.children || 0) + Number(op.infants || 0), 0);
+    } catch (e) {
+      return 0;
+    }
   }, [operations]);
 
   // 2. Alertas Logísticas (Pendientes Críticas)
@@ -56,10 +65,14 @@ export default function CommandCenter() {
 
   // 5. Datos para Gráfico de Embudo (Ficticio para Recharts Funnel o Bar)
   const funnelData = useMemo(() => {
-    const total = quotes.length || 1;
-    const attended = quotes.filter(q => q.status === 'Atendido').length;
-    const booked = reservations.length;
-    const closed = operations.length;
+    const qList = quotes || [];
+    const rList = reservations || [];
+    const oList = operations || [];
+
+    const total = qList.length || 1;
+    const attended = qList.filter(q => q.status === 'Atendido').length;
+    const booked = rList.length;
+    const closed = oList.length;
     
     return [
       { name: 'Leads', value: total, fill: '#6366f1' },
