@@ -137,7 +137,7 @@ export default function Home({ onAdminClick }: HomeProps) {
         </div>
       </header>
       {/* HERO SECTION CON BANNER Y BUSCADOR DROPDOWN */}
-      <div className="w-full h-[500px] bg-cover bg-center relative" style={{ backgroundImage: `url(${config?.bannerImage || '/assets/img/hero-bg.jpg'})` }}>
+      <div className="w-full h-[400px] md:h-[500px] bg-cover bg-center relative" style={{ backgroundImage: `url(${config?.bannerImage || '/assets/img/hero-bg.jpg'})` }}>
         <div className="absolute inset-0 bg-blue-900/40 backdrop-blur-[1px]"></div>
 
         <div className="absolute inset-0 flex flex-col items-center pt-12 text-center px-6">
@@ -167,7 +167,7 @@ export default function Home({ onAdminClick }: HomeProps) {
             ))}
           </div>
 
-          <div className="mt-10 flex gap-4">
+          <div className="mt-10 hidden md:flex gap-4">
             <button
               onClick={() => document.getElementById('hoteles')?.scrollIntoView({ behavior: 'smooth' })}
               className="bg-[#ea580c] text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-orange-500/20 hover:scale-105 transition-all"
@@ -185,7 +185,7 @@ export default function Home({ onAdminClick }: HomeProps) {
         </div>
 
         {/* BUSCADOR (COTIZADOR) DROPDOWN */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-4 z-20">
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-4 z-20 hidden md:block">
           <div className="bg-white p-6 rounded-[2.5rem] shadow-2xl flex flex-col md:flex-row gap-4 items-center justify-between border border-gray-100 ring-4 ring-white/10">
             <div className="flex items-center gap-4 px-6 py-4 w-full md:border-r border-gray-100">
               <MapPin className="text-orange-500 shrink-0" size={24} />
@@ -243,7 +243,7 @@ export default function Home({ onAdminClick }: HomeProps) {
         </div>
       </div>
 
-      <div className="h-40"></div>
+      <div className="h-40 hidden md:block"></div>
 
       {sectionOrder.map(section => {
         if (section === 'hotels' && randomHotels.length > 0) return (
