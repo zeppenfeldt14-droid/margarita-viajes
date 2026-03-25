@@ -209,4 +209,34 @@ export class NotificationService {
       console.error('[NotificationService] Error re-enviando reserva:', error);
     }
   }
+
+  async sendHotelRequestEmail(reservation: any, body: string, recipient?: string) {
+    const hotelEmail = recipient || reservation.hotelEmail;
+    if (!hotelEmail) {
+      console.warn('[NotificationService] No hay email para el hotel');
+      return;
+    }
+
+    const mailOptions: any = {
+      from: process.env.SMTP_USER || 'margaritaviaje@gmail.com',
+      to: hotelEmail,
+      cc: 'margaritaviaje@gmail.com',
+      subject: `Solicitud de Reserva - ${reservation.clientName}`,
+      text: body,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; color: #0B132B; white-space: pre-wrap;">
+          ${body.replace(/\n/g, '<br>')}
+        </div>
+      `
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(`[NotificationService] Solicitud enviada al hotel ${hotelEmail}`);
+      return { ok: true };
+    } catch (error: any) {
+      console.error('[NotificationService] Error enviando solicitud al hotel:', error);
+      throw error;
+    }
+  }
 }

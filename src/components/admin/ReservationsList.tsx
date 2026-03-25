@@ -505,10 +505,26 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
             </div>
             <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex gap-4">
               <button onClick={() => setShowEmailModal(false)} className="flex-1 bg-white border-2 border-gray-200 text-gray-600 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all">Cancelar</button>
-              <button onClick={() => {
-                const mailtoLink = `mailto:${emailConfig.recipient}?subject=${encodeURIComponent(emailConfig.subject)}&body=${encodeURIComponent(emailConfig.body)}`;
-                window.location.href = mailtoLink;
-                setShowEmailModal(false);
+              <button onClick={async () => {
+                try {
+                  const res = await api.dispatchCommunication({
+                    type: 'email',
+                    target: 'provider',
+                    recipient: emailConfig.recipient,
+                    subject: emailConfig.subject,
+                    body: emailConfig.body,
+                    documentId: selectedReservation.id,
+                    documentType: 'reservation'
+                  });
+                  if ((res as any).ok) {
+                    showToast('✅ Solicitud enviada al hotel');
+                    setShowEmailModal(false);
+                  } else {
+                    showToast('❌ Error al enviar solicitud');
+                  }
+                } catch (e) {
+                  showToast('❌ Error de conexión al servidor');
+                }
               }} className="flex-1 bg-blue-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-2"><Mail size={16} /> Enviar correo a hotel</button>
             </div>
           </div>

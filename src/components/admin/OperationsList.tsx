@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Calendar, ShieldCheck, AlertCircle, Briefcase, Users, X, Search, Printer, Eye, Download, Phone, Mail } from 'lucide-react';
+import { Calendar, ShieldCheck, AlertCircle, Briefcase, Users, X, Search, Printer, Eye, Download, Phone, Mail, Loader2 } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import { api } from '../../services/api';
 import { showToast } from '../Toast';
 import { Card, SectionTitle } from './Common';
@@ -33,6 +35,32 @@ export default function OperationsList({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [transfers, setTransfers] = useState<any[]>([]);
   const [savingStatus, setSavingStatus] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+
+  const generatePDFBase64 = async () => {
+    const element = document.getElementById('operation-print-content');
+    if (!element) return null;
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+      
+      const imgData = canvas.toDataURL('image/jpeg', 0.8);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      return pdf.output('datauristring').split(',')[1];
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      return null;
+    }
+  };
 
   const MONTHS = [
     { value: 'all', label: 'Todos los Meses' },
@@ -594,22 +622,33 @@ export default function OperationsList({
                 </button>
                 <button
                   onClick={async () => {
+                    setIsSendingEmail(true);
                     try {
+                      const pdfBase64 = await generatePDFBase64();
+                      
                       const res = await api.dispatchCommunication({
                         type: 'email',
                         target: 'client',
                         recipient: selectedOperation.email,
                         documentId: selectedOperation.id,
-                        documentType: 'operation'
+                        documentType: 'operation',
+                        pdfBase64: pdfBase64 || undefined
                       });
-                      if (res.ok) showToast('✅ Voucher enviado al cliente (Email)');
+
+                      const resData = (res as any).ok || res.status === 200 || res.status === 201;
+                      if (resData) showToast('✅ Voucher enviado con éxito');
                       else showToast('❌ Error al enviar voucher');
-                    } catch (e) { showToast('❌ Error de comunicación'); }
+                    } catch (e) { 
+                      showToast('❌ Error de comunicación'); 
+                    } finally {
+                      setIsSendingEmail(false);
+                    }
                   }}
-                  className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center hover:bg-blue-700 transition-all shadow-xl"
+                  disabled={isSendingEmail}
+                  className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 transition-all shadow-xl"
                   title="Enviar Voucher (Email)"
                 >
-                  <Mail size={20} />
+                  {isSendingEmail ? <Loader2 size={20} className="animate-spin" /> : <Mail size={20} />}
                 </button>
                 <div className="w-px h-12 bg-gray-200 mx-2"></div>
                 <button

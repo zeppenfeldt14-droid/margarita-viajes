@@ -187,7 +187,8 @@ export const api = {
     target: 'client' | 'provider';
     recipient: string;
     subject?: string;
-    message?: string;
+    body?: string;
+    pdfBase64?: string;
     documentId: string;
     documentType: 'quote' | 'reservation' | 'operation';
   }) => {
@@ -196,13 +197,18 @@ export const api = {
       id: data.documentId,
       method: data.type,
       recipient: data.recipient,
-      target: data.target
+      target: data.target,
+      subject: data.subject,
+      body: data.body,
+      pdfBase64: data.pdfBase64
     };
 
-    return fetchWithAuth('/communications/dispatch', {
+    const response = await fetchWithAuth('/communications/dispatch', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
+    
+    return response;
   },
   getBaseUrl: () => API_URL
 };

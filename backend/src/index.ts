@@ -56,7 +56,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '100mb' }));
 
 // Health check para monitorear el backend en Render
 app.get('/health', (req: Request, res: Response) => {
@@ -66,7 +66,7 @@ app.get('/health', (req: Request, res: Response) => {
     environment: process.env.NODE_ENV || 'development'
   });
 });
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 // Configuración Estricta de Base de Datos para Persistencia Real
 const databaseUrl = process.env.DATABASE_URL;
