@@ -93,7 +93,7 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
           <div className="flex gap-2">
             {(['activas', 'ventas', 'todas'] as const).map(f => (
               <button key={f} onClick={() => setFilter(f)} className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${filter === f ? 'bg-[#0B132B] text-white shadow-lg shadow-blue-500/20' : 'bg-gray-50 text-gray-400 hover:text-[#0B132B] border border-transparent'}`}>
-                {f === 'activas' ? 'Activas' : f === 'ventas' ? 'Ventas' : 'Ver Todas'}
+                {f === 'activas' ? 'Activas' : f === 'ventas' ? 'VENTAS' : 'Ver Todas'}
               </button>
             ))}
           </div>
@@ -157,16 +157,16 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                             } catch (err) { showToast('Error al actualizar estado'); }
                           }}
                           className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border-none cursor-pointer outline-none transition-all ${
-                            res.status === 'Venta Cerrada' || res.status === 'Venta Concretada' ? 'bg-blue-600 text-white shadow-sm' :
+                            res.status === 'Venta Cerrada' || res.status === 'Venta Concretada' ? 'bg-green-500 text-white shadow-sm' :
                             res.status === 'Liquidada' ? 'bg-purple-600 text-white' :
                             res.status === 'Cancelada' ? 'bg-red-500 text-white' :
-                            res.status === 'Confirmada' ? 'bg-green-500 text-white' :
+                            res.status === 'Confirmada' ? 'bg-blue-600 text-white shadow-sm' :
                             'bg-blue-400 text-white'
                           }`}
                         >
                           <option value="Pendiente">Pendiente</option>
                           <option value="Confirmada">Confirmada</option>
-                          <option value="Venta Cerrada">Venta Cerrada</option>
+                          <option value="Venta Cerrada">VENTA</option>
                           <option value="Venta Concretada">Venta Concretada</option>
                           <option value="Liquidada">Liquidada</option>
                           <option value="Cancelada">Cancelada</option>

@@ -456,6 +456,16 @@ export class AdminController {
           recordId: sequence.nextId,
           newValue: `Auto-generated from Reservation ${reservation.id}`
         });
+      } else if (reservation.status === 'Venta Cerrada') {
+        // Regla v36: Si cambia a VENTA, forzar Pendiente en Operaciones para ingreso a bandeja
+        await this.operationRepo.update(alreadyExists.id, { status: 'Pendiente' });
+        
+        await this.auditRepo.log({
+          action: 'UPDATE',
+          tableName: 'operations',
+          recordId: alreadyExists.id,
+          newValue: `Status forced to Pendiente from Reservation VENTA (${reservation.id})`
+        });
       }
     }
   }
