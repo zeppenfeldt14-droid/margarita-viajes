@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import {
   ChevronLeft,
   ChevronRight,
@@ -205,6 +207,79 @@ export default function Quoter() {
 
   const nextPhoto = () => setCurrentPhotoIdx((prev) => (prev + 1) % (selectedHotel.photos?.length || 1));
   const prevPhoto = () => setCurrentPhotoIdx((prev) => (prev - 1 + (selectedHotel.photos?.length || 1)) % (selectedHotel.photos?.length || 1));
+
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const enviarCotizacionWhatsApp = async () => {
+    if (!formData.name || !formData.email || !formData.whatsapp) {
+      showToast('⚠️ Nombre, Email y WhatsApp son obligatorios.', 'error');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const element = document.getElementById('pdf-hidden-container');
+      if (!element) throw new Error('Contenedor de PDF no encontrado');
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+      
+      const imgData = canvas.toDataURL('image/jpeg', 0.8);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      const pdfBase64 = pdf.output('datauristring').split(',')[1];
+
+      const newQuote = {
+        id: quoteId,
+        date: new Date().toISOString(),
+        clientName: formData.name,
+        email: formData.email,
+        whatsapp: formData.whatsapp,
+        hotelId: selectedHotel?.id || '',
+        hotelName: selectedHotel?.name || '',
+        month: new Date(formData.checkIn).toLocaleString('es-ES', { month: 'long' }).toUpperCase(),
+        checkIn: formData.checkIn,
+        checkOut: formData.checkOut,
+        roomType: selectedHotel?.type === 'full-day' ? 'SERVICIO FULL DAY' : (selectedHotel?.rooms.find(r => r.id === formData.roomType)?.name || formData.roomType),
+        pax: formData.pax,
+        children: formData.children,
+        infants: formData.infants,
+        totalAmount: totalPrice,
+        discountAmount: totalPrice - finalPrice,
+        finalAmount: finalPrice,
+        status: 'Nuevo' as QuoteStatus,
+        assignedTo: 'Sin Asignar',
+        plan: selectedHotel?.plan || 'No especificado',
+        season: priceInfo?.season || '-',
+        includeTransfer: formData.includeTransfer,
+        transferId: formData.transferId,
+        pdfBase64
+      };
+
+      const response = await api.createQuote(newQuote);
+      if (!response.ok) throw new Error('Error al guardar la cotización');
+
+      const pdfLink = `${window.location.origin}/api/public/quotes/${quoteId}/pdf`;
+      const message = `Hola, mi nombre es ${formData.name}. Acabo de cotizar ${selectedHotel.name}.\n\n📄 *Descargar Cotización:* ${pdfLink}\n\n*Folio:* ${quoteId}`;
+      const waUrl = `https://wa.me/${(activeConfig.telefono || '584246861748').replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+      
+      window.open(waUrl, '_blank');
+      setIsSuccess(true);
+      showToast('✅ Cotización registrada y WhatsApp abierto.', 'success');
+
+    } catch (error) {
+      console.error('Error en flujo WhatsApp:', error);
+      showToast('❌ Error al procesar el envío por WhatsApp.', 'error');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] selection:bg-orange-100">
@@ -544,13 +619,17 @@ export default function Quoter() {
                       </button>
 
                       <button
-                        onClick={() => {
-                          const text = encodeURIComponent(`Hola, estoy interesado en cotizar ${selectedHotel?.name} para ${formData.pax} adultos.`);
-                          window.open(`https://wa.me/${(activeConfig.telefono || '584246861748').replace(/\D/g, '')}?text=${text}`, '_blank');
-                        }}
-                        className="flex-1 bg-green-500 hover:bg-green-600 text-white py-5 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center justify-center gap-2 shadow-xl shadow-green-500/20"
+                        disabled={isGenerating}
+                        onClick={enviarCotizacionWhatsApp}
+                        className="flex-1 bg-green-500 hover:bg-green-600 text-white py-5 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center justify-center gap-2 shadow-xl shadow-green-500/20 disabled:bg-gray-400"
                       >
-                        <MessageCircle size={16} /> Consultar WhatsApp
+                        {isGenerating ? (
+                          <>Generando PDF...</>
+                        ) : (
+                          <>
+                            <MessageCircle size={16} /> Enviar por WhatsApp
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
