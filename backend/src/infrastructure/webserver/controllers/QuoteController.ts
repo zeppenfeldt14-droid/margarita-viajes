@@ -90,7 +90,7 @@ export class QuoteController {
       const pdfBuffer = Buffer.from(base64Data, 'base64');
       
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename=Cotizacion_${id}.pdf`);
+      res.setHeader('Content-Disposition', `inline; filename=Cotizacion_${id}.pdf`);
       return res.send(pdfBuffer);
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
@@ -157,7 +157,7 @@ export class QuoteController {
       } catch (e) { console.error('[PDF] Hotel fetch error:', e); }
 
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename=Cotizacion_${id}.pdf`);
+      res.setHeader('Content-Disposition', `inline; filename=Cotizacion_${id}.pdf`);
 
       const doc = new PDFDocument({ margin: 50, size: 'A4' });
       doc.pipe(res);
@@ -276,7 +276,7 @@ export class QuoteController {
       } catch (e) { console.error('[PDF] Hotel fetch error:', e); }
 
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename=Voucher_${id}.pdf`);
+      res.setHeader('Content-Disposition', `inline; filename=Voucher_${id}.pdf`);
 
       const doc = new PDFDocument({ margin: 50, size: 'A4' });
       doc.pipe(res);
