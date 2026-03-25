@@ -602,21 +602,36 @@ export default function OperationsList({
             <div className="p-8 border-t border-gray-100 flex items-center justify-between bg-gray-50/50 print-hidden">
               <div className="flex gap-4">
                 <button
-                  onClick={async () => {
-                    try {
-                      const res = await api.dispatchCommunication({
-                        type: 'whatsapp',
-                        target: 'provider',
-                        recipient: selectedOperation.transferProvider || '',
-                        documentId: selectedOperation.id,
-                        documentType: 'operation'
-                      });
-                      if (res.ok) showToast('✅ Itinerario enviado al proveedor (WA)');
-                      else showToast('❌ Error al notificar proveedor');
-                    } catch (e) { showToast('❌ Error de comunicación'); }
+                  onClick={() => {
+                    const op = selectedOperation;
+                    if (!op) return;
+
+                    const provider = transfers.find(t => t.operator === op.transferProvider);
+                    const phone = (provider?.whatsapp || '').replace(/\D/g, '');
+                    
+                    if (!phone && op.transferProvider) {
+                      showToast('⚠️ No se encontró el WhatsApp del proveedor en el inventario.', 'error');
+                      // No retornamos, permitimos al usuario ver el mensaje si quiere, pero no habrá número
+                    }
+
+                    const passengersList = (op.companions || []).map((c: any) => `- ${c.name} (${c.type}${c.age ? ` - ${c.age} años` : ''})`).join('\n');
+                    
+                    const message = `*NOTIFICACIÓN DE OPERACIÓN - MARGARITA VIAJES*\n\n` +
+                      `*Folio:* ${op.id}\n` +
+                      `*Titular:* ${op.clientName}\n` +
+                      `*Hotel:* ${op.hotelName}\n` +
+                      `*Check-In:* ${formatDateVisual(op.checkIn)}\n` +
+                      `*Check-Out:* ${formatDateVisual(op.checkOut)}\n` +
+                      `*Itinerario:* ${op.itinerary || 'No especificado'}\n` +
+                      `*Detalles:* ${op.itineraryDetails || 'S/D'}\n\n` +
+                      `*PASAJEROS:*\n${passengersList}\n\n` +
+                      `Favor confirmar recepción.`;
+
+                    const waUrl = `https://wa.me/${phone || ''}?text=${encodeURIComponent(message)}`;
+                    window.open(waUrl, '_blank');
                   }}
                   className="w-12 h-12 bg-green-500 text-white rounded-2xl flex items-center justify-center hover:bg-green-600 transition-all shadow-xl"
-                  title="Notificar Proveedor (WhatsApp)"
+                  title="Notificar Proveedor (WhatsApp Directo)"
                 >
                   <Phone size={20} />
                 </button>

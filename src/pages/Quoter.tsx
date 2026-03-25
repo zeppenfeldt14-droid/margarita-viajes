@@ -151,7 +151,7 @@ export default function Quoter() {
 
   const enviarCotizacion = async () => {
     if (!formData.name || !formData.email) {
-      alert("Por favor completa tu nombre y correo de contacto.");
+      showToast("⚠️ Nombre y Correo son obligatorios para el envío por Email.", "error");
       return;
     }
 
@@ -208,8 +208,8 @@ export default function Quoter() {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const enviarCotizacionWhatsApp = async () => {
-    if (!selectedHotel || !formData.name || !formData.email || !formData.whatsapp) {
-      showToast('⚠️ Datos incompletos.', 'error');
+    if (!selectedHotel || !formData.name || !formData.whatsapp) {
+      showToast('⚠️ Nombre y WhatsApp son obligatorios para el envío directo.', 'error');
       return;
     }
 
