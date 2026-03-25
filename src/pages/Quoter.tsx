@@ -206,6 +206,40 @@ export default function Quoter() {
   };
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+
+  const generatePdfBase64 = async (elementId: string) => {
+    const element = document.getElementById(elementId);
+    if (!element) throw new Error('Contenedor de PDF no encontrado');
+
+    const canvas = await html2canvas(element, {
+      scale: 2.5,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+      onclone: (clonedDoc) => {
+        const style = clonedDoc.createElement('style');
+        style.innerHTML = `
+          * { oklch: none !important; color-scheme: light !important; }
+          [class*="oklch"] { color: #0B132B !important; background-color: transparent !important; }
+          .bg-white { background-color: #ffffff !important; }
+          .text-[#0B132B] { color: #0B132B !important; }
+          .text-orange-500 { color: #f97316 !important; }
+          .bg-slate-100 { background-color: #f1f5f9 !important; }
+          .bg-[#0B132B] { background-color: #0B132B !important; }
+          .text-white { color: #ffffff !important; }
+        `;
+        clonedDoc.head.appendChild(style);
+      }
+    } as any);
+    
+    const imgData = canvas.toDataURL('image/jpeg', 0.8);
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+    return pdf.output('datauristring').split(',')[1];
+  };
 
   const enviarCotizacionWhatsApp = async () => {
     if (!selectedHotel || !formData.name || !formData.whatsapp) {
@@ -214,37 +248,14 @@ export default function Quoter() {
     }
 
     setIsGenerating(true);
-    try {
-      const element = document.getElementById('pdf-hidden-container');
-      if (!element) throw new Error('Contenedor de PDF no encontrado');
+    setShowPdfPreview(true);
+    
+    // Secuencia estricta v49: Esperar renderizado del DOM
+    await new Promise(r => setTimeout(r, 800));
 
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        onclone: (clonedDoc) => {
-          const style = clonedDoc.createElement('style');
-          style.innerHTML = `
-            * { color-scheme: light !important; }
-            [class*="oklch"] { color: #0B132B !important; background-color: transparent !important; }
-            .bg-white { background-color: #ffffff !important; }
-            .text-[#0B132B] { color: #0B132B !important; }
-            .text-orange-500 { color: #f97316 !important; }
-            .bg-slate-100 { background-color: #f1f5f9 !important; }
-            .bg-[#0B132B] { background-color: #0B132B !important; }
-            .text-white { color: #ffffff !important; }
-          `;
-          clonedDoc.head.appendChild(style);
-        }
-      } as any);
-      
-      const imgData = canvas.toDataURL('image/jpeg', 0.8);
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-      const pdfBase64 = pdf.output('datauristring').split(',')[1];
+    try {
+      const pdfBase64 = await generatePdfBase64('pdf-content');
+      setShowPdfPreview(false);
 
       const newQuote = {
         id: quoteId,
@@ -670,8 +681,12 @@ export default function Quoter() {
       </footer>
       <ToastContainer />
 
-      {/* CONTENEDOR OCULTO PARA GENERACIÓN DE PDF (html2canvas compatible) */}
-      <div id="pdf-hidden-container" className="fixed -left-[9999px] top-0 w-[800px] bg-white p-12 font-sans overflow-hidden">
+      {/* CONTENEDOR DE PDF (Visibilidad controlada v49) */}
+      <div 
+        id="pdf-content" 
+        className={`fixed top-0 left-0 w-[800px] bg-white p-12 font-sans overflow-hidden z-[-1] transition-opacity duration-300 ${showPdfPreview ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+        style={{ transform: showPdfPreview ? 'none' : 'translateX(-9999px)' }}
+      >
         {/* ENCABEZADO DEL PDF: 3 COLUMNAS (AGENCIA - INFO - HOTEL) */}
         <div className="flex items-center justify-between border-b-2 border-gray-200 pb-6 mb-6">
           
