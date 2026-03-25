@@ -419,7 +419,7 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                           <button
                             title="Ver Vista Previa"
                             onClick={() => {
-                              const url = `${api.getBaseUrl()}/admin/operations/${selectedReservation.id}/voucher`;
+                              const url = `${api.getBaseUrl()}/public/vouchers/${selectedReservation.id}`;
                               window.open(url, '_blank');
                             }}
                             className="w-10 h-10 bg-gray-100 text-[#0B132B] rounded-xl flex items-center justify-center hover:bg-gray-200 transition-all shadow-sm border border-gray-200"
