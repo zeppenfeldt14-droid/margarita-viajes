@@ -69,14 +69,14 @@ export default function AdminDashboard({ user }: AdminProps) {
   const [opFilter, setOpFilter] = useState<'pendientes' | 'activas' | 'historial' | 'todas'>('pendientes');
   const { hotels, transfers, quotes, users, setQuotes, refreshData } = useGlobalData();
 
-  const { isMaster, isDataMaster } = useMemo(() => {
+  const { isMaster, isDataMaster, userAlias } = useMemo(() => {
     const l = parseInt(localStorage.getItem('user_level') || '3');
     const r = localStorage.getItem('staff_user_role');
     const a = localStorage.getItem('staff_user_alias');
     const m = l === 1 || r === 'Gerente General' || r === 'Gerente Operaciones' || a === 'Gerente General' || a === 'Gerente Operaciones';
     const dm = l === 1 || l === 2; // Nivel 1 y 2 tienen acceso global a datos
 
-    return { isMaster: m, isDataMaster: dm };
+    return { isMaster: m, isDataMaster: dm, userAlias: a };
   }, []);
 
   const userModules = useMemo(() => {
