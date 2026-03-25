@@ -24,6 +24,7 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailConfig, setEmailConfig] = useState({ recipient: '', subject: '', body: '' });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const MONTHS = [
     { value: 'all', label: 'Todos los Meses' },
@@ -313,7 +314,7 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                               <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={async (e: any) => {
                                 const file = e.target.files?.[0]; if (file) {
                                   const reader = new FileReader(); reader.onloadend = async () => {
-                                    const comp = await compressImage(reader.result as string, 1200, 800); setHotelResponseImage(comp);
+                                    const comp = await compressImage(reader.result as string, 800, 600); setHotelResponseImage(comp);
                                   }; reader.readAsDataURL(file);
                                 }
                               }} />
@@ -324,7 +325,7 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                               <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={async (e: any) => {
                                 const file = e.target.files?.[0]; if (file) {
                                   const reader = new FileReader(); reader.onloadend = async () => {
-                                    const comp = await compressImage(reader.result as string, 1200, 800); setHotelResponseImage(comp);
+                                    const comp = await compressImage(reader.result as string, 800, 600); setHotelResponseImage(comp);
                                   }; reader.readAsDataURL(file);
                                 }
                               }} />
@@ -342,7 +343,7 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                               <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={async (e: any) => {
                                 const file = e.target.files?.[0]; if (file) {
                                   const reader = new FileReader(); reader.onloadend = async () => {
-                                    const comp = await compressImage(reader.result as string, 1200, 800); setPaymentProofImage(comp);
+                                    const comp = await compressImage(reader.result as string, 800, 600); setPaymentProofImage(comp);
                                   }; reader.readAsDataURL(file);
                                 }
                               }} />
@@ -353,7 +354,7 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                               <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={async (e: any) => {
                                 const file = e.target.files?.[0]; if (file) {
                                   const reader = new FileReader(); reader.onloadend = async () => {
-                                    const comp = await compressImage(reader.result as string, 1200, 800); setPaymentProofImage(comp);
+                                    const comp = await compressImage(reader.result as string, 800, 600); setPaymentProofImage(comp);
                                   }; reader.readAsDataURL(file);
                                 }
                               }} />
@@ -365,11 +366,13 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
 
                     <div className="flex gap-4">
                       <button
+                        disabled={isSaving}
                         onClick={async () => {
                           if (!hotelResponseImage || !paymentProofImage) {
                             showToast('⚠️ Faltan documentos.');
                             return;
                           }
+                          setIsSaving(true);
                           try {
                             const technicalSheet = { passengers: (selectedReservation as any).companions || [], createdAt: new Date().toISOString() };
                             const res = await api.updateReservation(selectedReservation.id, { 
@@ -378,16 +381,28 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                               hotelResponseImage,
                               paymentProofImage
                             });
+                            
                             if (res.ok) {
                               showToast('✅ ¡Venta Cerrada!');
                               setSelectedReservation(null);
                               fetchReservations();
+                            } else {
+                              const errorData = await res.json().catch(() => ({}));
+                              showToast(`❌ Error: ${errorData.message || 'El archivo es demasiado grande (Límite 4.5MB)'}`);
                             }
-                          } catch (error) { showToast('❌ Error crítico.'); }
+                          } catch (error) { 
+                            showToast('❌ Error crítico de red.'); 
+                          } finally {
+                            setIsSaving(false);
+                          }
                         }}
-                        className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-2"
+                        className={`flex-1 ${isSaving ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white py-3 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2`}
                       >
-                        <ShieldCheck size={16} /> CONFIRMAR VENTA
+                        {isSaving ? 'Cargando...' : (
+                          <>
+                            <ShieldCheck size={16} /> CONFIRMAR VENTA
+                          </>
+                        )}
                       </button>
                       <button
                         onClick={() => {
