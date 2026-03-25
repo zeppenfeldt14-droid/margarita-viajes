@@ -1,14 +1,14 @@
 import type { Request, Response } from 'express';
-import { ReservationRepository } from '../../domain/repositories/ReservationRepository.js';
-import { OperationRepository } from '../../domain/repositories/OperationRepository.js';
-import { QuoteRepository } from '../../domain/repositories/QuoteRepository.js';
+import type { IReservationRepository } from '../../../domain/repositories/IReservationRepository.js';
+import type { IOperationRepository } from '../../../domain/repositories/IOperationRepository.js';
+import type { IQuoteRepository } from '../../../domain/repositories/IQuoteRepository.js';
 import { NotificationService } from '../../services/NotificationService.js';
 
 export class CommunicationController {
   constructor(
-    private reservationRepo: ReservationRepository,
-    private operationRepo: OperationRepository,
-    private quoteRepo: QuoteRepository,
+    private reservationRepo: IReservationRepository,
+    private operationRepo: IOperationRepository,
+    private quoteRepo: IQuoteRepository,
     private notificationService: NotificationService
   ) {}
 
