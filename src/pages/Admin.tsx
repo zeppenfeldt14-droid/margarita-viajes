@@ -9,7 +9,6 @@ import {
   X, 
   Calendar,
   ShieldCheck,
-  FileText,
   Edit2,
   Image as ImageIcon,
   Upload,
@@ -70,17 +69,17 @@ export default function AdminDashboard({ user }: AdminProps) {
   const [opFilter, setOpFilter] = useState<'pendientes' | 'activas' | 'historial' | 'todas'>('pendientes');
   const { hotels, transfers, quotes, users, setQuotes, refreshData } = useGlobalData();
 
-  const { level, userRole, userAlias, isMaster, isDataMaster } = React.useMemo(() => {
+  const { isMaster, isDataMaster } = useMemo(() => {
     const l = parseInt(localStorage.getItem('user_level') || '3');
     const r = localStorage.getItem('staff_user_role');
     const a = localStorage.getItem('staff_user_alias');
     const m = l === 1 || r === 'Gerente General' || r === 'Gerente Operaciones' || a === 'Gerente General' || a === 'Gerente Operaciones';
     const dm = l === 1 || l === 2; // Nivel 1 y 2 tienen acceso global a datos
 
-    return { level: l, userRole: r, userAlias: a, isMaster: m, isDataMaster: dm };
+    return { isMaster: m, isDataMaster: dm };
   }, []);
 
-  const userModules = React.useMemo(() => {
+  const userModules = useMemo(() => {
     if (isMaster) {
       return { inventory: true, quotes: true, bookings: true, operations: true, users: true, customers: true, marketing: true, settings: true };
     }
@@ -1097,7 +1096,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                 </button>
 
 
-                {selectedQuote.pdfBase64 && (
+                {selectedQuote.id && (
                   <div className="flex flex-col gap-4">
                     <button 
                       onClick={() => {
@@ -1171,8 +1170,6 @@ export default function AdminDashboard({ user }: AdminProps) {
                     onClick={async () => {
                       const token = localStorage.getItem("staff_token");
                       if (!token) return alert('Error: No hay sesión activa.');
-
-                      const totalExpected = Number(selectedQuote.pax || 0) + Number(selectedQuote.children || 0) + Number(selectedQuote.infants || 0);
 
                       const hasEmptyNames = companions.some(c => !c.name || c.name.trim() === '');
                       if (hasEmptyNames) {

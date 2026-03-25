@@ -113,9 +113,6 @@ export class NotificationService {
       console.warn('[NotificationService] Twilio no configurado. Ignorando envío de WhatsApp automático.');
       return;
     }
-      console.warn('[NotificationService] Twilio WhatsApp no configurado');
-      return;
-    }
 
     // Formatear el teléfono para Twilio (Ej. +584241234567)
     let clientPhone = phoneNumber.replace(/[^\d+]/g, '');
