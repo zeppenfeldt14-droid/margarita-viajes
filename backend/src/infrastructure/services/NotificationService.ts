@@ -8,10 +8,21 @@ export class NotificationService {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
       auth: {
         user: process.env.SMTP_USER || 'margaritaviaje@gmail.com',
         pass: process.env.SMTP_PASS // Se requiere App Password de Google
+      }
+    });
+
+    // Verificación de conexión por el servidor SMTP
+    this.transporter.verify((error: any, success: any) => {
+      if (error) {
+        console.error('[NotificationService] ERROR DE AUTENTICACIÓN SMTP:', error);
+      } else {
+        console.log('[NotificationService] Servidor SMTP listo para enviar mensajes');
       }
     });
 
@@ -94,7 +105,7 @@ export class NotificationService {
       await this.transporter.sendMail(mailOptions);
       console.log(`[NotificationService] Email enviado con éxito a ${email}`);
     } catch (error: any) {
-      console.error('[NotificationService] FALLO AL ENVIAR EMAIL:', error.message);
+      console.error('[NotificationService] FALLO CRÍTICO AL ENVIAR EMAIL:', error);
     }
   }
 
@@ -167,7 +178,7 @@ export class NotificationService {
     try {
       await this.transporter.sendMail(mailOptions);
       console.log(`[NotificationService] Voucher enviado a ${email}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('[NotificationService] Error enviando voucher:', error);
     }
   }
@@ -194,7 +205,7 @@ export class NotificationService {
     try {
       await this.transporter.sendMail(mailOptions);
       console.log(`[NotificationService] Confirmación re-enviada a ${email}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('[NotificationService] Error re-enviando reserva:', error);
     }
   }
