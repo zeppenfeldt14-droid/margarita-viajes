@@ -64,6 +64,7 @@ export default function AdminDashboard({ user }: AdminProps) {
 
   const [config, setConfig] = useState<Record<string, string>>({});
   const [savingConfig, setSavingConfig] = useState(false);
+  const [deviceMode, setDeviceMode] = useState<'pc' | 'mobile'>('pc');
   const [selectedOperation, setSelectedOperation] = useState<Operation | null>(null);
   const [opFilter, setOpFilter] = useState<'pendientes' | 'activas' | 'historial' | 'todas'>('pendientes');
   const { hotels, transfers, quotes, users, setQuotes, refreshData } = useGlobalData();
@@ -170,7 +171,16 @@ export default function AdminDashboard({ user }: AdminProps) {
 
   const handleConfigChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setConfig((prev: Record<string, any>) => ({ ...prev, [name]: value }));
+    
+    // Lista de campos que se bifurcan por dispositivo
+    const bifurcatedFields = ['logoImage', 'bannerImage', 'subtituloHero', 'hotelesSubtitulo', 'fulldaysSubtitulo'];
+    
+    if (bifurcatedFields.includes(name)) {
+      const prefixedKey = `${deviceMode}_${name}`;
+      setConfig((prev: Record<string, any>) => ({ ...prev, [prefixedKey]: value }));
+    } else {
+      setConfig((prev: Record<string, any>) => ({ ...prev, [name]: value }));
+    }
   };
 
   const saveFullConfig = async (e?: React.FormEvent) => {
@@ -605,23 +615,60 @@ export default function AdminDashboard({ user }: AdminProps) {
 
           {activeTab === 'settings' && userModules?.settings && (
             <div className="space-y-10 animate-in fade-in duration-500">
-              <SectionTitle>Configuración de la Página Web</SectionTitle>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <SectionTitle className="mb-0">Configuración de la Página Web</SectionTitle>
+                
+                {/* Selector de Dispositivo (v55) */}
+                <div className="flex bg-gray-100 p-1.5 rounded-[2rem] border border-gray-200 shadow-inner">
+                  <button 
+                    onClick={() => setDeviceMode('pc')} 
+                    className={`flex items-center gap-2 px-6 py-2.5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all ${deviceMode === 'pc' ? 'bg-[#0B132B] text-white shadow-lg' : 'text-gray-400 hover:text-[#0B132B]'}`}
+                  >
+                    <Globe size={14} /> Escritorio
+                  </button>
+                  <button 
+                    onClick={() => setDeviceMode('mobile')} 
+                    className={`flex items-center gap-2 px-6 py-2.5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all ${deviceMode === 'mobile' ? 'bg-[#0B132B] text-white shadow-lg' : 'text-gray-400 hover:text-[#0B132B]'}`}
+                  >
+                    <Camera size={14} /> Móvil
+                  </button>
+                </div>
+              </div>
 
               <Card className="shadow-xl border-none ring-1 ring-gray-100">
-                <h3 className="text-sm font-black uppercase tracking-widest text-[#0B132B] mb-8 pb-4 border-b border-gray-100">Identidad Visual y Navegación</h3>
+                <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
+                  <h3 className="text-sm font-black uppercase tracking-widest text-[#0B132B]">Identidad Visual y Navegación</h3>
+                  <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-tighter ${deviceMode === 'pc' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'}`}>
+                    Editando: {deviceMode === 'pc' ? 'VISTA PC' : 'VISTA MÓVIL'}
+                  </span>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                   <div className="space-y-8">
                     <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Logo del Sitio</p>
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Logo del Sitio</p>
+                        <span className="text-[8px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md font-black italic">BIFURCADO</span>
+                      </div>
                       <div className="h-44 bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200 flex items-center justify-center relative overflow-hidden group hover:bg-gray-100 transition-all">
-                        {config.logoImage ? <img src={config.logoImage} className="max-h-24 object-contain" /> : <div className="text-center"><Upload size={32} className="text-gray-300 mx-auto mb-3 group-hover:text-orange-500 transition-colors" /><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Subir Logo</p></div>}
+                        {config[`${deviceMode}_logoImage`] || config.logoImage ? (
+                          <img src={config[`${deviceMode}_logoImage`] || config.logoImage} className="max-h-24 object-contain" />
+                        ) : (
+                          <div className="text-center"><Upload size={32} className="text-gray-300 mx-auto mb-3 group-hover:text-orange-500 transition-colors" /><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Subir Logo {deviceMode.toUpperCase()}</p></div>
+                        )}
                         <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (file) { const reader = new FileReader(); reader.onloadend = async () => { const comp = await compressImage(reader.result as string, 400, 400); handleConfigChange({ target: { name: 'logoImage', value: comp } } as unknown as React.ChangeEvent<HTMLInputElement>); }; reader.readAsDataURL(file); } }} />
                       </div>
                     </div>
                     <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Banner Principal</p>
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Banner Principal</p>
+                        <span className="text-[8px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md font-black italic">BIFURCADO</span>
+                      </div>
                       <div className="h-44 bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200 flex items-center justify-center relative overflow-hidden group hover:bg-gray-100 transition-all">
-                        {config.bannerImage ? <img src={config.bannerImage} className="w-full h-full object-cover rounded-[2.5rem]" /> : <div className="text-center"><Upload size={32} className="text-gray-300 mx-auto mb-3 group-hover:text-blue-500 transition-colors" /><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Subir Banner</p></div>}
+                        {config[`${deviceMode}_bannerImage`] || config.bannerImage ? (
+                          <img src={config[`${deviceMode}_bannerImage`] || config.bannerImage} className="w-full h-full object-cover rounded-[2.5rem]" />
+                        ) : (
+                          <div className="text-center"><Upload size={32} className="text-gray-300 mx-auto mb-3 group-hover:text-blue-500 transition-colors" /><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Subir Banner {deviceMode.toUpperCase()}</p></div>
+                        )}
                         <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (file) { const reader = new FileReader(); reader.onloadend = async () => { const comp = await compressImage(reader.result as string, 1920, 1080); handleConfigChange({ target: { name: 'bannerImage', value: comp } } as unknown as React.ChangeEvent<HTMLInputElement>); }; reader.readAsDataURL(file); } }} />
                       </div>
                     </div>
@@ -653,12 +700,34 @@ export default function AdminDashboard({ user }: AdminProps) {
                 <h3 className="text-sm font-black uppercase tracking-widest text-[#0B132B] mb-8 pb-4 border-b border-gray-100">Textos y Contenido</h3>
                 <div className="space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <InputField 
+                      name="subtituloHero" 
+                      label="Subtítulo Hero (Banner)" 
+                      value={config[`${deviceMode}_subtituloHero`] || config.subtituloHero || ''} 
+                      onChange={handleConfigChange} 
+                      badge="BIFURCADO"
+                    />
                     <InputField name="agencyName" label="Nombre de la Empresa" value={config.agencyName || config.nombreEmpresa || ''} onChange={handleConfigChange} />
-                    <InputField name="hotelesTitulo" label="Título Sección Hoteles" value={config.hotelesTitulo || ''} onChange={handleConfigChange} />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <InputField name="hotelesSubtitulo" label="Subtítulo Hoteles" value={config.hotelesSubtitulo || ''} onChange={handleConfigChange} />
+                    <InputField name="hotelesTitulo" label="Título Sección Hoteles" value={config.hotelesTitulo || ''} onChange={handleConfigChange} />
+                    <InputField 
+                      name="hotelesSubtitulo" 
+                      label="Subtítulo Hoteles" 
+                      value={config[`${deviceMode}_hotelesSubtitulo`] || config.hotelesSubtitulo || ''} 
+                      onChange={handleConfigChange} 
+                      badge="BIFURCADO"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <InputField name="fulldaysTitulo" label="Título Sección Full Days" value={config.fulldaysTitulo || ''} onChange={handleConfigChange} />
+                    <InputField 
+                      name="fulldaysSubtitulo" 
+                      label="Subtítulo Full Days" 
+                      value={config[`${deviceMode}_fulldaysSubtitulo`] || config.fulldaysSubtitulo || ''} 
+                      onChange={handleConfigChange} 
+                      badge="BIFURCADO"
+                    />
                   </div>
                   <div>
                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2">Texto "Quiénes Somos"</p>

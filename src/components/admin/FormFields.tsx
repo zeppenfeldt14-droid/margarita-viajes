@@ -7,13 +7,21 @@ interface InputFieldProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   type?: string;
   placeholder?: string;
+  badge?: string;
 }
 
-export const InputField: React.FC<InputFieldProps> = ({ label, name, value, onChange, type = "text", placeholder }) => (
+export const InputField: React.FC<InputFieldProps> = ({ label, name, value, onChange, type = "text", placeholder, badge }) => (
   <div className="w-full">
-    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2 block">
-      {label}
-    </label>
+    <div className="flex items-center justify-between mb-2 ml-2">
+      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+        {label}
+      </label>
+      {badge && (
+        <span className="text-[8px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded-md font-black italic">
+          {badge}
+        </span>
+      )}
+    </div>
     <input 
       type={type}
       name={name}
