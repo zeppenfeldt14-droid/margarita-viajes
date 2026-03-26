@@ -135,14 +135,14 @@ export default function Home({ onAdminClick }: HomeProps) {
 
       {/* HEADER NAV - LOGO SEGÚN DISEÑO SOLICITADO */}
       <header className="px-6 md:px-12 py-5 flex items-center justify-center md:justify-between fixed top-0 left-0 right-0 z-50 bg-transparent">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center md:gap-4 relative w-full md:w-auto justify-center md:justify-start">
           <div className="flex items-center gap-4 group cursor-default">
             <div className="relative">
               <div className="absolute -inset-1 bg-orange-500/10 rounded-full blur group-hover:opacity-100 transition duration-1000"></div>
               {getConf('logoImage') ? (
-                <img src={getConf('logoImage')} alt="Margarita Viajes" className="h-20 w-auto object-contain relative" />
+                <img src={getConf('logoImage')} alt="Margarita Viajes" className="h-24 w-auto object-contain relative" />
               ) : (
-                <img src="/assets/img/logo.png" alt="Margarita Viajes" className="h-20 w-auto object-contain relative" />
+                <img src="/assets/img/logo.png" alt="Margarita Viajes" className="h-24 w-auto object-contain relative" />
               )}
             </div>
             <div className="flex flex-col">

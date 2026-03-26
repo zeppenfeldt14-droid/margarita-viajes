@@ -311,17 +311,17 @@ export default function Quoter() {
       <header className="px-6 md:px-12 py-6 flex items-center justify-center fixed top-0 left-0 right-0 z-50 bg-transparent">
         <button 
           onClick={() => setLocation('/')} 
-          className="absolute left-6 md:left-12 w-11 h-11 bg-white/40 backdrop-blur-md rounded-2xl flex items-center justify-center hover:bg-white transition-all border border-white/20 text-[#0B132B] hover:text-[#ea580c] shadow-sm"
+          className="absolute left-6 md:left-12 w-11 h-11 bg-white/40 backdrop-blur-md rounded-2xl flex items-center justify-center hover:bg-white transition-all border border-white/20 text-[#0B132B] hover:text-[#ea580c] shadow-sm z-50"
           title="Volver"
         >
           <ChevronLeft size={20} />
         </button>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 relative justify-center w-full">
           {activeConfig.logoImage ? (
-            <img src={activeConfig.logoImage} alt="Logo" className="h-20 w-auto object-contain" />
+            <img src={activeConfig.logoImage} alt="Logo" className="h-24 w-auto object-contain" />
           ) : (
-            <img src="/assets/img/logo.png" alt="Logo" className="h-20 w-auto object-contain" />
+            <img src="/assets/img/logo.png" alt="Logo" className="h-24 w-auto object-contain" />
           )}
           <div className="flex flex-col hidden md:flex">
             <h1 className="text-xl font-black italic text-[#ea580c] leading-none uppercase">
