@@ -58,7 +58,6 @@ export default function AdminDashboard({ user }: AdminProps) {
     else if (location.includes('/users')) setActiveTab('users');
     else if (location.includes('/customers')) setActiveTab('customers');
     else if (location.includes('/marketing')) setActiveTab('marketing');
-    else if (location.includes('/marketing')) setActiveTab('marketing');
     else if (location.includes('/webconfig')) setActiveTab('settings');
   }, [location]);
 
@@ -234,12 +233,16 @@ export default function AdminDashboard({ user }: AdminProps) {
   };
 
   const addSeason = () => {
+    // Inicialización Robusta (v54): Pre-cargar habitaciones actuales con precio 0
+    const initialPrices: Record<string, number> = {};
+    (newHotel.rooms || []).forEach(r => { initialPrices[r.id] = 0; });
+
     const newSeason = {
       id: crypto.randomUUID(),
       type: 'Baja',
       startDate: '',
       endDate: '',
-      roomPrices: {}
+      roomPrices: initialPrices
     };
     setNewHotel(prev => ({ ...prev, seasons: [...(prev.seasons || []), newSeason] }));
   };
@@ -252,10 +255,32 @@ export default function AdminDashboard({ user }: AdminProps) {
     setNewHotel(prev => ({
       ...prev,
       seasons: prev.seasons?.map(s =>
-        s.id === seasonId ? { ...s, roomPrices: { ...s.roomPrices, [roomId]: price } } : s
+        s.id === seasonId ? { ...s, roomPrices: { ...(s.roomPrices || {}), [roomId]: price } } : s
       )
     }));
   };
+
+  // Sincronizador Automático (v54): Asegurar que si se agrega/borra habitación, las temporadas se enteren
+  useEffect(() => {
+    if (newHotel.rooms) {
+      setNewHotel(prev => {
+        if (!prev.seasons) return prev;
+        const updatedSeasons = prev.seasons.map(s => {
+          const newRoomPrices = { ...(s.roomPrices || {}) };
+          let changed = false;
+          // Si no existe el precio para una habitación nueva, ponerlo en 0
+          prev.rooms?.forEach(r => {
+            if (newRoomPrices[r.id] === undefined) {
+              newRoomPrices[r.id] = 0;
+              changed = true;
+            }
+          });
+          return changed ? { ...s, roomPrices: newRoomPrices } : s;
+        });
+        return { ...prev, seasons: updatedSeasons };
+      });
+    }
+  }, [newHotel.rooms?.length]);
 
   const handleDelete = async (id: string, type: string) => {
     if (!confirm("¿Eliminar?")) return;

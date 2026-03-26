@@ -199,8 +199,9 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
               >
                 <Menu size={20} />
               </button>
-              <h1 className="text-xl md:text-2xl font-black text-[#0B132B] italic tracking-tight uppercase">
+              <h1 className="text-xl md:text-2xl font-black text-[#0B132B] italic tracking-tight uppercase flex items-center gap-3">
                 {NAV_ITEMS.find(n => location === n.path || (n.path !== '/admin' && location.startsWith(n.path)))?.title || "DASHBOARD"}
+                <span className="bg-[#0B132B] text-white text-[8px] px-2 py-0.5 rounded-md not-italic font-black border border-white/20 shadow-sm opacity-30 group-hover:opacity-100 transition-opacity">v54.bau</span>
               </h1>
             </div>
          </header>
