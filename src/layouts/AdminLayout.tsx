@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { LayoutDashboard, Inbox, Hotel, FileText, Settings, Users, LogOut, Menu, X as CloseIcon } from "lucide-react";
 import { api } from "../services/api";
@@ -9,14 +9,21 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
   const { quotes, reservations, operations } = useGlobalData();
 
+  // Cálculos de Notificaciones Activas (v52)
   const newQuotesCount = (quotes || []).filter(q => q?.status === 'Nuevo').length;
-  const pendingReservationsCount = (reservations || []).filter(r => r?.status === 'Pendiente').length;
+  const activeReservationsCount = (reservations || []).filter(r => r?.status === 'Confirmada').length;
   const pendingOperationsCount = (operations || []).filter(o => o?.status === 'Pendiente').length;
+  
+  // Alertas Clientes: Conteo de cotizaciones "Nuevo" (como proxy de clientes nuevos)
+  const newCustomersCount = newQuotesCount; 
+
+  // Alertas Marketing: Conteo de promociones/descuentos activos
+  const marketingAlertsCount = (quotes || []).filter(q => (q?.discount || 0) > 0).length;
 
   const NAV_ITEMS = [
     { title: "INICIO", path: "/admin", icon: <LayoutDashboard size={16} /> },
     { title: "INVENTARIO", path: "/admin/inventory", icon: <Inbox size={16} />, module: 'inventory' },
-    { title: "COTIZACIONES", path: "/admin/quotes", icon: <FileText size={16} />, badge: 3, module: 'quotes' },
+    { title: "COTIZACIONES", path: "/admin/quotes", icon: <FileText size={16} />, module: 'quotes' },
     { title: "RESERVAS (HOTEL)", path: "/admin/reservations", icon: <Hotel size={16} />, module: 'bookings' },
     { title: "VENTAS (OPERACIONES)", path: "/admin/sales", icon: <FileText size={16} />, module: 'operations' },
     { title: "USUARIOS", path: "/admin/users", icon: <Users size={16} />, module: 'users' },
@@ -115,25 +122,43 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
                       : "text-gray-400 font-bold hover:bg-white/5 hover:text-white"
                   }`}
                 >
-                  <div className="flex items-center gap-4 text-xs tracking-widest">
-                     {item.icon}
-                     {item.title}
-                   </div>
-                   {item.title === 'COTIZACIONES' && newQuotesCount > 0 && (
-                     <span className="bg-red-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full animate-pulse shadow-lg shadow-red-500/50">
-                       {newQuotesCount}
-                     </span>
-                   )}
-                   {item.title === 'RESERVAS (HOTEL)' && pendingReservationsCount > 0 && (
-                     <span className="bg-red-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full animate-pulse shadow-lg shadow-red-500/50">
-                       {pendingReservationsCount}
-                     </span>
-                   )}
-                   {item.title === 'VENTAS (OPERACIONES)' && pendingOperationsCount > 0 && (
-                     <span className="bg-red-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full animate-pulse shadow-lg shadow-red-500/50">
-                       {pendingOperationsCount}
-                     </span>
-                   )}
+                  <div className="flex items-center gap-4 text-xs tracking-widest uppercase">
+                    {item.icon}
+                    {item.title}
+                  </div>
+
+                  {/* Badges Reactivos (v52) */}
+                  {item.title === 'COTIZACIONES' && newQuotesCount > 0 && (
+                    <span className="bg-orange-600 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full animate-pulse shadow-lg shadow-orange-500/30">
+                      {newQuotesCount}
+                    </span>
+                  )}
+                  {item.title === 'RESERVAS (HOTEL)' && activeReservationsCount > 0 && (
+                    <div className="relative">
+                      <span className="absolute inset-0 bg-red-400 rounded-full animate-ping opacity-75"></span>
+                      <span className="relative bg-red-500 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg shadow-red-500/50">
+                        {activeReservationsCount}
+                      </span>
+                    </div>
+                  )}
+                  {item.title === 'VENTAS (OPERACIONES)' && pendingOperationsCount > 0 && (
+                    <span className="bg-red-500 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full animate-pulse shadow-lg shadow-red-500/50">
+                      {pendingOperationsCount}
+                    </span>
+                  )}
+                  {item.title === 'CLIENTES' && newCustomersCount > 0 && (
+                    <span className="bg-blue-500 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full animate-pulse shadow-lg shadow-blue-500/30">
+                      {newCustomersCount}
+                    </span>
+                  )}
+                  {item.title === 'MARKETING' && marketingAlertsCount > 0 && (
+                    <div className="relative">
+                      <span className="absolute inset-0 bg-teal-400 rounded-full animate-ping opacity-75"></span>
+                      <span className="relative bg-teal-500 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg shadow-teal-500/50">
+                        {marketingAlertsCount}
+                      </span>
+                    </div>
+                  )}
                 </button>
               );
             })}

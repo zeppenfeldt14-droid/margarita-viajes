@@ -87,34 +87,35 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
     .sort((a: Reservation, b: Reservation) => new Date(a?.checkIn || '').getTime() - new Date(b?.checkIn || '').getTime());
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="print-hidden space-y-8">
-        <SectionTitle>Reservas Activas / Entrantes</SectionTitle>
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm">
-          <div className="flex gap-2">
-            {(['activas', 'ventas', 'todas'] as const).map(f => (
-              <button key={f} onClick={() => setFilter(f)} className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${filter === f ? 'bg-[#0B132B] text-white shadow-lg shadow-blue-500/20' : 'bg-gray-50 text-gray-400 hover:text-[#0B132B] border border-transparent'}`}>
-                {f === 'activas' ? 'Activas' : f === 'ventas' ? 'VENTAS' : 'Ver Todas'}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex flex-1 gap-3 w-full md:w-auto">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-              <input
-                type="text"
-                placeholder="Buscar por cliente o folio..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-gray-50 border-2 border-transparent pl-11 pr-4 py-2.5 rounded-xl text-[10px] font-bold outline-none focus:border-blue-500 focus:bg-white transition-all"
+    <div className="space-y-6 animate-in fade-in duration-500 print-hidden h-[calc(100vh-120px)] flex flex-col">
+      {/* Bloque Unificado de Cabecera (v52) */}
+      <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-6 shrink-0">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <SectionTitle className="mb-0">Reservas Activas / Entrantes</SectionTitle>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
+              {(['activas', 'ventas', 'todas'] as const).map(f => (
+                <button key={f} onClick={() => setFilter(f)} className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${filter === f ? 'bg-[#0B132B] text-white shadow-lg' : 'text-gray-400 hover:text-[#0B132B]'}`}>
+                  {f === 'activas' ? 'Activas' : f === 'ventas' ? 'Ventas' : 'Todas'}
+                </button>
+              ))}
+            </div>
+            
+            <div className="relative flex-1 md:flex-none">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+              <input 
+                type="text" 
+                placeholder="Buscar cliente o folio..." 
+                value={searchTerm} 
+                onChange={(e) => setSearchTerm(e.target.value)} 
+                className="bg-gray-50 border-2 border-transparent rounded-xl pl-11 pr-4 py-3 text-[10px] font-bold uppercase outline-none focus:border-[#0B132B] focus:bg-white w-full md:w-[200px] transition-all" 
               />
             </div>
 
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-              className="bg-gray-50 border-2 border-transparent px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none focus:border-blue-500 focus:bg-white cursor-pointer transition-all"
+              className="bg-gray-50 border-2 border-transparent px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none focus:border-[#0B132B] focus:bg-white cursor-pointer transition-all"
             >
               {MONTHS.map(m => (
                 <option key={m.value} value={m.value}>{m.label}</option>
@@ -122,66 +123,102 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
             </select>
           </div>
         </div>
-        
-        {loading ? <Card><div className="text-center py-20 uppercase font-black text-[10px] text-gray-400 tracking-widest">Cargando...</div></Card> : (
-          <Card>
-            <div className="w-full overflow-x-auto pb-4 hide-scrollbar">
-              <table className="w-full text-left font-bold text-sm">
-                <thead><tr className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100"><th className="pb-6 px-4">FOLIO</th><th className="pb-6 px-4">CLIENTE</th><th className="pb-6 px-4">FECHAS</th><th className="pb-6 px-4 text-center">TOTAL</th><th className="pb-6 px-4">ESTADO</th><th className="pb-6 px-4 text-center">ACCIONES</th></tr></thead>
-                <tbody>
-                  {filteredReservations.map(res => (
-                    <tr key={res.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors uppercase">
-                      <td className="py-5 px-4"><div className="flex flex-col"><span className="font-black italic text-green-600">{res.id?.startsWith('R') ? res.id : res.quoteId?.replace('C', 'R')}</span><span className="text-[8px] text-gray-400 font-bold uppercase">Ref: {res.quoteId}</span></div></td>
-                      <td className="py-5 px-4"><div className="flex flex-col"><span className="font-black italic text-[#0B132B]">{res.clientName}</span><span className="text-[9px] text-gray-400 lowercase">{res.email}</span></div></td>
-                      <td className="py-5 px-4 text-[10px] font-black">{formatDateVisual(res.checkIn)} - {formatDateVisual(res.checkOut)}</td>
-                      <td className="py-5 px-4 text-center font-black italic text-green-600">$ {Number(res.totalAmount).toLocaleString()}</td>
-                      <td className="py-5 px-4">
-                        <select
-                          value={res.status}
-                          onChange={async (e) => {
-                            const newStatus = e.target.value;
-                            
-                            // Bloqueo v23: No cerrar si tiene traslado y faltan datos
-                            if (newStatus === 'Venta Cerrada' && (res as any).includeTransfer) {
-                              if (!(res as any).itinerary || !(res as any).transferProvider) {
-                                showToast('❌ Faltan datos logísticos en Operaciones');
-                                return;
-                              }
-                            }
+      </div>
 
-                            try {
-                              const updatedRes = await api.updateReservation(res.id, { status: newStatus });
-                              if (updatedRes) {
-                                fetchReservations();
-                                showToast(`Estado: ${newStatus}`);
-                              }
-                            } catch (err) { showToast('Error al actualizar estado'); }
-                          }}
-                          className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border-none cursor-pointer outline-none transition-all ${
-                            res.status === 'Venta Cerrada' || res.status === 'Venta Concretada' ? 'bg-green-500 text-white shadow-sm' :
-                            res.status === 'Liquidada' ? 'bg-purple-600 text-white' :
-                            res.status === 'Cancelada' ? 'bg-red-500 text-white' :
-                            res.status === 'Confirmada' ? 'bg-blue-600 text-white shadow-sm' :
-                            'bg-blue-400 text-white'
-                          }`}
-                        >
-                          <option value="Pendiente">Pendiente</option>
-                          <option value="Confirmada">Confirmada</option>
-                          <option value="Venta Cerrada">VENTA</option>
-                          <option value="Venta Concretada">Venta Concretada</option>
-                          <option value="Liquidada">Liquidada</option>
-                          <option value="Cancelada">Cancelada</option>
-                        </select>
-                      </td>
-                      <td className="py-5 px-4 text-center">
-                        <button onClick={() => setSelectedReservation(res)} className="bg-[#0B132B] text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-orange-600 transition-all shadow-sm">VER</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
+      {/* Contenedor de Tabla con Scroll y Sticky Header (v52) */}
+      <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden flex flex-col flex-1">
+        {loading ? (
+          <div className="flex-1 flex items-center justify-center py-20 uppercase font-black text-[10px] text-gray-400 tracking-widest">
+            Cargando base de datos...
+          </div>
+        ) : (
+          <div className="overflow-x-auto overflow-y-auto custom-scrollbar flex-1">
+            <table className="w-full text-left border-separate border-spacing-0">
+              <thead className="sticky top-0 z-20 bg-white">
+                <tr className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                  <th className="py-5 px-6 border-b border-gray-100 bg-white">RESERVA / ORIGEN</th>
+                  <th className="py-5 px-6 border-b border-gray-100 bg-white">CLIENTE</th>
+                  <th className="py-5 px-6 border-b border-gray-100 bg-white">FECHAS</th>
+                  <th className="py-5 px-6 border-b border-gray-100 bg-white text-center">TOTAL</th>
+                  <th className="py-5 px-6 border-b border-gray-100 bg-white">ESTADO</th>
+                  <th className="py-5 px-6 border-b border-gray-100 bg-white text-right">ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm font-bold uppercase">
+                {filteredReservations.map(res => (
+                  <tr key={res.id} className="group border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    <td className="py-4 px-6">
+                      <div className="flex flex-col">
+                        <span className="font-black italic text-green-600 text-[11px] leading-tight mb-1">
+                          {res.id?.startsWith('R') ? res.id : res.quoteId?.replace('C', 'R')}
+                        </span>
+                        <span className="text-[8px] text-gray-400 font-bold tracking-tighter">REF: {res.quoteId}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex flex-col">
+                        <span className="font-black italic text-[#0B132B] truncate max-w-[180px]">{res.clientName}</span>
+                        <span className="text-[9px] text-gray-400 lowercase font-medium">{res.email}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6 whitespace-nowrap">
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-1.5 text-[9px] font-black text-gray-500">
+                          <Calendar size={10} className="text-gray-300" /> {formatDateVisual(res.checkIn)}
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[9px] font-black text-gray-300">
+                          <Calendar size={10} className="text-gray-200" /> {formatDateVisual(res.checkOut)}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6 text-center">
+                      <div className="font-black italic text-teal-600 text-sm">$ {Number(res.totalAmount).toLocaleString()}</div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <select
+                        value={res.status}
+                        onChange={async (e) => {
+                          const newStatus = e.target.value;
+                          if (newStatus === 'Venta Cerrada' && (res as any).includeTransfer) {
+                            if (!(res as any).itinerary || !(res as any).transferProvider) {
+                              showToast('❌ Faltan datos logísticos en Operaciones');
+                              return;
+                            }
+                          }
+                          try {
+                            const updatedRes = await api.updateReservation(res.id, { status: newStatus });
+                            if (updatedRes) { fetchReservations(); showToast(`Estado: ${newStatus}`); }
+                          } catch (err) { showToast('Error al actualizar'); }
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest outline-none cursor-pointer transition-all ${
+                          res.status === 'Venta Cerrada' || res.status === 'Venta Concretada' ? 'bg-green-500 text-white shadow-sm' :
+                          res.status === 'Liquidada' ? 'bg-purple-600 text-white' :
+                          res.status === 'Cancelada' ? 'bg-red-500 text-white' :
+                          res.status === 'Confirmada' ? 'bg-blue-600 text-white shadow-sm' :
+                          'bg-blue-400 text-white'
+                        }`}
+                      >
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Confirmada">Confirmada</option>
+                        <option value="Venta Cerrada">VENTA</option>
+                        <option value="Venta Concretada">Venta Concretada</option>
+                        <option value="Liquidada">Liquidada</option>
+                        <option value="Cancelada">Cancelada</option>
+                      </select>
+                    </td>
+                    <td className="py-4 px-6 text-right">
+                      <button 
+                        onClick={() => setSelectedReservation(res)} 
+                        className="bg-[#0B132B] text-white px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-sm"
+                      >
+                        Gestionar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

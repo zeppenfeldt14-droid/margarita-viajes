@@ -75,87 +75,121 @@ export default function CustomersList({ quotes }: { quotes: any[] }) {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <SectionTitle>Base de Clientes (CRM)</SectionTitle>
-      
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm">
-        <div className="flex flex-wrap flex-1 gap-3 w-full md:w-auto">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-            <input
-              type="text"
-              placeholder="Buscar por nombre o email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-gray-50 border-2 border-transparent pl-11 pr-4 py-2.5 rounded-xl text-[10px] font-bold outline-none focus:border-orange-500 focus:bg-white transition-all"
-            />
+    <div className="space-y-6 animate-in fade-in duration-500 h-[calc(100vh-120px)] flex flex-col">
+      {/* Bloque Unificado de Cabecera (v52) */}
+      <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-6 shrink-0">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <SectionTitle className="mb-0">Base de Clientes (CRM)</SectionTitle>
+          <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="bg-gray-50 border-2 border-transparent px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none focus:border-[#0B132B] focus:bg-white cursor-pointer transition-all"
+            >
+              <option value="all">TODOS LOS ESTADOS</option>
+              <option value="Nuevo">NUEVOS</option>
+              <option value="Atendido">SEGUIMIENTO</option>
+              <option value="Confirmada">CLIENTES VIP</option>
+            </select>
+
+            <div className="relative flex-1 md:flex-none">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+              <input 
+                type="text" 
+                placeholder="Nombre o email..." 
+                value={searchTerm} 
+                onChange={(e) => setSearchTerm(e.target.value)} 
+                className="bg-gray-50 border-2 border-transparent rounded-xl pl-11 pr-4 py-3 text-[10px] font-bold uppercase outline-none focus:border-[#0B132B] focus:bg-white w-full md:w-[200px] transition-all" 
+              />
+            </div>
+
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+              className="bg-gray-50 border-2 border-transparent px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none focus:border-[#0B132B] focus:bg-white cursor-pointer transition-all"
+            >
+              {MONTHS.map(m => (
+                <option key={m.value} value={m.value}>{m.label}</option>
+              ))}
+            </select>
           </div>
-
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="bg-gray-50 border-2 border-transparent px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none focus:border-orange-500 focus:bg-white cursor-pointer transition-all"
-          >
-            <option value="all">TODOS LOS ESTADOS</option>
-            <option value="Nuevo">NUEVOS</option>
-            <option value="Atendido">SEGUIMIENTO</option>
-            <option value="Confirmada">CLIENTES VIP</option>
-          </select>
-
-          <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-            className="bg-gray-50 border-2 border-transparent px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none focus:border-orange-500 focus:bg-white cursor-pointer transition-all"
-          >
-            {MONTHS.map(m => (
-              <option key={m.value} value={m.value}>{m.label}</option>
-            ))}
-          </select>
         </div>
       </div>
-      <div className="bg-white rounded-[2rem] shadow-xl border border-gray-50 overflow-hidden">
-        <div className="w-full overflow-x-auto pb-4 hide-scrollbar">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="text-[10px] font-black text-[#0B132B] uppercase tracking-[0.2em] border-b border-gray-100 bg-gray-50/50">
-                <th className="py-6 px-8">Cliente / Contacto</th>
-                <th className="py-6 px-8">Hotel de Interés</th>
-                <th className="py-6 px-8">Fecha de Viaje</th>
-                <th className="py-6 px-8">Estado</th>
-                <th className="py-6 px-8 text-right">Acción</th>
+
+      {/* Contenedor de Tabla con Scroll y Sticky Header (v52) */}
+      <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden flex flex-col flex-1">
+        <div className="overflow-x-auto overflow-y-auto custom-scrollbar flex-1">
+          <table className="w-full text-left border-separate border-spacing-0">
+            <thead className="sticky top-0 z-20 bg-white">
+              <tr className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                <th className="py-5 px-8 border-b border-gray-100 bg-white">CLIENTE / CONTACTO</th>
+                <th className="py-5 px-8 border-b border-gray-100 bg-white">HOTEL DE INTERÉS</th>
+                <th className="py-5 px-8 border-b border-gray-100 bg-white">FECHA DE VIAJE</th>
+                <th className="py-5 px-8 border-b border-gray-100 bg-white">ESTADO</th>
+                <th className="py-5 px-8 border-b border-gray-100 bg-white text-right">ACCIONES</th>
               </tr>
             </thead>
-            <tbody className="text-sm font-bold">
+            <tbody className="text-sm font-bold uppercase transition-all">
               {filteredCustomers.length === 0 ? (
-                <tr><td colSpan={5} className="py-12 text-center text-gray-400 text-[10px] font-black uppercase tracking-widest">No hay clientes en esta categoría</td></tr>
+                <tr>
+                  <td colSpan={5} className="py-20 text-center text-gray-300 text-[10px] font-black uppercase tracking-[0.3em]">
+                    No se encontraron registros
+                  </td>
+                </tr>
               ) : (
                 filteredCustomers.map((c, idx) => (
-                  <tr key={idx} className="border-b border-gray-50 hover:bg-orange-50/30 transition-colors">
-                    <td className="py-5 px-8"><div className="flex flex-col"><span className="font-black italic uppercase text-[#0B132B]">{c.clientName || c.client_name || 'Sin Nombre'}</span><span className="text-[10px] text-gray-500 uppercase mt-1">{c.email} • {c.whatsapp || 'Sin tlf'}</span></div></td>
-                    <td className="py-5 px-8 text-[11px] text-[#0B132B] uppercase">{c.hotelName || c.hotel_name}</td>
-                    <td className="py-5 px-8 text-[10px] font-black uppercase text-orange-600">{c.checkIn ? new Date(c.checkIn).toLocaleDateString('es-ES') : 'S/F'}</td>
-                    <td className="py-5 px-8"><span className={`px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest text-white shadow-sm ${c.status === 'Nuevo' ? 'bg-red-500' : c.status === 'Atendido' ? 'bg-yellow-500' : 'bg-green-500'}`}>{c.status}</span></td>
-                    <td className="py-5 px-8 text-right flex items-center justify-end gap-2">
-                      <a 
-                        href={`mailto:${c.email}?subject=Información Margarita Viajes&body=Hola ${c.clientName || c.client_name},`}
-                        className="p-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-                        title="Enviar Correo"
-                      >
-                        <Mail size={14} />
-                      </a>
-                      <button 
-                        onClick={() => openHistory(c.email)}
-                        className="p-2.5 bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-600 hover:text-white transition-all shadow-sm"
-                        title="Ver Historial"
-                      >
-                        <Eye size={14} />
-                      </button>
-                      <button 
-                        onClick={() => window.open(`https://wa.me/${c.whatsapp}?text=Hola ${c.clientName || c.client_name}, te escribo de Margarita Viajes!`, '_blank')} 
-                        className="bg-[#0B132B] text-white px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-green-500 transition-all shadow-md"
-                      >
-                        WhatsApp
-                      </button>
+                  <tr key={idx} className="group border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    <td className="py-4 px-8">
+                      <div className="flex flex-col">
+                        <span className="font-black italic text-[#0B132B] text-[11px] leading-tight mb-1">
+                          {c.clientName || c.client_name || 'Sin Nombre'}
+                        </span>
+                        <span className="text-[9px] text-gray-400 lowercase font-medium">
+                          {c.email} • {c.whatsapp || 'Sin tlf'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-8 text-[10px] text-gray-500 font-black truncate max-w-[200px]">
+                      {c.hotelName || c.hotel_name}
+                    </td>
+                    <td className="py-4 px-8 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5 text-[10px] font-black text-orange-600">
+                        <Calendar size={12} className="text-orange-200" />
+                        {c.checkIn ? new Date(c.checkIn).toLocaleDateString('es-ES') : 'S/F'}
+                      </div>
+                    </td>
+                    <td className="py-4 px-8">
+                      <span className={`px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest text-white shadow-sm ${
+                        c.status === 'Nuevo' ? 'bg-red-500' : 
+                        c.status === 'Atendido' ? 'bg-yellow-500' : 
+                        'bg-green-500'
+                      }`}>
+                        {c.status}
+                      </span>
+                    </td>
+                    <td className="py-4 px-8 text-right">
+                      <div className="flex items-center justify-end gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                        <a 
+                          href={`mailto:${c.email}?subject=Información Margarita Viajes&body=Hola ${c.clientName || c.client_name},`}
+                          className="p-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                          title="Enviar Correo"
+                        >
+                          <Mail size={14} />
+                        </a>
+                        <button 
+                          onClick={() => openHistory(c.email)}
+                          className="p-2.5 bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-600 hover:text-white transition-all shadow-sm"
+                          title="Ver Historial"
+                        >
+                          <Eye size={14} />
+                        </button>
+                        <button 
+                          onClick={() => window.open(`https://wa.me/${c.whatsapp}?text=Hola ${c.clientName || c.client_name}, te escribo de Margarita Viajes!`, '_blank')} 
+                          className="bg-[#0B132B] text-white px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-green-500 transition-all shadow-md"
+                        >
+                          WhatsApp
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -165,7 +199,7 @@ export default function CustomersList({ quotes }: { quotes: any[] }) {
         </div>
       </div>
 
-      {/* MODAL DE HISTORIAL DEL CLIENTE */}
+      {/* MODAL DE HISTORIAL DEL CLIENTE (Mantenemos lógica modal) */}
       {selectedClientHistory && (
         <div className="fixed inset-0 bg-[#0B132B]/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl max-h-[80vh] rounded-[2.5rem] shadow-2xl flex flex-col animate-in fade-in zoom-in duration-300">
@@ -177,9 +211,9 @@ export default function CustomersList({ quotes }: { quotes: any[] }) {
               <button onClick={() => setSelectedClientHistory(null)} className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:text-red-500 transition-all"><X size={18} /></button>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-8 space-y-4">
+            <div className="flex-1 overflow-y-auto p-8 space-y-4 custom-scrollbar">
               {selectedClientHistory.map((h, i) => (
-                <div key={i} className="bg-gray-50 p-6 rounded-2xl border border-gray-100 flex items-center justify-between">
+                <div key={i} className="bg-gray-50 p-6 rounded-2xl border border-gray-100 flex items-center justify-between hover:bg-white hover:shadow-md transition-all">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-black text-blue-600 italic">#{h.id || h.quoteId}</span>
