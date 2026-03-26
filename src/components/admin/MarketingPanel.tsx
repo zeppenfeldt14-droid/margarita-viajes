@@ -380,10 +380,10 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
                         loadCoupons();
                         setSelectedDetailCoupon(null);
                         setIsEditingDetail(false);
-                        if (typeof showToast === 'function') showToast('✅ Cambios guardados');
+                        showToast('Cambios guardados', 'success');
                       } catch (e) {
                         console.error(e);
-                        if (typeof showToast === 'function') showToast('❌ Error al guardar');
+                        showToast('Error al guardar', 'error');
                       }
                     }}
                     className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-md flex items-center justify-center gap-2"
@@ -399,7 +399,7 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
                           await api.saveCoupon(updated);
                           loadCoupons();
                           setSelectedDetailCoupon(null);
-                          if (typeof showToast === 'function') showToast('✅ Estado actualizado');
+                          showToast('Estado actualizado', 'success');
                         } catch (e) {
                           console.error(e);
                         }
@@ -417,7 +417,7 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
                           await api.deleteCoupon(selectedDetailCoupon.id);
                           loadCoupons();
                           setSelectedDetailCoupon(null);
-                          if (typeof showToast === 'function') showToast('🗑️ Cupón eliminado');
+                          showToast('Cupón eliminado', 'success');
                         } catch (e) {
                           console.error(e);
                         }
