@@ -552,4 +552,31 @@ export class AdminController {
       return res.status(500).json({ message: err.message });
     }
   }
+
+  async getMarketingAnalytics(req: Request, res: Response) {
+    try {
+      // Mock estructurado v56 para prevenir colapso y 404
+      const mockData = {
+        totalTraffic: 12540,
+        mobilePercent: 68,
+        dropOffRate: 24,
+        conversionFunnel: [
+          { name: 'Leads', value: 500 },
+          { name: 'Atendidos', value: 350 },
+          { name: 'Reservas', value: 120 },
+          { name: 'Cierres', value: 45 }
+        ],
+        trafficBySource: [
+          { name: 'Google', value: 45 },
+          { name: 'Instagram', value: 30 },
+          { name: 'Directo', value: 15 },
+          { name: 'Otros', value: 10 }
+        ]
+      };
+      return res.status(200).json(mockData);
+    } catch (error: any) {
+      console.error('[AdminController] Error en getMarketingAnalytics:', error);
+      return res.status(500).json({ message: error.message });
+    }
+  }
 }

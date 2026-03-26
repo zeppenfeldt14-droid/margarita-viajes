@@ -90,6 +90,7 @@ export function createRouter(
   router.post('/admin/coupons', (req: Request, res: Response) => adminController.createCoupon(req, res));
   router.put('/admin/coupons/:id', (req: Request, res: Response) => adminController.updateCoupon(req, res));
   router.delete('/admin/coupons/:id', (req: Request, res: Response) => adminController.deleteCoupon(req, res));
+  router.get('/admin/analytics/marketing', (req: Request, res: Response) => adminController.getMarketingAnalytics(req, res));
 
   // Logs: Lectura solo Master (Nivel 1), Escritura para TODOS (Nivel 1, 2, 3)
   router.get('/admin/logs', masterAuth, (req: Request, res: Response) => logController.getLogs(req, res));
