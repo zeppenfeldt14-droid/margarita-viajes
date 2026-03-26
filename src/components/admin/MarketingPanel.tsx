@@ -101,30 +101,34 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
             </div>
             <h3 className="text-xs font-black text-[#0B132B] uppercase tracking-widest">Embudo de Conversión</h3>
           </div>
-          <div style={{ width: '100%', height: '350px', minHeight: '350px', position: 'relative' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={analytics?.conversionFunnel || []} layout="vertical" margin={{ left: 20, right: 30 }}>
-                <XAxis type="number" hide />
-                <YAxis 
-                  dataKey="name" 
-                  type="category" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 10, fontWeight: 900, fill: '#6B7280' }} 
-                  width={80}
-                />
-                <Tooltip 
-                  cursor={{ fill: '#F9FAFB' }}
-                  contentStyle={{ borderRadius: '15px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', fontSize: '10px' }}
-                />
-                <Bar dataKey="value" radius={[0, 10, 10, 0]} barSize={32}>
-                  {(analytics?.conversionFunnel || []).map((_: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={['#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B'][index % 4]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+           <div style={{ width: '100%', height: '350px', minHeight: '350px', position: 'relative' }}>
+             {analytics?.conversionFunnel?.length > 0 ? (
+               <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={100}>
+                 <BarChart data={analytics.conversionFunnel} layout="vertical" margin={{ left: 20, right: 30 }}>
+                   <XAxis type="number" hide />
+                   <YAxis 
+                     dataKey="name" 
+                     type="category" 
+                     axisLine={false} 
+                     tickLine={false} 
+                     tick={{ fontSize: 10, fontWeight: 900, fill: '#6B7280' }} 
+                     width={80}
+                   />
+                   <Tooltip 
+                     cursor={{ fill: '#F9FAFB' }}
+                     contentStyle={{ borderRadius: '15px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', fontSize: '10px' }}
+                   />
+                   <Bar dataKey="value" radius={[0, 10, 10, 0]} barSize={32}>
+                     {analytics.conversionFunnel.map((_: any, index: number) => (
+                       <Cell key={`cell-${index}`} fill={['#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B'][index % 4]} />
+                     ))}
+                   </Bar>
+                 </BarChart>
+               </ResponsiveContainer>
+             ) : (
+               <div className="flex items-center justify-center h-full text-[10px] font-black uppercase text-gray-400">Sin datos de embudo</div>
+             )}
+           </div>
         </Card>
 
         <Card className="shadow-xl border-none ring-1 ring-gray-100 h-[480px] flex flex-col">
@@ -134,27 +138,31 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
             </div>
             <h3 className="text-xs font-black text-[#0B132B] uppercase tracking-widest">Fuentes de Tráfico</h3>
           </div>
-          <div style={{ width: '100%', height: '350px', minHeight: '350px', position: 'relative' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={analytics?.trafficBySource || []}
-                  innerRadius={70}
-                  outerRadius={110}
-                  paddingAngle={8}
-                  dataKey="value"
-                  animationBegin={200}
-                >
-                  {(analytics?.trafficBySource || []).map((_: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={['#0088FE', '#00C49F', '#FFBB28', '#FF8042'][index % 4]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ borderRadius: '15px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', fontSize: '10px' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+           <div style={{ width: '100%', height: '350px', minHeight: '350px', position: 'relative' }}>
+             {analytics?.trafficBySource?.length > 0 ? (
+               <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={100}>
+                 <PieChart>
+                   <Pie
+                     data={analytics.trafficBySource}
+                     innerRadius={70}
+                     outerRadius={110}
+                     paddingAngle={8}
+                     dataKey="value"
+                     animationBegin={200}
+                   >
+                     {analytics.trafficBySource.map((_: any, index: number) => (
+                       <Cell key={`cell-${index}`} fill={['#0088FE', '#00C49F', '#FFBB28', '#FF8042'][index % 4]} />
+                     ))}
+                   </Pie>
+                   <Tooltip 
+                     contentStyle={{ borderRadius: '15px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', fontSize: '10px' }}
+                   />
+                 </PieChart>
+               </ResponsiveContainer>
+             ) : (
+               <div className="flex items-center justify-center h-full text-[10px] font-black uppercase text-gray-400">Sin datos de tráfico</div>
+             )}
+           </div>
         </Card>
       </div>
 

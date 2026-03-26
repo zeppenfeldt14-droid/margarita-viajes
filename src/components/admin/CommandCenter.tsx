@@ -271,32 +271,36 @@ export default function CommandCenter() {
            <TrendingUp size={16} className="text-emerald-500" /> Embudo de Conversión (Lead to Sale)
          </h3>
          <div style={{ width: '100%', height: '350px', minHeight: '350px', overflow: 'hidden' }}>
-           <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={funnelData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 50 }}>
-                <XAxis type="number" hide />
-                <YAxis 
-                  type="category" 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 10, fontWeight: 900, fill: '#0B132B' }} 
-                />
-                <Tooltip 
-                  cursor={{ fill: 'transparent' }}
-                  contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', fontSize: '10px', fontWeight: 'bold' }}
-                />
-                <Bar 
-                  dataKey="value" 
-                  radius={[0, 10, 10, 0]} 
-                  barSize={30}
-                  animationDuration={2000}
-                >
-                  {funnelData.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#F39C12' : '#F5B041'} />
-                  ))}
-                </Bar>
-              </BarChart>
-           </ResponsiveContainer>
+           {funnelData.length > 0 ? (
+             <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={100}>
+                <BarChart data={funnelData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 50 }}>
+                  <XAxis type="number" hide />
+                  <YAxis 
+                    type="category" 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10, fontWeight: 900, fill: '#0B132B' }} 
+                  />
+                  <Tooltip 
+                    cursor={{ fill: 'transparent' }}
+                    contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', fontSize: '10px', fontWeight: 'bold' }}
+                  />
+                  <Bar 
+                    dataKey="value" 
+                    radius={[0, 10, 10, 0]} 
+                    barSize={30}
+                    animationDuration={2000}
+                  >
+                    {funnelData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#F39C12' : '#F5B041'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+             </ResponsiveContainer>
+           ) : (
+             <div className="flex items-center justify-center h-full text-[10px] font-black uppercase text-gray-400">Cargando métricas...</div>
+           )}
          </div>
       </div>
 
@@ -322,23 +326,27 @@ export default function CommandCenter() {
             </div>
          </div>
          <div style={{ width: '100%', height: '300px', minHeight: '300px', overflow: 'hidden' }}>
-            <ResponsiveContainer width="100%" height="100%">
-               <PieChart>
-                  <Pie
-                    data={hotelData}
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="value"
-                    animationDuration={1500}
-                  >
-                    {hotelData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-               </PieChart>
-            </ResponsiveContainer>
+            {hotelData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={100}>
+                 <PieChart>
+                    <Pie
+                      data={hotelData}
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={5}
+                      dataKey="value"
+                      animationDuration={1500}
+                    >
+                      {hotelData.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                 </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-[10px] font-black uppercase text-gray-400">Cargando métricas...</div>
+            )}
          </div>
       </div>
       

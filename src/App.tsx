@@ -23,6 +23,16 @@ function App() {
     console.log("[App] Checked localStorage for staff_token:", !!auth);
     setIsAuthenticated(!!auth);
 
+    useEffect(() => {
+      const handleTokenExpired = () => {
+        console.warn('[App] Session expired, logging out.');
+        handleLogout();
+      };
+
+      window.addEventListener('auth_token_expired', handleTokenExpired);
+      return () => window.removeEventListener('auth_token_expired', handleTokenExpired);
+    }, []);
+
     // Analítica v55 - Silent Tracking
     const trackEntry = async () => {
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);

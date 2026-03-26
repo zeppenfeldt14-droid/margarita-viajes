@@ -14,6 +14,16 @@ const fetchWithAuth = async (endpoint: string, options: RequestInit = {}) => {
     headers,
   });
 
+  if (response.status === 401 && token) {
+    console.error('[API] 401 Unauthorized detected. Clearing token.');
+    localStorage.removeItem('staff_token');
+    localStorage.removeItem('staff_auth');
+    // Optional: trigger a page reload or event to force redirect to login
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth_token_expired'));
+    }
+  }
+
   return response;
 };
 

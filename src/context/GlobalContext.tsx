@@ -57,11 +57,13 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
           setReservations(Array.isArray(reservationsData) ? reservationsData : []);
           setOperations(Array.isArray(operationsData) ? operationsData : []);
           setUsers(Array.isArray(usersData) ? usersData : []);
-        } catch (adminError) {
+        } catch (adminError: any) {
           console.error('Error fetching admin data:', adminError);
-          // Si falla la parte administrativa (ej. token expirado), no matamos toda la app
+          // If it's a 401, the api service has already cleared tokens and dispatched an event
           setQuotes([]);
           setUsers([]);
+          setReservations([]);
+          setOperations([]);
         }
       } else {
         setQuotes([]);
