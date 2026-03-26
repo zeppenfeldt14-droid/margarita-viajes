@@ -30,6 +30,29 @@ export default function Home({ onAdminClick }: HomeProps) {
   const [sectionOrder, setSectionOrder] = useState<string[]>(['hotels', 'fulldays', 'packages']);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [winnerCategory, setWinnerCategory] = useState<string>('');
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const runICD = () => {
+    const categories = ['hotels', 'fulldays', 'packages'];
+    const winner = categories[Math.floor(Math.random() * categories.length)];
+    setWinnerCategory(winner);
+    
+    if (window.innerWidth <= 768) {
+      setSectionOrder([...categories.filter(c => c !== winner), winner]);
+    } else {
+      setSectionOrder(shuffle(categories));
+    }
+  };
+
+  const handleSwipe = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    if (isLeftSwipe) {
+      runICD();
+    }
+  };
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -61,20 +84,11 @@ export default function Home({ onAdminClick }: HomeProps) {
         const f = hList.filter((item: any) => item.type === 'full-day');
         const p = hList.filter((item: any) => item.type === 'package');
 
-        const categories = ['hotels', 'fulldays', 'packages'];
-        const winner = categories[Math.floor(Math.random() * categories.length)];
-        setWinnerCategory(winner);
-
         setRandomHotels(shuffle(h));
         setRandomFullDays(shuffle(f));
         setRandomPackages(shuffle(p));
         
-        if (window.innerWidth <= 768) {
-          // Relevancia Inversa: El ganador al FINAL
-          setSectionOrder([...categories.filter(c => c !== winner), winner]);
-        } else {
-          setSectionOrder(shuffle(categories));
-        }
+        runICD();
       } catch (error) {
         console.error('Error fetching home data:', error);
       } finally {
@@ -120,9 +134,8 @@ export default function Home({ onAdminClick }: HomeProps) {
     <div className="bg-white min-h-screen font-sans relative overflow-x-hidden selection:bg-orange-100 pt-20">
 
       {/* HEADER NAV - LOGO SEGÚN DISEÑO SOLICITADO */}
-      <header className="px-6 md:px-12 py-5 flex items-center justify-between shadow-sm fixed top-0 left-0 right-0 z-50 bg-white">
+      <header className="px-6 md:px-12 py-5 flex items-center justify-center md:justify-between fixed top-0 left-0 right-0 z-50 bg-transparent">
         <div className="flex items-center gap-4">
-          {/* LOGO AREA */}
           <div className="flex items-center gap-4 group cursor-default">
             <div className="relative">
               <div className="absolute -inset-1 bg-orange-500/10 rounded-full blur group-hover:opacity-100 transition duration-1000"></div>
@@ -143,8 +156,8 @@ export default function Home({ onAdminClick }: HomeProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-8">
-          <nav className="hidden lg:flex items-center gap-10">
+        <div className="hidden md:flex items-center gap-8">
+          <nav className="flex items-center gap-10">
             <a href="#hoteles" className="text-[11px] font-black uppercase tracking-widest text-[#0B132B] hover:text-[#ea580c] transition-colors">{getConf('hotelesTitulo') || 'HOTELES'}</a>
             <a href="#fulldays" className="text-[11px] font-black uppercase tracking-widest text-[#0B132B] hover:text-[#ea580c] transition-colors">FULL DAYS</a>
             <a href="#nosotros" className="text-[11px] font-black uppercase tracking-widest text-[#0B132B] hover:text-[#ea580c] transition-colors">QUIÉNES SOMOS</a>
@@ -152,7 +165,7 @@ export default function Home({ onAdminClick }: HomeProps) {
 
           <button
             onClick={onAdminClick}
-            className="w-11 h-11 bg-gray-50 rounded-2xl flex items-center justify-center hover:bg-gray-100 transition-all border border-gray-100 text-gray-400 hover:text-[#ea580c]"
+            className="w-11 h-11 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center hover:bg-white transition-all border border-white/20 text-gray-400 hover:text-[#ea580c]"
             title="Panel de Administración"
           >
             <Settings size={18} />
@@ -160,11 +173,17 @@ export default function Home({ onAdminClick }: HomeProps) {
         </div>
       </header>
       {/* HERO SECTION CON BANNER Y BUSCADOR DROPDOWN */}
-      <div className="w-full h-[400px] md:h-[500px] bg-cover bg-center relative" style={{ backgroundImage: `url(${getConf('bannerImage') || '/assets/img/hero-bg.jpg'})` }}>
+      <div 
+        className="w-full h-[400px] md:h-[500px] bg-cover bg-center relative" 
+        style={{ backgroundImage: `url(${getConf('bannerImage') || '/assets/img/hero-bg.jpg'})` }}
+        onTouchStart={e => setTouchStart(e.targetTouches[0].clientX)}
+        onTouchMove={e => setTouchEnd(e.targetTouches[0].clientX)}
+        onTouchEnd={handleSwipe}
+      >
         <div className="absolute inset-0 bg-blue-900/40 backdrop-blur-[1px]"></div>
 
         <div className="absolute inset-0 flex flex-col items-center pt-12 text-center px-6">
-          <span className="text-orange-400 font-extrabold tracking-[0.4em] text-[10px] uppercase mb-4 animate-in fade-in slide-in-from-top-4 duration-700">
+          <span className="text-orange-400 font-extrabold tracking-[0.4em] text-sm md:text-xl uppercase mb-4 animate-in fade-in slide-in-from-top-4 duration-700 whitespace-nowrap">
             {getConf('subtituloHero') || 'Explora la Perla del Caribe'}
           </span>
 
@@ -365,22 +384,22 @@ export default function Home({ onAdminClick }: HomeProps) {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-[#0B132B] pt-24 pb-12 text-white">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-16 mb-20">
-          <div className="space-y-6">
+      <footer className="bg-transparent pt-24 pb-12 text-white">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-16 mb-20 text-center md:text-left">
+          <div className="space-y-6 flex flex-col items-center md:items-start text-[#0B132B]">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-black italic text-[#ea580c] leading-none uppercase">
                 {config?.agencyName || 'MARGARITA'}
               </h1>
             </div>
-            <p className="text-xs font-bold text-gray-400 uppercase leading-relaxed tracking-wider">
+            <p className="text-[10px] font-bold text-gray-500 uppercase leading-relaxed tracking-wider">
               {config?.direccion || 'Isla de Margarita, Venezuela'}
               <br /><br />
               RIF: J-40156646-4 | RTN: 13314
             </p>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-6 flex flex-col items-center md:items-start text-[#0B132B]">
             <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">Contacto Directo</h4>
             <div className="space-y-4">
               <a href={`tel:${config?.telefono}`} className="flex items-center gap-3 text-sm font-bold hover:text-orange-400 transition-colors">
@@ -392,24 +411,24 @@ export default function Home({ onAdminClick }: HomeProps) {
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-6 flex flex-col items-center md:items-start">
             <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">Redes Oficiales</h4>
-            <div className="flex items-center gap-4">
-              <a href="https://www.instagram.com/margaritaviajes/" target="_blank" className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center hover:bg-orange-500 transition-all border border-white/10 group">
-                <Instagram size={20} className="group-hover:scale-110 transition-transform" />
+            <div className="flex items-center gap-6">
+              <a href="https://www.instagram.com/margaritaviajes/" target="_blank" className="w-14 h-14 bg-[#0B132B]/5 rounded-2xl flex items-center justify-center hover:bg-orange-500 transition-all border border-[#0B132B]/10 group">
+                <Instagram size={24} className="text-[#0B132B] group-hover:text-white group-hover:scale-110 transition-all" />
               </a>
-              <a href="https://www.facebook.com/hotelesamargarita/" target="_blank" className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all border border-white/10 group">
-                <Facebook size={20} className="group-hover:scale-110 transition-transform" />
+              <a href="https://www.facebook.com/hotelesamargarita/" target="_blank" className="w-14 h-14 bg-[#0B132B]/5 rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all border border-[#0B132B]/10 group">
+                <Facebook size={24} className="text-[#0B132B] group-hover:text-white group-hover:scale-110 transition-all" />
               </a>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-white/5 px-6 md:px-12 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">© {new Date().getFullYear()} MARGARITA VIAJES C.A. - TODOS LOS DERECHOS RESERVADOS</p>
+        <div className="border-t border-gray-100 px-6 md:px-12 py-12 flex flex-col md:flex-row justify-between items-center gap-6 text-center">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">© {new Date().getFullYear()} MARGARITA VIAJES C.A. - TODOS LOS DERECHOS RESERVADOS</p>
           <div className="flex gap-8">
-            <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">Legal</span>
-            <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">Privacidad</span>
+            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Legal</span>
+            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Privacidad</span>
           </div>
         </div>
       </footer>
