@@ -277,9 +277,9 @@ export default function CommandCenter() {
          <h3 className="text-xs font-black text-[#0B132B] uppercase tracking-widest mb-8 flex items-center gap-2">
            <TrendingUp size={16} className="text-emerald-500" /> Embudo de Conversión (Lead to Sale)
          </h3>
-          <div style={{ width: '100%', height: '350px', minHeight: '350px', overflow: 'hidden' }}>
-            {isReady && funnelData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100} debounce={200}>
+           <div className="w-full h-[350px] min-w-[300px] min-h-[350px] overflow-hidden" style={{ position: 'relative' }}>
+             {isReady && funnelData.length > 0 ? (
+               <ResponsiveContainer width="99%" aspect={2} minWidth={100} minHeight={100} debounce={200}>
                 <BarChart data={funnelData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 50 }}>
                   <XAxis type="number" hide />
                   <YAxis 
@@ -332,9 +332,9 @@ export default function CommandCenter() {
               ))}
             </div>
          </div>
-         <div style={{ width: '100%', height: '300px', minHeight: '300px', overflow: 'hidden' }}>
+          <div className="w-full h-[300px] min-w-[300px] min-h-[300px] overflow-hidden" style={{ position: 'relative' }}>
             {isReady && hotelData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100} debounce={200}>
+              <ResponsiveContainer width="99%" aspect={2} minWidth={100} minHeight={100} debounce={200}>
                  <PieChart>
                     <Pie
                       data={hotelData}
