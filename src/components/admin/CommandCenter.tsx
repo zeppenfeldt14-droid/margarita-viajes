@@ -334,7 +334,7 @@ export default function CommandCenter() {
          </div>
          <div style={{ width: '100%', height: '300px', minHeight: '300px', overflow: 'hidden' }}>
             {isReady && hotelData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={200}>
+              <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100} debounce={200}>
                  <PieChart>
                     <Pie
                       data={hotelData}
