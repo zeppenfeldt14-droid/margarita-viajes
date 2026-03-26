@@ -20,7 +20,6 @@ function App() {
 
   useEffect(() => {
     const auth = localStorage.getItem("staff_token");
-    console.log("[App] Checked localStorage for staff_token:", !!auth);
     setIsAuthenticated(!!auth);
   }, []);
 
@@ -81,7 +80,6 @@ function App() {
 
           <Route path="/login">
             {() => {
-              console.log("[App] Rendering /login, isAuthenticated:", isAuthenticated);
               return isAuthenticated ? <Redirect to="/admin" /> : <Login onLogin={handleLogin} onBack={() => setLocation("/")} />;
             }}
           </Route>
@@ -89,7 +87,6 @@ function App() {
           {["/admin", "/admin/inventory", "/admin/quotes", "/admin/reservations", "/admin/sales", "/admin/users", "/admin/customers", "/admin/marketing", "/admin/administration", "/admin/webconfig"].map(path => (
             <Route key={path} path={path}>
               {() => {
-                console.log("[App] Navigating to admin route:", path, "Auth:", isAuthenticated);
                 
                 // Obtener permisos para el Smart Sidebar
                 let permissions = {};
@@ -124,7 +121,6 @@ function App() {
           {/* Default fallback */}
           <Route>
             {() => {
-              console.log("[App] Fallback route triggered, redirecting to /");
               return <Redirect to="/" />;
             }}
           </Route>
