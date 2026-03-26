@@ -222,7 +222,7 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
                   }
                   
                   try {
-                    await api.saveCoupon({ ...coupon, active: true });
+                    await api.saveCoupon({ ...coupon, active: true }, null);
                     loadCoupons();
                     showToast('Cupón activado exitosamente', 'success');
                     setCoupon({ code: '', discount: '', expiry: '' });
@@ -461,7 +461,7 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
                   <button 
                     onClick={async () => {
                       try {
-                        await api.saveCoupon(editCoupon); // API handles ID
+                        await api.saveCoupon(editCoupon, editCoupon.id); // Pass ID for PUT
                         loadCoupons();
                         setSelectedDetailCoupon(null);
                         setIsEditingDetail(false);
@@ -481,7 +481,7 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
                       onClick={async () => {
                         try {
                           const updated = { ...selectedDetailCoupon, active: !selectedDetailCoupon.active };
-                          await api.saveCoupon(updated);
+                          await api.saveCoupon(updated, updated.id);
                           loadCoupons();
                           setSelectedDetailCoupon(null);
                           showToast('Estado actualizado', 'success');

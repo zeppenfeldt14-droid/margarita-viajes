@@ -81,7 +81,8 @@ export default function CommandCenter() {
   const hotelData = useMemo(() => {
     const counts: Record<string, number> = {};
     (operations || []).forEach(op => {
-      counts[op.hotelName] = (counts[op.hotelName] || 0) + 1;
+      const hName = op.hotelName || 'Sin Nombre';
+      counts[hName] = (counts[hName] || 0) + 1;
     });
     return Object.entries(counts)
       .map(([name, value]) => ({ name, value }))
