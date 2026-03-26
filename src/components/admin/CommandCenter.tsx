@@ -270,7 +270,7 @@ export default function CommandCenter() {
          <h3 className="text-xs font-black text-[#0B132B] uppercase tracking-widest mb-8 flex items-center gap-2">
            <TrendingUp size={16} className="text-emerald-500" /> Embudo de Conversión (Lead to Sale)
          </h3>
-         <div className="flex-1 w-full" style={{ minHeight: '300px' }}>
+         <div style={{ width: '100%', height: '350px', minHeight: '350px', overflow: 'hidden' }}>
            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={funnelData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 50 }}>
                 <XAxis type="number" hide />
@@ -321,7 +321,7 @@ export default function CommandCenter() {
               ))}
             </div>
          </div>
-         <div className="flex-1 h-[300px] min-h-[300px] flex items-center justify-center" style={{ minHeight: '300px' }}>
+         <div style={{ width: '100%', height: '300px', minHeight: '300px', overflow: 'hidden' }}>
             <ResponsiveContainer width="100%" height="100%">
                <PieChart>
                   <Pie
