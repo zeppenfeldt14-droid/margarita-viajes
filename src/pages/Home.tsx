@@ -28,6 +28,18 @@ export default function Home({ onAdminClick }: HomeProps) {
   const [randomPackages, setRandomPackages] = useState<Hotel[]>([]);
   const [config, setConfig] = useState<any>({});
   const [sectionOrder, setSectionOrder] = useState<string[]>(['hotels', 'fulldays', 'packages']);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const getConf = (key: string) => {
+    const prefix = isMobile ? 'mobile_' : 'pc_';
+    return config[prefix + key] || config[key];
+  };
 
   // --- UTILIDAD: SHUFFLE ---
   const shuffle = (array: any[]) => [...array].sort(() => Math.random() - 0.5);
@@ -103,8 +115,8 @@ export default function Home({ onAdminClick }: HomeProps) {
           <div className="flex items-center gap-4 group cursor-default">
             <div className="relative">
               <div className="absolute -inset-1 bg-orange-500/10 rounded-full blur group-hover:opacity-100 transition duration-1000"></div>
-              {config.logoImage ? (
-                <img src={config.logoImage} alt="Margarita Viajes" className="w-14 h-14 object-contain relative" />
+              {getConf('logoImage') ? (
+                <img src={getConf('logoImage')} alt="Margarita Viajes" className="w-14 h-14 object-contain relative" />
               ) : (
                 <img src="/assets/img/logo.png" alt="Margarita Viajes" className="w-14 h-14 object-contain relative" />
               )}
@@ -122,7 +134,7 @@ export default function Home({ onAdminClick }: HomeProps) {
 
         <div className="flex items-center gap-8">
           <nav className="hidden lg:flex items-center gap-10">
-            <a href="#hoteles" className="text-[11px] font-black uppercase tracking-widest text-[#0B132B] hover:text-[#ea580c] transition-colors">{config.hotelesTitulo}</a>
+            <a href="#hoteles" className="text-[11px] font-black uppercase tracking-widest text-[#0B132B] hover:text-[#ea580c] transition-colors">{getConf('hotelesTitulo') || 'HOTELES'}</a>
             <a href="#fulldays" className="text-[11px] font-black uppercase tracking-widest text-[#0B132B] hover:text-[#ea580c] transition-colors">FULL DAYS</a>
             <a href="#nosotros" className="text-[11px] font-black uppercase tracking-widest text-[#0B132B] hover:text-[#ea580c] transition-colors">QUIÉNES SOMOS</a>
           </nav>
@@ -137,12 +149,12 @@ export default function Home({ onAdminClick }: HomeProps) {
         </div>
       </header>
       {/* HERO SECTION CON BANNER Y BUSCADOR DROPDOWN */}
-      <div className="w-full h-[400px] md:h-[500px] bg-cover bg-center relative" style={{ backgroundImage: `url(${config?.bannerImage || '/assets/img/hero-bg.jpg'})` }}>
+      <div className="w-full h-[400px] md:h-[500px] bg-cover bg-center relative" style={{ backgroundImage: `url(${getConf('bannerImage') || '/assets/img/hero-bg.jpg'})` }}>
         <div className="absolute inset-0 bg-blue-900/40 backdrop-blur-[1px]"></div>
 
         <div className="absolute inset-0 flex flex-col items-center pt-12 text-center px-6">
           <span className="text-orange-400 font-extrabold tracking-[0.4em] text-[10px] uppercase mb-4 animate-in fade-in slide-in-from-top-4 duration-700">
-            {config?.subtituloHero || 'Explora la Perla del Caribe'}
+            {getConf('subtituloHero') || 'Explora la Perla del Caribe'}
           </span>
 
           {/* 3 CARDS SOBREPUESTAS EN BANNER - PAQUETES, FULL DAYS, HOTELES */}
@@ -250,8 +262,8 @@ export default function Home({ onAdminClick }: HomeProps) {
           <section id="hoteles" key="hotels" className="py-20 px-6 md:px-12 max-w-7xl mx-auto animate-in fade-in duration-700">
             <div className="mb-14 flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
-                <span className="text-[11px] font-black uppercase tracking-[0.3em] mb-2 block" style={{ color: config.colorFuentesSub }}>{config.hotelesSubtitulo}</span>
-                <h2 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter text-[#0B132B]">{config.hotelesTitulo}</h2>
+                <span className="text-[11px] font-black uppercase tracking-[0.3em] mb-2 block" style={{ color: config.colorFuentesSub }}>{getConf('hotelesSubtitulo')}</span>
+                <h2 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter text-[#0B132B]">{getConf('hotelesTitulo') || 'HOTELES'}</h2>
               </div>
               <button
                 onClick={() => document.getElementById('hoteles')?.scrollIntoView({ behavior: 'smooth' })}
@@ -302,7 +314,7 @@ export default function Home({ onAdminClick }: HomeProps) {
           <section id="fulldays" key="fulldays" className="py-24 px-6 md:px-12 bg-gray-50 overflow-hidden animate-in fade-in duration-700">
             <div className="max-w-7xl mx-auto">
               <div className="mb-14 text-center md:text-left">
-                <span className="text-[11px] font-black uppercase tracking-[0.3em] mb-2 block" style={{ color: config.colorFuentesSub }}>{config.fulldaysSubtitulo}</span>
+                <span className="text-[11px] font-black uppercase tracking-[0.3em] mb-2 block" style={{ color: config.colorFuentesSub }}>{getConf('fulldaysSubtitulo')}</span>
                 <h2 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter text-[#0B132B]">FULL DAYS</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
