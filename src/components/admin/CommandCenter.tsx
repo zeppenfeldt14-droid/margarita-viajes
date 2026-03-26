@@ -358,7 +358,7 @@ export default function CommandCenter() {
       </div>
 
       {/* ROW 3: Top Hoteles */}
-      <div className="col-span-1 md:col-span-4 bg-white p-8 rounded-[3rem] shadow-xl border border-gray-100 flex flex-col md:flex-row gap-8">
+      <div className="col-span-1 md:col-span-4 bg-white p-8 rounded-[3rem] shadow-xl border border-gray-100 flex flex-col md:flex-row gap-8 min-h-[500px]">
          <div className="flex-1">
             <h3 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest mb-2 flex items-center gap-2">
               <HotelIcon size={16} className="text-[#F39200]" /> Top Servicios y Hoteles
@@ -378,38 +378,33 @@ export default function CommandCenter() {
               ))}
             </div>
          </div>
-          <div className="w-full h-[300px] min-w-[300px] min-h-[300px] overflow-hidden bg-[#1A1A1A]/5 rounded-[2.5rem] p-4 flex items-center justify-center" style={{ position: 'relative' }}>
+          <div className="w-full h-full min-h-[400px] overflow-hidden bg-[#1A1A1A]/5 rounded-[2.5rem] p-8 flex items-center justify-center" style={{ position: 'relative' }}>
             {isReady && hotelData.length > 0 ? (
-              <ResponsiveContainer width="99%" aspect={2} minWidth={100} minHeight={100} debounce={200}>
-                 <FunnelChart>
+              <ResponsiveContainer width="100%" height="100%" debounce={200}>
+                 <FunnelChart margin={{ top: 20, right: 120, left: 20, bottom: 20 }}>
                    <Tooltip 
                      contentStyle={{ borderRadius: '20px', border: 'none', backgroundColor: '#1A1A1A', color: '#fff', fontSize: '10px' }} 
                      itemStyle={{ color: '#fff' }}
                    />
-                   <defs>
-                     <linearGradient id="funnelGradient" x1="0" y1="0" x2="0" y2="1">
-                       <stop offset="0%" stopColor="#1A1A1A" stopOpacity={1}/>
-                       <stop offset="100%" stopColor="#1A1A1A" stopOpacity={0.4}/>
-                     </linearGradient>
-                   </defs>
                    <Funnel
                      data={hotelData}
                      dataKey="value"
                      isAnimationActive
                    >
-                     <LabelList position="right" fill="#1A1A1A" stroke="none" dataKey="name" fontSize={10} fontWeight="black" />
+                     <LabelList position="right" fill="#1A1A1A" stroke="none" dataKey="name" fontSize={11} fontWeight="black" />
+                     <LabelList position="center" fill="#fff" stroke="none" dataKey="value" fontSize={14} fontWeight="black" />
                      {hotelData.map((_, index) => (
                        <Cell 
                         key={`cell-${index}`} 
-                        fill="url(#funnelGradient)" 
-                        opacity={1 - (index * 0.15)}
+                        fill={['#1A1A1A', '#F39200', '#8DC63F', '#1A1A1A', '#8DC63F'][index % 5]} 
+                        fillOpacity={0.9 - (index * 0.1)}
                        />
                      ))}
                    </Funnel>
                  </FunnelChart>
               </ResponsiveContainer>
             ) : (
-                <div className="flex items-center justify-center h-full text-[10px] font-black uppercase text-gray-400">Generando Radar...</div>
+                <div className="flex items-center justify-center h-full text-[10px] font-black uppercase text-gray-400">Generando Métricas...</div>
             )}
           </div>
       </div>
