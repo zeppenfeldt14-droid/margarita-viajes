@@ -266,36 +266,38 @@ export default function CommandCenter() {
         </div>
       </div>
 
-      <div className="col-span-1 md:col-span-2 bg-white/40 backdrop-blur-xl border border-white/50 p-8 rounded-[2.5rem] shadow-xl h-[400px]">
+      <div className="col-span-1 md:col-span-2 bg-white/40 backdrop-blur-xl border border-white/50 p-8 rounded-[2.5rem] shadow-xl h-[400px] flex flex-col">
          <h3 className="text-xs font-black text-[#0B132B] uppercase tracking-widest mb-8 flex items-center gap-2">
            <TrendingUp size={16} className="text-emerald-500" /> Embudo de Conversión (Lead to Sale)
          </h3>
-         <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={funnelData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 50 }}>
-              <XAxis type="number" hide />
-              <YAxis 
-                type="category" 
-                dataKey="name" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fontSize: 10, fontWeight: 900, fill: '#0B132B' }} 
-              />
-              <Tooltip 
-                cursor={{ fill: 'transparent' }}
-                contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', fontSize: '10px', fontWeight: 'bold' }}
-              />
-              <Bar 
-                dataKey="value" 
-                radius={[0, 10, 10, 0]} 
-                barSize={30}
-                animationDuration={2000}
-              >
-                {funnelData.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#F39C12' : '#F5B041'} />
-                ))}
-              </Bar>
-            </BarChart>
-         </ResponsiveContainer>
+         <div className="flex-1 w-full" style={{ minHeight: '300px' }}>
+           <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={funnelData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 50 }}>
+                <XAxis type="number" hide />
+                <YAxis 
+                  type="category" 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fontWeight: 900, fill: '#0B132B' }} 
+                />
+                <Tooltip 
+                  cursor={{ fill: 'transparent' }}
+                  contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', fontSize: '10px', fontWeight: 'bold' }}
+                />
+                <Bar 
+                  dataKey="value" 
+                  radius={[0, 10, 10, 0]} 
+                  barSize={30}
+                  animationDuration={2000}
+                >
+                  {funnelData.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#F39C12' : '#F5B041'} />
+                  ))}
+                </Bar>
+              </BarChart>
+           </ResponsiveContainer>
+         </div>
       </div>
 
       {/* ROW 3: Top Hoteles */}
@@ -319,9 +321,8 @@ export default function CommandCenter() {
               ))}
             </div>
          </div>
-         <div className="flex-1 h-[300px] flex items-center justify-center">
-           <div className="w-full h-[400px] min-h-[400px]" style={{ width: '100%', height: 400 }}>
-          <ResponsiveContainer width="100%" height="100%">
+         <div className="flex-1 h-[300px] min-h-[300px] flex items-center justify-center" style={{ minHeight: '300px' }}>
+            <ResponsiveContainer width="100%" height="100%">
                <PieChart>
                   <Pie
                     data={hotelData}
@@ -338,7 +339,6 @@ export default function CommandCenter() {
                   <Tooltip />
                </PieChart>
             </ResponsiveContainer>
-         </div>
          </div>
       </div>
       
