@@ -140,9 +140,9 @@ export default function Home({ onAdminClick }: HomeProps) {
             <div className="relative">
               <div className="absolute -inset-1 bg-orange-500/10 rounded-full blur group-hover:opacity-100 transition duration-1000"></div>
               {getConf('logoImage') ? (
-                <img src={getConf('logoImage')} alt="Margarita Viajes" className="h-20 w-auto object-contain relative mix-blend-multiply" />
+                <img src={getConf('logoImage')} alt="Margarita Viajes" className="h-20 w-auto object-contain relative" />
               ) : (
-                <img src="/assets/img/logo.png" alt="Margarita Viajes" className="h-20 w-auto object-contain relative mix-blend-multiply" />
+                <img src="/assets/img/logo.png" alt="Margarita Viajes" className="h-20 w-auto object-contain relative" />
               )}
             </div>
             <div className="flex flex-col">
@@ -183,7 +183,7 @@ export default function Home({ onAdminClick }: HomeProps) {
         <div className="absolute inset-0 bg-blue-900/40 backdrop-blur-[1px]"></div>
 
         <div className="absolute inset-0 flex flex-col items-center pt-12 text-center px-6">
-          <span className="text-orange-400 font-extrabold tracking-[0.4em] text-sm md:text-xl uppercase mb-4 animate-in fade-in slide-in-from-top-4 duration-700 whitespace-nowrap">
+          <span className="text-orange-400 font-extrabold tracking-[0.2em] md:tracking-[0.4em] text-[clamp(12px,4vw,20px)] uppercase mb-4 animate-in fade-in slide-in-from-top-4 duration-700 whitespace-nowrap overflow-hidden">
             {getConf('subtituloHero') || 'Explora la Perla del Caribe'}
           </span>
 
@@ -295,7 +295,7 @@ export default function Home({ onAdminClick }: HomeProps) {
       {sectionOrder.map(section => {
         if (section === 'hotels' && randomHotels.length > 0) return (
           <section id="hoteles" key="hotels" className="py-20 px-6 md:px-12 max-w-7xl mx-auto animate-in fade-in duration-700">
-            <div className="mb-14 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="mb-14 flex flex-col items-center text-center gap-6">
               <div>
                 <span className="text-[11px] font-black uppercase tracking-[0.3em] mb-2 block" style={{ color: config.colorFuentesSub }}>{getConf('hotelesSubtitulo')}</span>
                 <h2 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter text-[#0B132B]">{getConf('hotelesTitulo') || 'HOTELES'}</h2>
@@ -325,7 +325,7 @@ export default function Home({ onAdminClick }: HomeProps) {
 
         if (section === 'packages' && randomPackages.length > 0) return (
           <section id="paquetes" key="packages" className="py-20 px-6 md:px-12 max-w-7xl mx-auto border-t border-gray-100 animate-in fade-in duration-700">
-            <div className="mb-14 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="mb-14 flex flex-col items-center text-center gap-6">
               <div>
                 <span className="text-[11px] font-black uppercase tracking-[0.3em] mb-2 block text-orange-500">Ofertas Especiales</span>
                 <h2 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter text-[#0B132B]">PAQUETES</h2>
@@ -349,8 +349,8 @@ export default function Home({ onAdminClick }: HomeProps) {
 
         if (section === 'fulldays' && randomFullDays.length > 0) return (
           <section id="fulldays" key="fulldays" className="py-24 px-6 md:px-12 bg-gray-50 overflow-hidden animate-in fade-in duration-700">
-            <div className="max-w-7xl mx-auto">
-              <div className="mb-14 text-center md:text-left">
+            <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
+              <div className="mb-14">
                 <span className="text-[11px] font-black uppercase tracking-[0.3em] mb-2 block" style={{ color: config.colorFuentesSub }}>{getConf('fulldaysSubtitulo')}</span>
                 <h2 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter text-[#0B132B]">FULL DAYS</h2>
               </div>

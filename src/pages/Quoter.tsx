@@ -308,26 +308,31 @@ export default function Quoter() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] selection:bg-orange-100">
-      <header className="px-6 md:px-12 py-6 flex items-center justify-between border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="px-6 md:px-12 py-6 flex items-center justify-center fixed top-0 left-0 right-0 z-50 bg-transparent">
+        <button 
+          onClick={() => setLocation('/')} 
+          className="absolute left-6 md:left-12 w-11 h-11 bg-white/40 backdrop-blur-md rounded-2xl flex items-center justify-center hover:bg-white transition-all border border-white/20 text-[#0B132B] hover:text-[#ea580c] shadow-sm"
+          title="Volver"
+        >
+          <ChevronLeft size={20} />
+        </button>
+
         <div className="flex items-center gap-3">
           {activeConfig.logoImage ? (
-            <img src={activeConfig.logoImage} alt="Logo" className="w-14 h-14 object-contain" />
+            <img src={activeConfig.logoImage} alt="Logo" className="h-20 w-auto object-contain" />
           ) : (
-            <img src="/assets/img/logo.png" alt="Logo" className="w-12 h-12 object-contain" />
+            <img src="/assets/img/logo.png" alt="Logo" className="h-20 w-auto object-contain" />
           )}
-          <div className="flex flex-col">
+          <div className="flex flex-col hidden md:flex">
             <h1 className="text-xl font-black italic text-[#ea580c] leading-none uppercase">
               {activeConfig.agencyName || 'MARGARITA'}
             </h1>
             <span className="text-[9px] font-bold text-[#0B132B] uppercase tracking-widest mt-0.5">Viajes y Turismo</span>
           </div>
         </div>
-        <button onClick={() => setLocation('/')} className="flex items-center gap-2 text-gray-400 font-black uppercase text-[10px] tracking-widest hover:text-[#ea580c] transition-all">
-          <ChevronLeft size={16} /> Volver
-        </button>
       </header>
 
-      <main className="max-w-7xl mx-auto p-6 md:p-12 lg:p-20">
+      <main className="max-w-7xl mx-auto p-6 md:p-12 lg:p-20 pt-32 md:pt-40">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           <div className="space-y-10 animate-in slide-in-from-left-8 duration-700">
             <div className="flex items-center gap-6">
