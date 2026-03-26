@@ -691,8 +691,8 @@ export default function AdminDashboard({ user }: AdminProps) {
       </main>
 
       {showModal && (
-        <div className="fixed inset-0 bg-[#0B132B]/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6 overflow-hidden">
-          <div className="bg-white w-full max-w-5xl max-h-[90vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
+        <div className="fixed inset-0 z-[100] w-screen h-screen flex items-center justify-center bg-[#0B132B]/80 backdrop-blur-sm p-4 overflow-hidden">
+          <div className="bg-white w-full max-w-5xl max-h-[90vh] rounded-[3rem] shadow-2xl flex flex-col overflow-hidden mx-auto animate-in fade-in zoom-in duration-300">
 
             {/* ENCABEZADO FIJO */}
             <div className="p-5 md:p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 shrink-0">

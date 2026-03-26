@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, AlertCircle, Clock, CheckCircle, History, X, Edit3, Trash2, Save } from 'lucide-react';
+import { Plus, AlertCircle, Clock, CheckCircle, History, X, Edit3, Trash2, Save, Globe, Smartphone, Navigation } from 'lucide-react';
 import { Card, SectionTitle } from './Common';
 import { showToast } from '../Toast';
 import api from '../../services/api';
@@ -16,10 +16,22 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
   const [selectedDetailCoupon, setSelectedDetailCoupon] = useState<any>(null);
   const [isEditingDetail, setIsEditingDetail] = useState(false);
   const [editCoupon, setEditCoupon] = useState<any>(null);
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
 
   useEffect(() => {
     loadCoupons();
+    fetchAnalytics();
   }, []);
+
+  const fetchAnalytics = async () => {
+    setLoadingAnalytics(true);
+    try {
+      const data = await api.getMarketingAnalytics();
+      setAnalytics(data);
+    } catch (err) {}
+    setLoadingAnalytics(false);
+  };
 
   const loadCoupons = async () => {
     try {
@@ -41,8 +53,33 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
   });
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className={`space-y-8 animate-in fade-in duration-500 ${loadingAnalytics ? 'opacity-50' : ''}`}>
       <SectionTitle>Marketing y Fidelización</SectionTitle>
+
+      {/* Analítica de Marketing v55 */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
+          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center"><Globe size={20} /></div>
+          <div>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tráfico Total</p>
+            <p className="text-2xl font-black italic text-[#0B132B]">{analytics?.totalTraffic || '0'}</p>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
+          <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center"><Smartphone size={20} /></div>
+          <div>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Mobile Traffic</p>
+            <p className="text-2xl font-black italic text-[#0B132B]">{analytics?.mobilePercent || '0'}%</p>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
+          <div className="w-12 h-12 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center"><Navigation size={20} /></div>
+          <div>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Drop-off Rate</p>
+            <p className="text-2xl font-black italic text-[#0B132B]">{analytics?.dropOffRate || '0'}%</p>
+          </div>
+        </div>
+      </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* COLUMNA 1: CREACIÓN Y LISTA */}
@@ -95,20 +132,18 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
               <button 
                 onClick={async () => {
                   if (!coupon.code || !coupon.discount || !coupon.expiry) {
-                    if (typeof showToast === 'function') showToast('⚠️ Por favor completa todos los campos del cupón');
-                    else alert('⚠️ Por favor completa todos los campos del cupón');
+                    showToast('Por favor completa todos los campos', 'error');
                     return;
                   }
                   
                   try {
                     await api.saveCoupon({ ...coupon, active: true });
                     loadCoupons();
-                    if (typeof showToast === 'function') showToast('✅ Cupón activado exitosamente');
-                    else alert('✅ Cupón activado exitosamente');
+                    showToast('Cupón activado exitosamente', 'success');
                     setCoupon({ code: '', discount: '', expiry: '' });
                   } catch (e) {
                     console.error('Error:', e);
-                    if (typeof showToast === 'function') showToast('❌ Error al activar cupón');
+                    showToast('Error al activar cupón', 'error');
                   }
                 }} 
                 className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:shadow-orange-500/30 transition-all active:scale-95"

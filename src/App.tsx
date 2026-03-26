@@ -7,6 +7,7 @@ import Quoter from "./pages/Quoter";
 import Home from "./pages/Home";
 
 import AdminLayout from "./layouts/AdminLayout";
+import api from "./services/api";
 
 function App() {
   const [_, setLocation] = useLocation();
@@ -21,6 +22,21 @@ function App() {
     const auth = localStorage.getItem("staff_token");
     console.log("[App] Checked localStorage for staff_token:", !!auth);
     setIsAuthenticated(!!auth);
+
+    // Analítica v55 - Silent Tracking
+    const trackEntry = async () => {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      try {
+        await api.trackMarketingEvent({ 
+          event: "page_view", 
+          metadata: { 
+            device: isMobile ? "mobile" : "desktop",
+            path: window.location.pathname
+          } 
+        });
+      } catch (e) {}
+    };
+    trackEntry();
   }, []);
 
   const handleLogin = (staffUser: string) => {

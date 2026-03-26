@@ -210,6 +210,17 @@ export const api = {
     
     return response;
   },
+  // Analytics
+  getMarketingAnalytics: async () => {
+    const res = await fetchWithAuth('/admin/analytics/marketing');
+    return res.json();
+  },
+  trackMarketingEvent: async (data: { event: string; metadata?: any }) => {
+    return fetchWithAuth('/public/analytics/track', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
   getBaseUrl: () => API_URL
 };
 
