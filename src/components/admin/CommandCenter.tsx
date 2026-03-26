@@ -273,9 +273,9 @@ export default function CommandCenter() {
         </div>
       </div>
 
-      <div className="col-span-1 md:col-span-2 bg-white/40 backdrop-blur-xl border border-white/50 p-8 rounded-[2.5rem] shadow-xl h-[400px] flex flex-col">
-         <h3 className="text-xs font-black text-[#0B132B] uppercase tracking-widest mb-8 flex items-center gap-2">
-           <TrendingUp size={16} className="text-emerald-500" /> Embudo de Conversión (Lead to Sale)
+      <div className="col-span-1 md:col-span-2 bg-white/40 backdrop-blur-xl border border-white/50 p-8 rounded-[2.5rem] shadow-xl h-[400px] flex flex-col hover:shadow-2xl transition-shadow">
+         <h3 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest mb-8 flex items-center gap-2">
+           <TrendingUp size={16} className="text-[#8DC63F]" /> Embudo de Conversión (Lead to Sale)
          </h3>
            <div className="w-full h-[350px] min-w-[300px] min-h-[350px] overflow-hidden" style={{ position: 'relative' }}>
              {isReady && funnelData.length > 0 ? (
@@ -287,7 +287,7 @@ export default function CommandCenter() {
                     dataKey="name" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fontSize: 10, fontWeight: 900, fill: '#0B132B' }} 
+                    tick={{ fontSize: 10, fontWeight: 900, fill: '#1A1A1A' }} 
                   />
                   <Tooltip 
                     cursor={{ fill: 'transparent' }}
@@ -300,7 +300,7 @@ export default function CommandCenter() {
                     animationDuration={2000}
                   >
                     {funnelData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#F39C12' : '#F5B041'} />
+                      <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#F39200' : '#8DC63F'} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -314,25 +314,25 @@ export default function CommandCenter() {
       {/* ROW 3: Top Hoteles */}
       <div className="col-span-1 md:col-span-4 bg-white p-8 rounded-[3rem] shadow-xl border border-gray-100 flex flex-col md:flex-row gap-8">
          <div className="flex-1">
-            <h3 className="text-xs font-black text-[#0B132B] uppercase tracking-widest mb-2 flex items-center gap-2">
-              <HotelIcon size={16} className="text-orange-500" /> Top Servicios y Hoteles
+            <h3 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest mb-2 flex items-center gap-2">
+              <HotelIcon size={16} className="text-[#F39200]" /> Top Servicios y Hoteles
             </h3>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-8">Volumen de ventas por propiedad</p>
             <div className="space-y-4">
               {hotelData.map((h, i) => (
                 <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-orange-500 font-black text-xs">
+                      <div className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-[#F39200] font-black text-xs">
                         {i + 1}
                       </div>
-                      <span className="text-xs font-black uppercase text-[#0B132B]">{h.name}</span>
+                      <span className="text-xs font-black uppercase text-[#1A1A1A]">{h.name}</span>
                    </div>
-                   <span className="text-xs font-black italic text-orange-600">{h.value} Ventas</span>
+                   <span className="text-xs font-black italic text-[#8DC63F]">{h.value} Ventas</span>
                 </div>
               ))}
             </div>
          </div>
-          <div className="w-full h-[300px] min-w-[300px] min-h-[300px] overflow-hidden" style={{ position: 'relative' }}>
+          <div className="w-full h-[300px] min-w-[300px] min-h-[300px] overflow-hidden bg-[#FFF9E1]/10 rounded-3xl" style={{ position: 'relative' }}>
             {isReady && hotelData.length > 0 ? (
               <ResponsiveContainer width="99%" aspect={2} minWidth={100} minHeight={100} debounce={200}>
                  <PieChart>

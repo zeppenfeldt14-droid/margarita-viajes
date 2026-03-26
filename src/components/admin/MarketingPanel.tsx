@@ -7,9 +7,7 @@ import {
   YAxis, 
   Tooltip, 
   ResponsiveContainer, 
-  Cell, 
-  PieChart, 
-  Pie 
+  Cell 
 } from 'recharts';
 import { Card, SectionTitle } from './Common';
 import { showToast } from '../Toast';
@@ -102,10 +100,10 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card className="shadow-xl border-none ring-1 ring-gray-100 h-[480px] flex flex-col">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+            <div className="w-8 h-8 bg-[#8DC63F]/10 text-[#8DC63F] rounded-xl flex items-center justify-center">
               <Navigation size={16} />
             </div>
-            <h3 className="text-xs font-black text-[#0B132B] uppercase tracking-widest">Embudo de Conversión</h3>
+            <h3 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest">Embudo de Conversión</h3>
           </div>
            <div className="w-full h-[350px] min-w-[300px] min-h-[350px] overflow-hidden" style={{ position: 'relative' }}>
              {isReady && analytics?.conversionFunnel?.length > 0 ? (
@@ -117,16 +115,16 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
                      type="category" 
                      axisLine={false} 
                      tickLine={false} 
-                     tick={{ fontSize: 10, fontWeight: 900, fill: '#6B7280' }} 
+                     tick={{ fontSize: 10, fontWeight: 900, fill: '#1A1A1A' }} 
                      width={80}
                    />
                    <Tooltip 
-                     cursor={{ fill: '#F9FAFB' }}
-                     contentStyle={{ borderRadius: '15px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', fontSize: '10px' }}
+                     cursor={{ fill: '#FFF9E1' }}
+                     contentStyle={{ borderRadius: '15px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', fontSize: '10px', color: '#1A1A1A' }}
                    />
                    <Bar dataKey="value" radius={[0, 10, 10, 0]} barSize={32}>
                      {analytics.conversionFunnel.map((_: any, index: number) => (
-                       <Cell key={`cell-${index}`} fill={['#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B'][index % 4]} />
+                       <Cell key={`cell-${index}`} fill={['#F39200', '#8DC63F', '#1A1A1A', '#F39200'][index % 4]} />
                      ))}
                    </Bar>
                  </BarChart>
@@ -139,32 +137,36 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
 
         <Card className="shadow-xl border-none ring-1 ring-gray-100 h-[480px] flex flex-col">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-8 h-8 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center">
+            <div className="w-8 h-8 bg-[#FFF9E1] text-[#F39200] rounded-xl flex items-center justify-center border border-[#F39200]/10">
               <Globe size={16} />
             </div>
-            <h3 className="text-xs font-black text-[#0B132B] uppercase tracking-widest">Fuentes de Tráfico</h3>
+            <h3 className="text-xs font-black text-[#1A1A1A] uppercase tracking-widest">Fuentes de Tráfico</h3>
           </div>
-           <div className="w-full h-[350px] min-w-[300px] min-h-[350px] overflow-hidden" style={{ position: 'relative' }}>
+           <div className="w-full h-full overflow-auto mt-2">
              {isReady && analytics?.trafficBySource?.length > 0 ? (
-               <ResponsiveContainer width="99%" aspect={2} minWidth={100} minHeight={100} debounce={200}>
-                 <PieChart>
-                   <Pie
-                     data={analytics.trafficBySource}
-                     innerRadius={70}
-                     outerRadius={110}
-                     paddingAngle={8}
-                     dataKey="value"
-                     animationBegin={200}
-                   >
-                     {analytics.trafficBySource.map((_: any, index: number) => (
-                       <Cell key={`cell-${index}`} fill={['#0088FE', '#00C49F', '#FFBB28', '#FF8042'][index % 4]} />
+               <div className="overflow-x-auto">
+                 <table className="w-full text-left border-collapse">
+                   <thead>
+                     <tr className="border-b border-gray-100">
+                       <th className="py-4 text-[10px] font-black text-[#1A1A1A] uppercase tracking-widest">Fuente</th>
+                       <th className="py-4 text-[10px] font-black text-[#1A1A1A] uppercase tracking-widest">Cantidad</th>
+                       <th className="py-4 text-[10px] font-black text-[#1A1A1A] uppercase tracking-widest text-right">%</th>
+                     </tr>
+                   </thead>
+                   <tbody className="divide-y divide-gray-50">
+                     {analytics.trafficBySource.map((source: any, idx: number) => (
+                       <tr key={idx} className="hover:bg-[#FFF9E1]/50 transition-colors group">
+                         <td className="py-4 text-xs font-bold text-[#1A1A1A] flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#F39200', '#8DC63F', '#1A1A1A', '#8DC63F'][idx % 4] }}></div>
+                            {source.name}
+                         </td>
+                         <td className="py-4 text-xs font-black text-[#8DC63F]">{(source.value * 10).toLocaleString()}</td>
+                         <td className="py-4 text-xs font-black text-[#F39200] text-right">{source.value}%</td>
+                       </tr>
                      ))}
-                   </Pie>
-                   <Tooltip 
-                     contentStyle={{ borderRadius: '15px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', fontSize: '10px' }}
-                   />
-                 </PieChart>
-               </ResponsiveContainer>
+                   </tbody>
+                 </table>
+               </div>
              ) : (
                <div className="flex items-center justify-center h-full text-[10px] font-black uppercase text-gray-400">Sin datos de tráfico</div>
              )}
