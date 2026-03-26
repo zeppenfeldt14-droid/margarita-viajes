@@ -28,7 +28,8 @@ export class PostgresQuoteRepository implements IQuoteRepository {
       plan: dbQuote.plan,
       season: dbQuote.season,
       includeTransfer: dbQuote.include_transfer,
-      transferId: dbQuote.transfer_id
+      transferId: dbQuote.transfer_id,
+      date: dbQuote.created_at
     };
   }
 

@@ -5,9 +5,8 @@ import type { IOperationRepository, Operation, OperationSequence } from '../../d
 export class PostgresOperationRepository implements IOperationRepository {
   constructor(private db: Knex) {}
 
-  async findAll(): Promise<Operation[]> {
-    const rows = await this.db('operations').select('*').orderBy('created_at', 'desc');
-    return rows.map((row: any) => ({
+  private mapRowToOperation(row: any): Operation {
+    return {
       ...row,
       quoteId: row.quote_id,
       clientName: row.client_name,
@@ -18,8 +17,8 @@ export class PostgresOperationRepository implements IOperationRepository {
       checkOut: row.check_out,
       roomType: row.room_type,
       totalAmount: Number(row.total_amount),
-      companions: typeof row.companions === 'string' ? JSON.parse(row.companions) : row.companions,
-      technicalSheet: typeof row.technical_sheet === 'string' ? JSON.parse(row.technical_sheet) : row.technical_sheet,
+      companions: typeof row.companions === 'string' ? JSON.parse(row.companions) : (row.companions || []),
+      technicalSheet: typeof row.technical_sheet === 'string' ? JSON.parse(row.technical_sheet) : (row.technical_sheet || {}),
       hotelResponseImage: row.hotel_response_image,
       paymentProofImage: row.payment_proof_image,
       previousId: row.previous_id,
@@ -29,13 +28,20 @@ export class PostgresOperationRepository implements IOperationRepository {
       itinerary: row.itinerary,
       transferProvider: row.transfer_provider,
       hotelLogo: row.hotel_logo,
-      itineraryDetails: row.itinerary_details
-    }));
+      itineraryDetails: row.itinerary_details,
+      createdAt: row.created_at
+    };
+  }
+
+  async findAll(): Promise<Operation[]> {
+    const rows = await this.db('operations').select('*').orderBy('created_at', 'desc');
+    return rows.map((row: any) => this.mapRowToOperation(row));
   }
 
   async findById(id: string): Promise<Operation | null> {
-    const result = await this.db('operations').where('id', id).first();
-    return result || null;
+    const row = await this.db('operations').where('id', id).first();
+    if (!row) return null;
+    return this.mapRowToOperation(row);
   }
 
   async create(operation: any): Promise<any> {
