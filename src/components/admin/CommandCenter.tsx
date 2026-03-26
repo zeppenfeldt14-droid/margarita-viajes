@@ -320,7 +320,8 @@ export default function CommandCenter() {
             </div>
          </div>
          <div className="flex-1 h-[300px] flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
+           <div className="w-full h-[400px] min-h-[400px]" style={{ width: '100%', height: 400 }}>
+          <ResponsiveContainer width="100%" height="100%">
                <PieChart>
                   <Pie
                     data={hotelData}
@@ -337,6 +338,7 @@ export default function CommandCenter() {
                   <Tooltip />
                </PieChart>
             </ResponsiveContainer>
+         </div>
          </div>
       </div>
       
