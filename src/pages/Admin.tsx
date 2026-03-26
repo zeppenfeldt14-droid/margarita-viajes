@@ -284,75 +284,85 @@ export default function AdminDashboard({ user }: AdminProps) {
           )}
 
           {activeTab === 'inventory' && userModules?.inventory && (
-            <div className="space-y-10 animate-in fade-in duration-500 print-hidden">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <SectionTitle>Gestión de Inventario</SectionTitle>
-                <div className="flex items-center gap-4 flex-1 md:justify-end">
-                  <div className="relative w-full max-w-[300px]">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                    <input 
-                      type="text" 
-                      placeholder="Buscar por nombre o ubicación..." 
-                      value={inventorySearch} 
-                      onChange={(e) => setInventorySearch(e.target.value)} 
-                      className="bg-white border-2 border-gray-100 rounded-2xl pl-12 pr-6 py-4 text-[10px] font-black uppercase outline-none focus:border-orange-500 w-full" 
-                    />
+            <div className="space-y-6 animate-in fade-in duration-500 print-hidden h-[calc(100vh-120px)] flex flex-col">
+              {/* Bloque Unificado de Cabecera (v53) */}
+              <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-6 shrink-0">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <SectionTitle className="mb-0">Gestión de Inventario</SectionTitle>
+                  <div className="flex items-center gap-4 flex-1 md:justify-end">
+                    <div className="relative w-full max-w-[300px]">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                      <input 
+                        type="text" 
+                        placeholder="Buscar por nombre o ubicación..." 
+                        value={inventorySearch} 
+                        onChange={(e) => setInventorySearch(e.target.value)} 
+                        className="bg-gray-50 border-2 border-transparent rounded-2xl pl-12 pr-6 py-4 text-[10px] font-black uppercase outline-none focus:border-[#0B132B] focus:bg-white w-full transition-all" 
+                      />
+                    </div>
+                    <button onClick={() => setShowModal(true)} className="bg-[#0B132B] text-white px-6 py-3 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-orange-600 transition-all flex items-center gap-3 shrink-0"><Plus size={18} /> Nueva Carga</button>
                   </div>
-                  <button onClick={() => setShowModal(true)} className="bg-[#0B132B] text-white px-6 py-3 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-orange-600 transition-all flex items-center gap-3 shrink-0"><Plus size={18} /> Nueva Carga</button>
+                </div>
+                
+                <div className="flex flex-col md:flex-row md:items-center gap-6">
+                  <div className="flex bg-gray-50 p-2 rounded-[2rem] border border-gray-100 w-fit shadow-inner">
+                    {(['hotels', 'fullday', 'packages', 'transfers'] as const).map(tab => (
+                      <button key={tab} onClick={() => setInventorySubTab(tab)} className={`px-8 py-3 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all ${inventorySubTab === tab ? 'bg-[#0B132B] text-white shadow-lg scale-[1.02]' : 'text-gray-400 hover:text-[#0B132B]'}`}>
+                        {tab === 'hotels' ? 'Hospedaje' : tab === 'fullday' ? 'Full Day' : tab === 'packages' ? 'Paquetes' : 'Traslados'}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-col md:flex-row md:items-center gap-6">
-                <div className="flex bg-white/50 backdrop-blur-md p-2 rounded-3xl w-fit border border-gray-100 shadow-sm">
-                  {(['hotels', 'fullday', 'packages', 'transfers'] as const).map(tab => (
-                    <button key={tab} onClick={() => setInventorySubTab(tab)} className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${inventorySubTab === tab ? 'bg-[#0B132B] text-white shadow-lg' : 'text-gray-400 hover:text-[#0B132B]'}`}>
-                      {tab === 'hotels' ? 'Hospedaje' : tab === 'fullday' ? 'Full Day' : tab === 'packages' ? 'Paquetes' : 'Traslados'}
-                    </button>
-                  ))}
+
+              {/* Grid de Inventario con Scroll Independiente */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-10">
+                  {inventorySubTab === 'transfers' ? (
+                    (transfers || [])
+                    .filter((t: Transfer) => t.route?.toLowerCase().includes(inventorySearch.toLowerCase()))
+                    .map(t => (
+                      <Card key={t.id} className="group hover:scale-[1.02] transition-transform border-none ring-1 ring-gray-100 shadow-xl">
+                        <div className="flex items-center justify-between mb-6">
+                          <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center text-[#0B132B] group-hover:bg-orange-50 transition-colors"><Briefcase size={28} /></div>
+                          <div className="flex gap-2">
+                            <button onClick={() => handleEdit(t, 'transfer')} className="p-3 bg-gray-50 rounded-xl text-gray-400 hover:text-[#0B132B] transition-colors"><Edit2 size={16} /></button>
+                            <button onClick={() => handleDelete(t.id!, 'transfer')} className="p-3 bg-gray-50 rounded-xl text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+                          </div>
+                        </div>
+                        <h4 className="text-sm font-black italic text-[#0B132B] uppercase mb-1">{t.route}</h4>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6">Operador: {t.operator}</p>
+                        <div className="flex items-center justify-between pt-6 border-t border-gray-50">
+                          <div className="flex flex-col text-right"><span className="text-[9px] font-black text-gray-400 uppercase">Neto</span><span className="text-[13px] font-bold text-teal-600">$ {Number(t.netCost || 0).toLocaleString()}</span></div>
+                        </div>
+                      </Card>
+                    ))
+                  ) : (
+                    (hotels || []).filter((h: Hotel) => {
+                      const typeMap: Record<string, string> = { hotels: 'hotel', fullday: 'full-day', packages: 'package' };
+                      const matchesType = h.type === typeMap[inventorySubTab];
+                      const matchesSearch = h.name?.toLowerCase().includes(inventorySearch.toLowerCase());
+                      return matchesType && matchesSearch;
+                    }).map((h: Hotel) => (
+                      <Card key={h.id} className="group hover:border-orange-500/20 transition-all border-none ring-1 ring-gray-100 shadow-xl overflow-hidden p-0 flex flex-col h-full">
+                        <div className="aspect-video bg-gray-100 overflow-hidden relative group-hover:bg-gray-200 transition-colors">
+                          {h.photos?.[0] ? <img src={h.photos[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /> : <div className="w-full h-full flex items-center justify-center text-gray-300"><ImageIcon size={40} /></div>}
+                          <div className="absolute top-4 right-4 flex gap-2">
+                            <button onClick={() => handleEdit(h, 'hotel')} className="p-3 bg-white/90 backdrop-blur shadow-lg rounded-xl text-gray-400 hover:text-[#0B132B] transition-all transform hover:scale-110"><Edit2 size={16} /></button>
+                            <button onClick={() => handleDelete(h.id!, 'hotel')} className="p-3 bg-white/90 backdrop-blur shadow-lg rounded-xl text-gray-400 hover:text-red-500 transition-all transform hover:scale-110"><Trash2 size={16} /></button>
+                          </div>
+                        </div>
+                        <div className="p-6 flex-1 flex flex-col">
+                          <h4 className="text-sm font-black italic text-[#0B132B] uppercase truncate mb-1">{h.name}</h4>
+                          <div className="flex items-center gap-2 mb-4">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none opacity-70">{h.location}</p>
+                            {h.plan && <span className="bg-orange-50 text-orange-600 text-[8px] px-2 py-0.5 rounded-full font-black uppercase leading-none border border-orange-100/50">{h.plan}</span>}
+                          </div>
+                        </div>
+                      </Card>
+                    ))
+                  )}
                 </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {inventorySubTab === 'transfers' ? (
-                  (transfers || [])
-                  .filter((t: Transfer) => t.route?.toLowerCase().includes(inventorySearch.toLowerCase()))
-                  .map(t => (
-                    <Card key={t.id} className="group hover:scale-[1.02] transition-transform">
-                      <div className="flex items-center justify-between mb-6">
-                        <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center text-[#0B132B] group-hover:bg-orange-50 transition-colors"><Briefcase size={28} /></div>
-                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => handleEdit(t, 'transfer')} className="p-3 bg-gray-50 rounded-xl text-gray-400 hover:text-[#0B132B]"><Edit2 size={16} /></button>
-                          <button onClick={() => handleDelete(t.id!, 'transfer')} className="p-3 bg-gray-50 rounded-xl text-gray-400 hover:text-red-500"><Trash2 size={16} /></button>
-                        </div>
-                      </div>
-                      <h4 className="text-sm font-black italic text-[#0B132B] uppercase mb-1">{t.route}</h4>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6">Operador: {t.operator}</p>
-                      <div className="flex items-center justify-between pt-6 border-t border-gray-50">
-                        <div className="flex flex-col text-right"><span className="text-[9px] font-black text-gray-400 uppercase">Neto</span><span className="text-[13px] font-bold text-teal-600">$ {Number(t.netCost || 0).toLocaleString()}</span></div>
-                      </div>
-                    </Card>
-                  ))
-                ) : (
-                  (hotels || []).filter((h: Hotel) => {
-                    const typeMap: Record<string, string> = { hotels: 'hotel', fullday: 'full-day', packages: 'package' };
-                    const matchesType = h.type === typeMap[inventorySubTab];
-                    const matchesSearch = h.name?.toLowerCase().includes(inventorySearch.toLowerCase());
-                    return matchesType && matchesSearch;
-                  }).map((h: Hotel) => (
-                    <Card key={h.id} className="group hover:border-orange-500/20 transition-all">
-                      <div className="aspect-video bg-gray-100 rounded-3xl mb-6 overflow-hidden relative">
-                        {h.photos?.[0] ? <img src={h.photos[0]} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-300"><ImageIcon size={40} /></div>}
-                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => handleEdit(h, 'hotel')} className="p-3 bg-white/90 backdrop-blur shadow-lg rounded-xl text-gray-400 hover:text-[#0B132B]"><Edit2 size={16} /></button>
-                          <button onClick={() => handleDelete(h.id!, 'hotel')} className="p-3 bg-white/90 backdrop-blur shadow-lg rounded-xl text-gray-400 hover:text-red-500"><Trash2 size={16} /></button>
-                        </div>
-                      </div>
-                      <h4 className="text-sm font-black italic text-[#0B132B] uppercase truncate mb-1">{h.name}</h4>
-                      <div className="flex items-center gap-2 mb-2">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">{h.location}</p>
-                        {h.plan && <span className="bg-orange-50 text-orange-600 text-[8px] px-1.5 py-0.5 rounded font-black uppercase leading-none border border-orange-100/50">{h.plan}</span>}
-                      </div>
-                    </Card>
-                  ))
-                )}
               </div>
             </div>
           )}
@@ -753,42 +763,62 @@ export default function AdminDashboard({ user }: AdminProps) {
                         <SectionTitle>Matriz de Tarifas por Temporada</SectionTitle>
                         <button onClick={addSeason} className="text-[10px] font-black uppercase text-orange-500 hover:text-orange-600 flex items-center gap-1 bg-orange-50 px-4 py-2 rounded-xl transition-colors"><Plus size={14} /> Añadir</button>
                       </div>
-                      <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                      <div className="space-y-4 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
+                        {(!newHotel.rooms || newHotel.rooms.length === 0) && (
+                          <div className="p-8 bg-orange-50 rounded-[2rem] border-2 border-dashed border-orange-200 text-center space-y-2">
+                            <p className="text-orange-600 text-xs font-black uppercase tracking-widest">⚠️ Acción Necesaria</p>
+                            <p className="text-[10px] text-orange-500 font-bold leading-relaxed uppercase">
+                              Debes agregar al menos un<br />
+                              <span className="text-orange-600 font-black">Tipo de Habitación</span><br />
+                              en la columna de la izquierda para cargar los precios.
+                            </p>
+                          </div>
+                        )}
                         {newHotel.seasons?.map((s: { id: string, type: string, startDate: string, endDate: string, roomPrices: Record<string, number> }) => (
-                          <div key={s.id} className="p-5 bg-white rounded-[1.5rem] border-2 border-gray-50 space-y-4 relative group hover:border-orange-200 transition-colors shadow-sm">
+                          <div key={s.id} className="p-6 bg-white rounded-[2rem] border-2 border-gray-50 space-y-5 relative group hover:border-orange-200 transition-all shadow-sm">
                             <button onClick={() => removeSeason(s.id)} className="absolute top-4 right-4 text-gray-300 hover:text-red-500 bg-red-50 w-8 h-8 rounded-lg flex items-center justify-center transition-colors"><X size={14} /></button>
-                            <div className="grid grid-cols-3 gap-3 pr-10">
-                              <select className="bg-gray-50 rounded-xl px-3 py-3 text-[10px] font-black uppercase outline-none focus:ring-2 focus:ring-orange-500/20" value={s.type} onChange={e => {
-                                const val = e.target.value;
-                                setNewHotel(prev => ({ ...prev, seasons: prev.seasons?.map(item => item.id === s.id ? { ...item, type: val } : item) }));
-                              }}>
-                                {SEASON_TYPES.map((t: string) => <option key={t} value={t}>{t}</option>)}
-                              </select>
-                              <input type="date" className="bg-gray-50 rounded-xl px-3 py-3 text-[10px] font-black outline-none focus:ring-2 focus:ring-orange-500/20" value={s.startDate} onChange={e => {
-                                const val = e.target.value;
-                                setNewHotel(prev => ({ ...prev, seasons: prev.seasons?.map(item => item.id === s.id ? { ...item, startDate: val } : item) }));
-                              }} />
-                              <input type="date" className="bg-gray-50 rounded-xl px-3 py-3 text-[10px] font-black outline-none focus:ring-2 focus:ring-orange-500/20" value={s.endDate} onChange={e => {
-                                const val = e.target.value;
-                                setNewHotel(prev => ({ ...prev, seasons: prev.seasons?.map(item => item.id === s.id ? { ...item, endDate: val } : item) }));
-                              }} />
-                            </div>
-                            <div className="space-y-2 pt-3 border-t border-dashed border-gray-200">
-                              <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Precios por Habitación ($)</p>
-                              <div className="grid grid-cols-2 gap-3">
-                                {newHotel.rooms?.map((r: { id: string, name: string, capacity: number }) => (
-                                  <div key={r.id} className="flex items-center gap-2">
-                                    <span className="text-[10px] font-bold text-[#0B132B] truncate flex-1">{r.name}</span>
-                                    <input
-                                      type="number"
-                                      className="w-20 bg-gray-50 rounded-lg px-3 py-2 text-xs font-black outline-none border-none focus:ring-2 focus:ring-orange-500/20 text-right"
-                                      value={s.roomPrices[r.id] || 0}
-                                      onChange={e => updateSeasonPrice(s.id, r.id, Number(e.target.value))}
-                                    />
-                                  </div>
-                                ))}
+                            
+                            <div className="space-y-2">
+                              <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Configuración de Temporada</p>
+                              <div className="grid grid-cols-3 gap-3 pr-10">
+                                <select className="bg-gray-50 rounded-xl px-3 py-3 text-[10px] font-black uppercase outline-none focus:ring-2 focus:ring-orange-500/20 border-none shadow-inner" value={s.type} onChange={e => {
+                                  const val = e.target.value;
+                                  setNewHotel(prev => ({ ...prev, seasons: prev.seasons?.map(item => item.id === s.id ? { ...item, type: val } : item) }));
+                                }}>
+                                  {SEASON_TYPES.map((t: string) => <option key={t} value={t}>{t}</option>)}
+                                </select>
+                                <input type="date" className="bg-gray-50 rounded-xl px-3 py-3 text-[10px] font-black outline-none focus:ring-2 focus:ring-orange-500/20 border-none shadow-inner" value={s.startDate} onChange={e => {
+                                  const val = e.target.value;
+                                  setNewHotel(prev => ({ ...prev, seasons: prev.seasons?.map(item => item.id === s.id ? { ...item, startDate: val } : item) }));
+                                }} />
+                                <input type="date" className="bg-gray-50 rounded-xl px-3 py-3 text-[10px] font-black outline-none focus:ring-2 focus:ring-orange-500/20 border-none shadow-inner" value={s.endDate} onChange={e => {
+                                  const val = e.target.value;
+                                  setNewHotel(prev => ({ ...prev, seasons: prev.seasons?.map(item => item.id === s.id ? { ...item, endDate: val } : item) }));
+                                }} />
                               </div>
                             </div>
+
+                            {newHotel.rooms && newHotel.rooms.length > 0 && (
+                              <div className="space-y-3 pt-4 border-t border-dashed border-gray-100">
+                                <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest ml-1">Precios $ x Pax / Noche</p>
+                                <div className="grid grid-cols-2 gap-4">
+                                  {newHotel.rooms?.map((r: { id: string, name: string, capacity: number }) => (
+                                    <div key={r.id} className="bg-gray-50 rounded-2xl p-3 flex items-center justify-between group-hover:bg-white border border-transparent transition-all">
+                                      <span className="text-[10px] font-black uppercase italic text-[#0B132B] truncate flex-1">{r.name}</span>
+                                      <div className="flex items-center gap-1.5 ml-2">
+                                        <span className="text-[10px] font-black text-gray-300">$</span>
+                                        <input
+                                          type="number"
+                                          className="w-20 bg-white rounded-lg px-3 py-2 text-xs font-black outline-none border border-gray-100 focus:border-orange-500 transition-all text-right shadow-sm"
+                                          value={s.roomPrices[r.id] || 0}
+                                          onChange={e => updateSeasonPrice(s.id, r.id, Number(e.target.value))}
+                                        />
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
