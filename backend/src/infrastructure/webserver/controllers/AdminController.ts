@@ -541,4 +541,15 @@ export class AdminController {
       return res.status(500).json({ message: error.message });
     }
   }
+
+  async trackMarketingEvent(req: Request, res: Response) {
+    try {
+      const eventData = req.body;
+      console.log('[Analytics] Track Event:', JSON.stringify(eventData));
+      return res.status(200).json({ status: 'tracked', msg: 'Data received' });
+    } catch (err: any) {
+      console.error('[Analytics] Error:', err);
+      return res.status(500).json({ message: err.message });
+    }
+  }
 }

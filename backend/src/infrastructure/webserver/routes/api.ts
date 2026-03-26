@@ -32,6 +32,7 @@ export function createRouter(
   router.get('/public/quotes/:id/pdf', (req: Request, res: Response) => quoteController.getQuotePdfOnDemand(req, res));
   router.post('/quotes/calculate', (req: Request, res: Response) => quoteController.calculatePrice(req, res));
   router.post('/quotes', (req: Request, res: Response) => quoteController.saveQuote(req, res));
+  router.post('/public/analytics/track', (req: Request, res: Response) => adminController.trackMarketingEvent(req, res));
 
   // Admin Endpoints (Protected)
   router.use('/admin', authMiddleware(['LEVEL_1', 'LEVEL_2', 'LEVEL_3']));
