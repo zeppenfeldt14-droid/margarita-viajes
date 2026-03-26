@@ -29,6 +29,7 @@ export default function Home({ onAdminClick }: HomeProps) {
   const [config, setConfig] = useState<any>({});
   const [sectionOrder, setSectionOrder] = useState<string[]>(['hotels', 'fulldays', 'packages']);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [winnerCategory, setWinnerCategory] = useState<string>('');
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -60,10 +61,20 @@ export default function Home({ onAdminClick }: HomeProps) {
         const f = hList.filter((item: any) => item.type === 'full-day');
         const p = hList.filter((item: any) => item.type === 'package');
 
+        const categories = ['hotels', 'fulldays', 'packages'];
+        const winner = categories[Math.floor(Math.random() * categories.length)];
+        setWinnerCategory(winner);
+
         setRandomHotels(shuffle(h));
         setRandomFullDays(shuffle(f));
         setRandomPackages(shuffle(p));
-        setSectionOrder(shuffle(['hotels', 'fulldays', 'packages']));
+        
+        if (window.innerWidth <= 768) {
+          // Relevancia Inversa: El ganador al FINAL
+          setSectionOrder([...categories.filter(c => c !== winner), winner]);
+        } else {
+          setSectionOrder(shuffle(categories));
+        }
       } catch (error) {
         console.error('Error fetching home data:', error);
       } finally {
@@ -122,10 +133,10 @@ export default function Home({ onAdminClick }: HomeProps) {
               )}
             </div>
             <div className="flex flex-col">
-              <h1 className="text-[32px] font-black italic text-[#ea580c] leading-[0.75] tracking-tighter uppercase">
+              <h1 className="text-[32px] font-black italic text-[#ea580c] leading-[0.75] tracking-tighter uppercase hidden md:block">
                 {config?.agencyName || 'MARGARITA'}
               </h1>
-              <span className="text-[12px] font-bold text-[#0B132B] uppercase tracking-[0.1em] mt-1">
+              <span className="text-[12px] font-bold text-[#0B132B] uppercase tracking-[0.1em] mt-1 hidden md:block">
                 {config?.agencySlogan || 'Viajes y Turismo'}
               </span>
             </div>
@@ -163,7 +174,13 @@ export default function Home({ onAdminClick }: HomeProps) {
               ...randomPackages.slice(0, 1),
               ...randomFullDays.slice(0, 1),
               ...randomHotels.slice(0, 1)
-            ].filter(h => h && h.id).map((h) => (
+            ].filter(h => {
+              if (!h || !h.id) return false;
+              if (!isMobile) return true;
+              // Motor ICD - Paso A: Solo el ganador en Hero Móvil
+              const hCat = h.type === 'package' ? 'packages' : h.type === 'full-day' ? 'fulldays' : 'hotels';
+              return hCat === winnerCategory;
+            }).map((h) => (
               <div
                 key={h.id}
                 onClick={() => setLocation(`/cotizador?hotel=${encodeURIComponent(h.name)}`)}
@@ -272,7 +289,7 @@ export default function Home({ onAdminClick }: HomeProps) {
                 Explorar Todo
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-10">
               {randomHotels.map(h => (
                 <HotelCard
                   key={h.id}
@@ -281,6 +298,7 @@ export default function Home({ onAdminClick }: HomeProps) {
                   price={getStartingPrice(h)}
                   plan={h.plan}
                   onQuote={() => setLocation(`/cotizador?hotel=${encodeURIComponent(h.name)}`)}
+                  className="snap-center"
                 />
               ))}
             </div>
@@ -295,7 +313,7 @@ export default function Home({ onAdminClick }: HomeProps) {
                 <h2 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter text-[#0B132B]">PAQUETES</h2>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-10">
               {randomPackages.map(p => (
                 <HotelCard
                   key={p.id}
@@ -304,6 +322,7 @@ export default function Home({ onAdminClick }: HomeProps) {
                   price={getStartingPrice(p)}
                   plan={p.plan}
                   onQuote={() => setLocation(`/cotizador?hotel=${encodeURIComponent(p.name)}`)}
+                  className="snap-center"
                 />
               ))}
             </div>
@@ -317,7 +336,7 @@ export default function Home({ onAdminClick }: HomeProps) {
                 <span className="text-[11px] font-black uppercase tracking-[0.3em] mb-2 block" style={{ color: config.colorFuentesSub }}>{getConf('fulldaysSubtitulo')}</span>
                 <h2 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter text-[#0B132B]">FULL DAYS</h2>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-8">
                 {randomFullDays.map(p => (
                   <FullDayCard
                     key={p.id}
@@ -325,6 +344,7 @@ export default function Home({ onAdminClick }: HomeProps) {
                     title={p.name}
                     price={getStartingPrice(p)}
                     onQuote={() => setLocation(`/cotizador?hotel=${encodeURIComponent(p.name)}`)}
+                    className="snap-center"
                   />
                 ))}
               </div>

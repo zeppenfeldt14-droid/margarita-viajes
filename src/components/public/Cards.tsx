@@ -7,9 +7,10 @@ interface HotelCardProps {
   price?: string;
   plan?: string;
   onQuote?: () => void;
+  className?: string;
 }
 
-export const HotelCard: React.FC<HotelCardProps> = ({ image, photos = [], title, price, plan, onQuote }) => {
+export const HotelCard: React.FC<HotelCardProps> = ({ image, photos = [], title, price, plan, onQuote, className = "" }) => {
   const [currentImg, setCurrentImg] = useState(0);
   const displayPhotos = photos.length > 0 ? photos : (image ? [image] : ['https://via.placeholder.com/800']);
 
@@ -22,7 +23,7 @@ export const HotelCard: React.FC<HotelCardProps> = ({ image, photos = [], title,
   }, [displayPhotos.length]);
 
   return (
-    <div className="bg-white rounded-[2rem] p-4 shadow-sm border border-gray-100 flex flex-col group hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-500 cursor-pointer">
+    <div className={`bg-white rounded-[2rem] p-4 shadow-sm border border-gray-100 flex flex-col group hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-500 cursor-pointer shrink-0 w-[280px] md:w-auto ${className}`} onClick={onQuote}>
       <div className="h-64 rounded-t-[1.5rem] rounded-b-lg overflow-hidden mb-4 relative">
         <img 
           src={displayPhotos[currentImg]} 
@@ -57,7 +58,7 @@ export const HotelCard: React.FC<HotelCardProps> = ({ image, photos = [], title,
   );
 };
 
-export const FullDayCard: React.FC<HotelCardProps> = ({ image, photos = [], title, price, onQuote }) => {
+export const FullDayCard: React.FC<HotelCardProps> = ({ image, photos = [], title, price, onQuote, className = "" }) => {
   const [currentImg, setCurrentImg] = useState(0);
   const displayPhotos = photos.length > 0 ? photos : (image ? [image] : ['https://via.placeholder.com/800']);
 
@@ -71,7 +72,7 @@ export const FullDayCard: React.FC<HotelCardProps> = ({ image, photos = [], titl
 
   return (
     <div 
-      className="group relative h-[400px] rounded-[2rem] overflow-hidden shadow-md cursor-pointer hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-500" 
+      className={`group relative h-[400px] rounded-[2rem] overflow-hidden shadow-md cursor-pointer hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-500 shrink-0 w-[280px] md:w-auto ${className}`} 
       onClick={onQuote}
     >
       <img 
