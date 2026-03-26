@@ -47,6 +47,11 @@ export const formatDateTimeVisual = (dateStr: string | null | undefined) => {
 
 export const compressImage = (base64: string, maxWidth: number = 800, maxHeight: number = 600): Promise<string> => {
   return new Promise((resolve, reject) => {
+    // Detectar el MIME type original (data:image/png;base64,... -> image/png)
+    const mimeMatch = base64.match(/^data:([^;]+);base64,/);
+    const originalMime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+    const isPng = originalMime === 'image/png' || originalMime === 'image/svg+xml';
+
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
@@ -67,8 +72,19 @@ export const compressImage = (base64: string, maxWidth: number = 800, maxHeight:
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext('2d');
-      ctx?.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', 0.7));
+      
+      if (ctx) {
+        // LIMPIEZA CRÍTICA: Asegurar que el fondo sea transparente antes de dibujar
+        ctx.clearRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+      }
+
+      // Si es PNG, exportamos como PNG para preservar el canal alfa. 
+      // Si es JPEG (o desconocido), usamos JPEG con compresión para ahorrar espacio.
+      const exportMime = isPng ? 'image/png' : 'image/jpeg';
+      const quality = isPng ? undefined : 0.7; // El PNG ignora el parámetro de calidad (es lossless)
+      
+      resolve(canvas.toDataURL(exportMime, quality));
     };
     img.onerror = reject;
     img.src = base64;
