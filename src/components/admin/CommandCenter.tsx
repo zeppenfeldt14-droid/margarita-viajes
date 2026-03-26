@@ -10,6 +10,9 @@ import {
   Mail
 } from 'lucide-react';
 import { 
+  FunnelChart,
+  Funnel,
+  LabelList,
   BarChart, 
   Bar, 
   XAxis, 
@@ -23,15 +26,51 @@ import {
 import { motion } from 'framer-motion';
 import { useGlobalData } from '../../context/GlobalContext';
 import { formatDateVisual } from '../../utils/helpers';
+import { api } from '../../services/api';
 
 export default function CommandCenter() {
   const { quotes, reservations, operations, users } = useGlobalData();
   const [isReady, setIsReady] = useState(false);
+  const [logs, setLogs] = useState<any[]>([]);
+  const [activeUsersFilter, setActiveUsersFilter] = useState<any[]>([]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsReady(true), 200);
-    return () => clearTimeout(timer);
+    
+    const fetchData = async () => {
+      try {
+        const logsData = await api.getLogs();
+        setLogs(Array.isArray(logsData) ? logsData : []);
+      } catch (e) {
+        console.error('Error fetching logs for radar:', e);
+      }
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 60000); // Update every minute
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, []);
+
+  const isUserOnline = (userId: string, alias: string) => {
+    const STALE_TIMEOUT = 15 * 60 * 1000;
+    const now = new Date().getTime();
+    const userLogs = logs.filter(log => 
+      (log.user_id === userId || log.user_name === alias || log.alias === alias)
+    ).sort((a, b) => new Date(b.created_at || b.date).getTime() - new Date(a.created_at || a.date).getTime());
+
+    if (userLogs.length === 0) return false;
+    const lastLog = userLogs[0];
+    const lastActivityTime = new Date(lastLog.created_at || lastLog.date).getTime();
+    const timeDiff = now - lastActivityTime;
+    const action = (lastLog.action_type || lastLog.action || '').toUpperCase();
+    if (action.includes('LOGOUT')) return false;
+    if (timeDiff > STALE_TIMEOUT) return false;
+    return true;
+  };
 
   // 1. Tráfico PAX Hoy (Cerradas/Confirmadas hoy)
   const todayPax = useMemo(() => {
@@ -58,8 +97,8 @@ export default function CommandCenter() {
     return { critical, pendingTransfers };
   }, [reservations, operations]);
 
-  // 3. Radar de Staff (Usuarios activos/conectados)
-  const activeStaff = useMemo(() => (users || []).filter(u => u.status === true), [users]);
+  // 3. Radar de Staff (Todos los perfiles activos)
+  const activeStaff = useMemo(() => (users || []).filter(u => u.active !== false), [users]);
 
   // 4. Live Feed (Últimas 5 cotizaciones)
   const recentQuotes = useMemo(() => (quotes || []).slice(0, 5), [quotes]);
@@ -166,26 +205,33 @@ export default function CommandCenter() {
         className="col-span-1 bg-[#0B132B] p-6 rounded-[2.5rem] text-white shadow-xl group shadow-black/20"
       >
         <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-6 flex items-center gap-2">
-          <Activity size={14} className="text-[#2ECC71]" /> Radar de Staff
+          <Activity size={14} className="text-[#8DC63F]" /> Radar de Staff
         </h3>
-        <div className="space-y-4">
-          {activeStaff.slice(0, 3).map((u, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-black text-[10px] text-blue-200 uppercase">
-                {u.alias?.substring(0, 2) || "AS"}
+        <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+          {activeStaff.map((u, i) => {
+            const online = isUserOnline(u.id, u.alias);
+            return (
+              <div key={i} className="flex items-center gap-3 group/staff hover:translate-x-1 transition-transform">
+                <div role="img" aria-label="avatar" className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] uppercase border transition-all ${
+                  online ? 'bg-white/10 text-[#8DC63F] border-[#8DC63F]/20' : 'bg-white/5 text-gray-600 border-white/5'
+                }`}>
+                  {u.alias?.substring(0, 2) || "AS"}
+                </div>
+                <div className="flex flex-col">
+                  <span className={`text-[10px] font-black uppercase tracking-tight transition-colors ${online ? 'text-white' : 'text-gray-500'}`}>{u.alias}</span>
+                  <span className={`text-[8px] font-bold flex items-center gap-1 uppercase ${online ? 'text-[#8DC63F]' : 'text-gray-600'}`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${online ? 'bg-[#8DC63F] animate-pulse shadow-[0_0_8px_rgba(141,198,63,0.8)]' : 'bg-gray-700'}`}></div> 
+                    {online ? 'En vivo' : 'Desconectado'}
+                  </span>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-black uppercase tracking-tight">{u.alias}</span>
-                <span className="text-[8px] font-bold text-[#2ECC71] flex items-center gap-1 uppercase">
-                  <div className="w-1 h-1 rounded-full bg-[#2ECC71] animate-pulse"></div> En línea
-                </span>
-              </div>
-            </div>
-          ))}
-          <button className="w-full py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[8px] font-black uppercase tracking-widest transition-colors mt-2 text-gray-400 border border-white/5">
-            Canal Interno
-          </button>
+            );
+          })}
+          {activeStaff.length === 0 && <p className="text-[9px] text-gray-500 italic">No hay staff registrado</p>}
         </div>
+        <button className="w-full py-2 bg-white/5 hover:bg-[#F39200]/20 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all mt-4 text-gray-400 border border-white/5 hover:text-white">
+          Canal Interno
+        </button>
       </motion.div>
 
       {/* NUEVO: CONTACTO RÁPIDO */}
@@ -332,29 +378,40 @@ export default function CommandCenter() {
               ))}
             </div>
          </div>
-          <div className="w-full h-[300px] min-w-[300px] min-h-[300px] overflow-hidden bg-[#FFF9E1]/10 rounded-3xl" style={{ position: 'relative' }}>
+          <div className="w-full h-[300px] min-w-[300px] min-h-[300px] overflow-hidden bg-[#1A1A1A]/5 rounded-[2.5rem] p-4 flex items-center justify-center" style={{ position: 'relative' }}>
             {isReady && hotelData.length > 0 ? (
               <ResponsiveContainer width="99%" aspect={2} minWidth={100} minHeight={100} debounce={200}>
-                 <PieChart>
-                    <Pie
-                      data={hotelData}
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={5}
-                      dataKey="value"
-                      animationDuration={1500}
-                    >
-                      {hotelData.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                 </PieChart>
+                 <FunnelChart>
+                   <Tooltip 
+                     contentStyle={{ borderRadius: '20px', border: 'none', backgroundColor: '#1A1A1A', color: '#fff', fontSize: '10px' }} 
+                     itemStyle={{ color: '#fff' }}
+                   />
+                   <defs>
+                     <linearGradient id="funnelGradient" x1="0" y1="0" x2="0" y2="1">
+                       <stop offset="0%" stopColor="#1A1A1A" stopOpacity={1}/>
+                       <stop offset="100%" stopColor="#1A1A1A" stopOpacity={0.4}/>
+                     </linearGradient>
+                   </defs>
+                   <Funnel
+                     data={hotelData}
+                     dataKey="value"
+                     isAnimationActive
+                   >
+                     <LabelList position="right" fill="#1A1A1A" stroke="none" dataKey="name" fontSize={10} fontWeight="black" />
+                     {hotelData.map((_, index) => (
+                       <Cell 
+                        key={`cell-${index}`} 
+                        fill="url(#funnelGradient)" 
+                        opacity={1 - (index * 0.15)}
+                       />
+                     ))}
+                   </Funnel>
+                 </FunnelChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-[10px] font-black uppercase text-gray-400">Cargando métricas...</div>
+                <div className="flex items-center justify-center h-full text-[10px] font-black uppercase text-gray-400">Generando Radar...</div>
             )}
-         </div>
+          </div>
       </div>
       
     </div>
