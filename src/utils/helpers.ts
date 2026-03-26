@@ -78,13 +78,10 @@ export const compressImage = (base64: string, maxWidth: number = 800, maxHeight:
         ctx.clearRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
       }
-
-      // Si es PNG, exportamos como PNG para preservar el canal alfa. 
-      // Si es JPEG (o desconocido), usamos JPEG con compresión para ahorrar espacio.
-      const exportMime = isPng ? 'image/png' : 'image/jpeg';
-      const quality = isPng ? undefined : 0.7; // El PNG ignora el parámetro de calidad (es lossless)
       
-      resolve(canvas.toDataURL(exportMime, quality));
+      // Exportar respetando el formato si es PNG/SVG para preservar canal alfa
+      const resultBase66 = canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', isPng ? 1.0 : 0.7);
+      resolve(resultBase66);
     };
     img.onerror = reject;
     img.src = base64;

@@ -8,6 +8,17 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
   const [location, setLocation] = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
   const { quotes, reservations, operations } = useGlobalData();
+  const [activeConfig, setActiveConfig] = React.useState<any>({});
+
+  // Cargar configuración de marca para el Sidebar (v18)
+  useEffect(() => {
+    api.getConfig().then(data => {
+      if (data) setActiveConfig(data);
+    }).catch(err => console.error("Error loading brand for sidebar:", err));
+  }, []);
+  
+  // Condición de visibilidad del logo (Fase 9)
+  const showLogo = location !== "/admin/webconfig";
 
   // Cálculos de Notificaciones Activas (v52)
   const newQuotesCount = (quotes || []).filter(q => q?.status === 'Nuevo').length;
@@ -86,10 +97,21 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
         md:relative md:translate-x-0 md:flex
       `}>
         <div>
-          {/* Logo Area */}
-          <div className="h-24 flex items-center justify-between px-8 border-b border-white/5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden border border-white/10 shadow-inner">
+          {/* Logo Area (Fase 9) */}
+          <div className="h-28 flex flex-col items-center justify-center p-6 border-b border-white/5 space-y-4">
+            {showLogo && (
+              <div className="relative group mb-2">
+                <div className="absolute -inset-1 bg-orange-500/10 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-1000"></div>
+                {activeConfig.logoImage ? (
+                  <img src={activeConfig.logoImage} alt="Margarita Viajes" className="h-16 w-auto object-contain relative" />
+                ) : (
+                  <img src="/assets/img/logo.png" alt="Margarita Viajes" className="h-16 w-auto object-contain relative" />
+                )}
+              </div>
+            )}
+            
+            <div className="flex items-center gap-3 w-full justify-center">
+              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center overflow-hidden border border-white/10 shadow-inner">
                 {userPhoto ? (
                   <img src={userPhoto} className="w-full h-full object-cover" />
                 ) : (
@@ -102,10 +124,10 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
                 <span className="truncate">{userName}</span>
                 <span className="text-gray-500 truncate">{userRole}</span>
               </div>
+              <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-gray-400 hover:text-white transition-colors ml-auto">
+                <CloseIcon size={20} />
+              </button>
             </div>
-            <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-gray-400 hover:text-white transition-colors">
-              <CloseIcon size={20} />
-            </button>
           </div>
 
           {/* Navigation */}

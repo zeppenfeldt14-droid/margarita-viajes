@@ -308,54 +308,35 @@ export default function Quoter() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] selection:bg-orange-100">
-      {/* HEADER NAV - SINCRONIZADO CON HOME (v17) */}
-      <header className="px-6 md:px-12 py-5 flex items-center justify-center md:justify-between fixed top-0 left-0 right-0 z-50 bg-transparent">
-        <div className="flex items-center md:gap-4 relative w-full md:w-auto justify-center md:justify-start">
-          <button 
-            onClick={() => setLocation('/')} 
-            className="absolute left-0 md:relative md:left-0 w-11 h-11 bg-white/40 backdrop-blur-md rounded-2xl flex items-center justify-center hover:bg-white transition-all border border-white/20 text-[#0B132B] hover:text-[#ea580c] shadow-sm z-50 mr-4"
-            title="Volver"
-          >
-            <ChevronLeft size={20} />
-          </button>
+      {/* HEADER NAV - RECONSTRUCCIÓN TOTAL (v18) - CENTRADO ABSOLUTO */}
+      <header className="px-6 md:px-12 py-8 flex items-center justify-center fixed top-0 left-0 right-0 z-50 bg-transparent">
+        {/* BOTÓN VOLVER - IZQUIERDA ABSOLUTA PARA NO DESPLAZAR EL LOGO */}
+        <button 
+          onClick={() => setLocation('/')} 
+          className="absolute left-6 md:left-12 w-11 h-11 bg-white/40 backdrop-blur-md rounded-2xl flex items-center justify-center hover:bg-white transition-all border border-white/20 text-[#0B132B] hover:text-[#ea580c] shadow-sm z-50"
+          title="Volver"
+        >
+          <ChevronLeft size={20} />
+        </button>
 
-          <div className="flex items-center gap-4 group cursor-default">
-            <div className="relative">
-              <div className="absolute -inset-1 bg-orange-500/10 rounded-full blur group-hover:opacity-100 transition duration-1000"></div>
-              {activeConfig.logoImage ? (
-                <img src={activeConfig.logoImage} alt="Margarita Viajes" className="h-24 w-auto object-contain relative" />
-              ) : (
-                <img src="/assets/img/logo.png" alt="Margarita Viajes" className="h-24 w-auto object-contain relative" />
-              )}
-            </div>
-            <div className="flex flex-col hidden md:flex">
-              <h1 className="text-[32px] font-black italic text-[#ea580c] leading-[0.75] tracking-tighter uppercase">
-                {activeConfig?.agencyName || 'MARGARITA'}
-              </h1>
-              <span className="text-[12px] font-bold text-[#0B132B] uppercase tracking-[0.1em] mt-1">
-                {activeConfig?.agencySlogan || 'Viajes y Turismo'}
-              </span>
-            </div>
+        {/* LOGO - CENTRADO ABSOLUTO SIN NAVEGACIÓN */}
+        <div className="flex items-center justify-center group cursor-default">
+          <div className="relative">
+            <div className="absolute -inset-1 bg-orange-500/10 rounded-full blur group-hover:opacity-100 transition duration-1000"></div>
+            {activeConfig.logoImage ? (
+              <img src={activeConfig.logoImage} alt="Margarita Viajes" className="h-24 w-auto object-contain relative" />
+            ) : (
+              <img src="/assets/img/logo.png" alt="Margarita Viajes" className="h-24 w-auto object-contain relative" />
+            )}
           </div>
-        </div>
-
-        {/* NAVEGACIÓN PC SINCRONIZADA */}
-        <div className="hidden md:flex items-center gap-8">
-          <nav className="flex items-center gap-10">
-            {['HOTELES', 'FULL DAYS', 'PAQUETES', 'TRASLADOS'].map((item) => (
-              <a key={item} href={`/#${item.toLowerCase().replace(' ', '')}`} className="text-[11px] font-black tracking-[0.2em] text-[#0B132B] hover:text-orange-500 transition-colors uppercase cursor-pointer">
-                {item}
-              </a>
-            ))}
-          </nav>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto p-4 md:p-12 lg:p-20 pt-32 md:pt-40">
-        <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-10 lg:gap-16 items-start">
-          <div className="space-y-6 md:space-y-10 animate-in slide-in-from-left-8 duration-700">
+      <main className="max-w-7xl mx-auto p-4 md:p-12 lg:p-20 pt-40 md:pt-48">
+        <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-10 lg:gap-16 items-start">
+          <div className="space-y-6 md:space-y-10 animate-in slide-in-from-left-8 duration-700 mt-12">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
-              <div className="w-32 h-32 md:w-40 md:h-40 bg-white shadow-xl rounded-2xl p-3 border border-gray-100 flex items-center justify-center shrink-0">
+              <div className="w-32 h-32 md:w-40 md:h-40 bg-white shadow-xl rounded-2xl p-4 border border-gray-100 flex items-center justify-center shrink-0">
                 {selectedHotel?.logo || (selectedHotel as any).logoImage ? (
                   <img src={selectedHotel?.logo || (selectedHotel as any).logoImage} alt="Logo Hotel" className="w-full h-full object-contain rounded-xl" />
                 ) : (
@@ -400,12 +381,12 @@ export default function Quoter() {
             </div>
 
             <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-gray-100 space-y-4">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-orange-500">PASO 1: Alojamiento Seleccionado</h4>
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-[#ea580c]">PASO 1: ¡Ya tienes alojamiento!</h4>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-green-100 text-green-600 rounded-lg flex items-center justify-center">
                   <Check size={16} />
                 </div>
-                <p className="text-sm font-bold text-gray-600 uppercase tracking-tight">¡Excelente elección!</p>
+                <p className="text-sm font-bold text-gray-600 uppercase tracking-tight">Selección Confirmada</p>
               </div>
               <p className="text-[11px] font-bold text-gray-500 leading-relaxed uppercase tracking-tight">{selectedHotel.description}</p>
             </div>
@@ -635,7 +616,7 @@ export default function Quoter() {
                         <button onClick={applyCoupon} className="bg-[#0B132B] text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-orange-600 transition-all">Aplicar</button>
                       </div>
                     </div>
-                    <div className={`flex items-center justify-between mb-8 pt-4 border-t border-dashed border-gray-200 ${finalPrice === 0 ? 'hidden' : ''}`}>
+                    <div className={`flex items-center justify-between mb-8 pt-4 border-t border-dashed border-gray-200 ${finalPrice === 0 ? 'hidden h-0' : ''}`}>
                       <div className="flex flex-col items-start gap-2">
                         {priceInfo?.season && (
                           <span className="bg-orange-600 text-white text-[10px] px-3 py-1.5 rounded-full font-black uppercase shadow-sm border border-orange-700 flex items-center justify-center w-fit">
