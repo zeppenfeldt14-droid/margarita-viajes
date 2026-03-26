@@ -140,9 +140,9 @@ export default function Home({ onAdminClick }: HomeProps) {
             <div className="relative">
               <div className="absolute -inset-1 bg-orange-500/10 rounded-full blur group-hover:opacity-100 transition duration-1000"></div>
               {getConf('logoImage') ? (
-                <img src={getConf('logoImage')} alt="Margarita Viajes" className="w-14 h-14 object-contain relative" />
+                <img src={getConf('logoImage')} alt="Margarita Viajes" className="h-20 w-auto object-contain relative mix-blend-multiply" />
               ) : (
-                <img src="/assets/img/logo.png" alt="Margarita Viajes" className="w-14 h-14 object-contain relative" />
+                <img src="/assets/img/logo.png" alt="Margarita Viajes" className="h-20 w-auto object-contain relative mix-blend-multiply" />
               )}
             </div>
             <div className="flex flex-col">
@@ -206,8 +206,7 @@ export default function Home({ onAdminClick }: HomeProps) {
                 className="group relative h-56 rounded-[2rem] overflow-hidden border-4 border-white/20 shadow-2xl cursor-pointer hover:scale-105 transition-all duration-500"
               >
                 <img src={h.photos?.[0] || 'https://via.placeholder.com/400'} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={h.name} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div className="absolute bottom-4 inset-x-0 text-center">
+                <div className="absolute inset-x-0 bottom-0 p-8 pt-20 bg-gradient-to-t from-[#0B132B] via-[#0B132B]/80 to-transparent text-left">
                   <p className="text-[8px] font-black text-orange-400 uppercase tracking-widest mb-1 drop-shadow-lg">{h.type === 'package' ? 'PAQUETE' : h.type === 'full-day' ? 'FULL DAY' : 'HOTEL'}</p>
                   <p className="text-[11px] font-black italic text-white uppercase tracking-tighter drop-shadow-lg">{h.name}</p>
                 </div>
@@ -317,7 +316,7 @@ export default function Home({ onAdminClick }: HomeProps) {
                   price={getStartingPrice(h)}
                   plan={h.plan}
                   onQuote={() => setLocation(`/cotizador?hotel=${encodeURIComponent(h.name)}`)}
-                  className="snap-center"
+                  className="snap-center text-left"
                 />
               ))}
             </div>
@@ -355,18 +354,18 @@ export default function Home({ onAdminClick }: HomeProps) {
                 <span className="text-[11px] font-black uppercase tracking-[0.3em] mb-2 block" style={{ color: config.colorFuentesSub }}>{getConf('fulldaysSubtitulo')}</span>
                 <h2 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter text-[#0B132B]">FULL DAYS</h2>
               </div>
-              <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-8">
-                {randomFullDays.map(p => (
-                  <FullDayCard
-                    key={p.id}
-                    photos={p.photos || []}
-                    title={p.name}
-                    price={getStartingPrice(p)}
-                    onQuote={() => setLocation(`/cotizador?hotel=${encodeURIComponent(p.name)}`)}
-                    className="snap-center"
-                  />
-                ))}
-              </div>
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-8">
+              {randomFullDays.map(p => (
+                <FullDayCard
+                  key={p.id}
+                  photos={p.photos || []}
+                  title={p.name}
+                  price={getStartingPrice(p)}
+                  onQuote={() => setLocation(`/cotizador?hotel=${encodeURIComponent(p.name)}`)}
+                  className="snap-center text-left"
+                />
+              ))}
+            </div>
             </div>
           </section>
         );
@@ -384,22 +383,22 @@ export default function Home({ onAdminClick }: HomeProps) {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-transparent pt-24 pb-12 text-white">
+      <footer className="bg-slate-900 pt-24 pb-12 text-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-16 mb-20 text-center md:text-left">
-          <div className="space-y-6 flex flex-col items-center md:items-start text-[#0B132B]">
+          <div className="space-y-6 flex flex-col items-center md:items-start">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-black italic text-[#ea580c] leading-none uppercase">
                 {config?.agencyName || 'MARGARITA'}
               </h1>
             </div>
-            <p className="text-[10px] font-bold text-gray-500 uppercase leading-relaxed tracking-wider">
+            <p className="text-[10px] font-bold text-gray-400 uppercase leading-relaxed tracking-wider">
               {config?.direccion || 'Isla de Margarita, Venezuela'}
               <br /><br />
               RIF: J-40156646-4 | RTN: 13314
             </p>
           </div>
 
-          <div className="space-y-6 flex flex-col items-center md:items-start text-[#0B132B]">
+          <div className="space-y-6 flex flex-col items-center md:items-start">
             <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">Contacto Directo</h4>
             <div className="space-y-4">
               <a href={`tel:${config?.telefono}`} className="flex items-center gap-3 text-sm font-bold hover:text-orange-400 transition-colors">
@@ -414,17 +413,17 @@ export default function Home({ onAdminClick }: HomeProps) {
           <div className="space-y-6 flex flex-col items-center md:items-start">
             <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">Redes Oficiales</h4>
             <div className="flex items-center gap-6">
-              <a href="https://www.instagram.com/margaritaviajes/" target="_blank" className="w-14 h-14 bg-[#0B132B]/5 rounded-2xl flex items-center justify-center hover:bg-orange-500 transition-all border border-[#0B132B]/10 group">
-                <Instagram size={24} className="text-[#0B132B] group-hover:text-white group-hover:scale-110 transition-all" />
+              <a href="https://www.instagram.com/margaritaviajes/" target="_blank" className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center hover:bg-orange-500 transition-all border border-white/10 group">
+                <Instagram size={24} className="group-hover:scale-110 transition-transform" />
               </a>
-              <a href="https://www.facebook.com/hotelesamargarita/" target="_blank" className="w-14 h-14 bg-[#0B132B]/5 rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all border border-[#0B132B]/10 group">
-                <Facebook size={24} className="text-[#0B132B] group-hover:text-white group-hover:scale-110 transition-all" />
+              <a href="https://www.facebook.com/hotelesamargarita/" target="_blank" className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all border border-white/10 group">
+                <Facebook size={24} className="group-hover:scale-110 transition-transform" />
               </a>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-gray-100 px-6 md:px-12 py-12 flex flex-col md:flex-row justify-between items-center gap-6 text-center">
+        <div className="border-t border-white/5 px-6 md:px-12 py-12 flex flex-col md:flex-row justify-between items-center gap-6 text-center">
           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">© {new Date().getFullYear()} MARGARITA VIAJES C.A. - TODOS LOS DERECHOS RESERVADOS</p>
           <div className="flex gap-8">
             <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Legal</span>

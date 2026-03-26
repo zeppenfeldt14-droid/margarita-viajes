@@ -23,7 +23,7 @@ export const HotelCard: React.FC<HotelCardProps> = ({ image, photos = [], title,
   }, [displayPhotos.length]);
 
   return (
-    <div className={`bg-white rounded-[2rem] p-4 shadow-sm border border-gray-100 flex flex-col group hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-500 cursor-pointer shrink-0 w-[280px] md:w-auto ${className}`} onClick={onQuote}>
+    <div className={`bg-white rounded-[2rem] p-4 shadow-sm border border-gray-100 flex flex-col group hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-500 cursor-pointer shrink-0 w-[280px] md:w-auto text-left ${className}`} onClick={onQuote}>
       <div className="h-64 rounded-t-[1.5rem] rounded-b-lg overflow-hidden mb-4 relative">
         <img 
           src={displayPhotos[currentImg]} 
@@ -72,7 +72,7 @@ export const FullDayCard: React.FC<HotelCardProps> = ({ image, photos = [], titl
 
   return (
     <div 
-      className={`group relative h-[400px] rounded-[2rem] overflow-hidden shadow-md cursor-pointer hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-500 shrink-0 w-[280px] md:w-auto ${className}`} 
+      className={`group relative h-[400px] rounded-[2rem] overflow-hidden shadow-md cursor-pointer hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-500 shrink-0 w-[280px] md:w-auto text-left ${className}`} 
       onClick={onQuote}
     >
       <img 
