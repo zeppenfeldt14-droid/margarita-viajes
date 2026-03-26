@@ -29,6 +29,12 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
   const [editCoupon, setEditCoupon] = useState<any>(null);
   const [analytics, setAnalytics] = useState<any>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsReady(true), 200);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     loadCoupons();
@@ -102,8 +108,8 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
             <h3 className="text-xs font-black text-[#0B132B] uppercase tracking-widest">Embudo de Conversión</h3>
           </div>
            <div style={{ width: '100%', height: '350px', minHeight: '350px', position: 'relative' }}>
-             {analytics?.conversionFunnel?.length > 0 ? (
-               <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={100}>
+             {isReady && analytics?.conversionFunnel?.length > 0 ? (
+               <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100} debounce={200}>
                  <BarChart data={analytics.conversionFunnel} layout="vertical" margin={{ left: 20, right: 30 }}>
                    <XAxis type="number" hide />
                    <YAxis 
@@ -139,8 +145,8 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
             <h3 className="text-xs font-black text-[#0B132B] uppercase tracking-widest">Fuentes de Tráfico</h3>
           </div>
            <div style={{ width: '100%', height: '350px', minHeight: '350px', position: 'relative' }}>
-             {analytics?.trafficBySource?.length > 0 ? (
-               <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={100}>
+             {isReady && analytics?.trafficBySource?.length > 0 ? (
+               <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100} debounce={200}>
                  <PieChart>
                    <Pie
                      data={analytics.trafficBySource}

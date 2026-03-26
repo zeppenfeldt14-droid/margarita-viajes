@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { 
   Users, 
   TrendingUp, 
@@ -26,6 +26,12 @@ import { formatDateVisual } from '../../utils/helpers';
 
 export default function CommandCenter() {
   const { quotes, reservations, operations, users } = useGlobalData();
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsReady(true), 200);
+    return () => clearTimeout(timer);
+  }, []);
 
   // 1. Tráfico PAX Hoy (Cerradas/Confirmadas hoy)
   const todayPax = useMemo(() => {
@@ -272,8 +278,8 @@ export default function CommandCenter() {
            <TrendingUp size={16} className="text-emerald-500" /> Embudo de Conversión (Lead to Sale)
          </h3>
          <div style={{ width: '100%', height: '350px', minHeight: '350px', overflow: 'hidden' }}>
-           {funnelData.length > 0 ? (
-             <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={100}>
+           {isReady && funnelData.length > 0 ? (
+             <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={200}>
                 <BarChart data={funnelData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 50 }}>
                   <XAxis type="number" hide />
                   <YAxis 
@@ -327,8 +333,8 @@ export default function CommandCenter() {
             </div>
          </div>
          <div style={{ width: '100%', height: '300px', minHeight: '300px', overflow: 'hidden' }}>
-            {hotelData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={100}>
+            {isReady && hotelData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={200}>
                  <PieChart>
                     <Pie
                       data={hotelData}
