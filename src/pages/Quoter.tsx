@@ -21,7 +21,7 @@ import {
   calculateChildAgesArray
 } from "../utils/pricingEngine";
 import { useGlobalData } from "../context/GlobalContext";
-import type { Hotel, Quotation, QuoteStatus } from "../types";
+import type { QuoteStatus } from "../types";
 import { api } from "../services/api";
 import { showToast, ToastContainer } from "../components/Toast";
 
@@ -32,7 +32,7 @@ export default function Quoter() {
   const hotelName = queryParams.get('hotel') || '';
 
   const [activeConfig, setActiveConfig] = useState<Record<string, string>>({});
-  const { hotels, transfers: availableTransfers, users } = useGlobalData();
+  const { hotels, transfers: availableTransfers } = useGlobalData();
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -332,9 +332,9 @@ export default function Quoter() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto p-4 md:p-12 lg:p-20 pt-40 md:pt-48">
-        <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-10 lg:gap-16 items-start">
-          <div className="space-y-6 md:space-y-10 animate-in slide-in-from-left-8 duration-700 mt-12">
+      <main className="max-w-7xl mx-auto p-2 md:p-12 lg:p-20 pt-32 md:pt-48">
+        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8 lg:gap-16 items-start">
+          <div className="space-y-4 md:space-y-10 animate-in slide-in-from-left-8 duration-700 mt-20 md:mt-12">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
               <div className="w-32 h-32 md:w-40 md:h-40 bg-white shadow-xl rounded-2xl p-4 border border-gray-100 flex items-center justify-center shrink-0">
                 {selectedHotel?.logo || (selectedHotel as any).logoImage ? (
@@ -380,8 +380,10 @@ export default function Quoter() {
               </button>
             </div>
 
-            <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-gray-100 space-y-4">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-[#ea580c]">PASO 1: ¡Ya tienes alojamiento!</h4>
+            <div className="bg-white p-4 md:p-8 rounded-[2rem] shadow-sm border border-gray-100 space-y-3">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-[#ea580c]">
+                {selectedHotel ? 'PASO 1: ¡Ya tienes alojamiento!' : 'PASO 1: Añade alojamiento'}
+              </h4>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-green-100 text-green-600 rounded-lg flex items-center justify-center">
                   <Check size={16} />
@@ -392,7 +394,7 @@ export default function Quoter() {
             </div>
           </div>
 
-            <div className={`bg-white rounded-[2.5rem] md:rounded-[3rem] shadow-2xl p-5 md:p-14 border border-gray-50 flex flex-col space-y-6 md:space-y-8 animate-in slide-in-from-right-8 duration-700 ${isSuccess ? 'justify-center' : ''}`}>
+            <div className={`bg-white rounded-[2.5rem] md:rounded-[3rem] shadow-2xl p-4 md:p-14 border border-gray-50 flex flex-col space-y-4 md:space-y-8 animate-in slide-in-from-right-8 duration-700 ${isSuccess ? 'justify-center' : ''}`}>
               {isSuccess ? (
                 <div className="text-center py-10 animate-in fade-in zoom-in duration-500">
                   <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8">
@@ -430,7 +432,7 @@ export default function Quoter() {
                         <input type="date" min={minDate} value={formData.checkIn} onChange={e => {
                           const val = e.target.value;
                           setFormData(prev => ({ ...prev, checkIn: val, checkOut: selectedHotel.type === 'full-day' ? val : prev.checkOut }));
-                        }} className="w-full bg-gray-50 rounded-2xl py-4 pl-14 pr-6 text-xs font-bold ring-2 ring-gray-100 outline-none focus:ring-orange-500/20" />
+                        }} className="w-full bg-gray-50 rounded-2xl py-2 md:py-4 pl-14 pr-6 text-xs font-bold ring-2 ring-gray-100 outline-none focus:ring-orange-500/20" />
                       </div>
                     </div>
 
@@ -616,7 +618,7 @@ export default function Quoter() {
                         <button onClick={applyCoupon} className="bg-[#0B132B] text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-orange-600 transition-all">Aplicar</button>
                       </div>
                     </div>
-                    <div className={`flex items-center justify-between mb-8 pt-4 border-t border-dashed border-gray-200 ${finalPrice === 0 ? 'hidden h-0' : ''}`}>
+                    <div className={`flex items-center justify-between mb-8 pt-4 border-t border-dashed border-gray-200 ${finalPrice <= 0 ? 'hidden h-[10px]' : ''}`}>
                       <div className="flex flex-col items-start gap-2">
                         {priceInfo?.season && (
                           <span className="bg-orange-600 text-white text-[10px] px-3 py-1.5 rounded-full font-black uppercase shadow-sm border border-orange-700 flex items-center justify-center w-fit">
@@ -638,32 +640,32 @@ export default function Quoter() {
                       </div>
                     </div>
 
-                    <div className="space-y-4">
-                      <input type="text" placeholder="Nombre completo..." value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold outline-none ring-2 ring-gray-50 focus:ring-orange-500/10" />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="email" placeholder="Correo electrónico..." value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold outline-none ring-2 ring-gray-50 focus:ring-orange-500/10" />
-                        <input type="tel" placeholder="WhatsApp (Opcional)..." value={formData.whatsapp} onChange={e => setFormData({ ...formData, whatsapp: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-4 px-6 text-xs font-bold outline-none ring-2 ring-gray-50 focus:ring-orange-500/10" />
+                    <div className="space-y-3">
+                      <input type="text" placeholder="Nombre completo..." value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-3 md:py-4 px-6 text-xs font-bold outline-none ring-2 ring-gray-50 focus:ring-orange-500/10" />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                        <input type="email" placeholder="Correo electrónico..." value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-2 md:py-4 px-6 text-xs font-bold outline-none ring-2 ring-gray-50 focus:ring-orange-500/10" />
+                        <input type="tel" placeholder="WhatsApp (Opcional)..." value={formData.whatsapp} onChange={e => setFormData({ ...formData, whatsapp: e.target.value })} className="w-full bg-gray-50 rounded-2xl py-2 md:py-4 px-6 text-xs font-bold outline-none ring-2 ring-gray-50 focus:ring-orange-500/10" />
                       </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-2 md:gap-4 mt-4 md:mt-8">
                       <button
                         onClick={enviarCotizacion}
-                        className="w-full sm:flex-1 bg-gray-100 hover:bg-gray-200 text-[#0B132B] h-12 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center justify-center gap-2"
+                        className="w-full sm:flex-1 bg-gray-100 hover:bg-gray-200 text-[#0B132B] h-11 md:h-12 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center justify-center gap-2"
                       >
-                        <Mail size={16} /> Enviar al Correo
+                        <Mail size={16} /> Correo
                       </button>
 
                       <button
                         disabled={isGenerating}
                         onClick={enviarCotizacionWhatsApp}
-                        className="w-full sm:flex-1 bg-green-500 hover:bg-green-600 text-white h-12 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center justify-center gap-2 shadow-xl shadow-green-500/20 disabled:bg-gray-400"
+                        className="w-full sm:w-auto sm:flex-1 bg-green-500 hover:bg-green-600 text-white h-11 md:h-12 px-6 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center justify-center gap-2 shadow-xl shadow-green-500/20 disabled:bg-gray-400"
                       >
                         {isGenerating ? (
-                          <>Generando PDF...</>
+                          <>Generando...</>
                         ) : (
                           <>
-                            <MessageCircle size={16} /> Enviar por WhatsApp
+                            <MessageCircle size={16} /> WhatsApp
                           </>
                         )}
                       </button>
