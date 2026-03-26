@@ -107,9 +107,9 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
             </div>
             <h3 className="text-xs font-black text-[#0B132B] uppercase tracking-widest">Embudo de Conversión</h3>
           </div>
-           <div style={{ width: '100%', height: '350px', minHeight: '350px', position: 'relative' }}>
+           <div className="w-full h-[350px] min-w-[300px] min-h-[350px] overflow-hidden" style={{ position: 'relative' }}>
              {isReady && analytics?.conversionFunnel?.length > 0 ? (
-               <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100} debounce={200}>
+               <ResponsiveContainer width="99%" aspect={2} minWidth={100} minHeight={100} debounce={200}>
                  <BarChart data={analytics.conversionFunnel} layout="vertical" margin={{ left: 20, right: 30 }}>
                    <XAxis type="number" hide />
                    <YAxis 
@@ -144,9 +144,9 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
             </div>
             <h3 className="text-xs font-black text-[#0B132B] uppercase tracking-widest">Fuentes de Tráfico</h3>
           </div>
-           <div style={{ width: '100%', height: '350px', minHeight: '350px', position: 'relative' }}>
+           <div className="w-full h-[350px] min-w-[300px] min-h-[350px] overflow-hidden" style={{ position: 'relative' }}>
              {isReady && analytics?.trafficBySource?.length > 0 ? (
-               <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100} debounce={200}>
+               <ResponsiveContainer width="99%" aspect={2} minWidth={100} minHeight={100} debounce={200}>
                  <PieChart>
                    <Pie
                      data={analytics.trafficBySource}
