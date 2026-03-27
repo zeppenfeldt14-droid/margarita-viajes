@@ -24,7 +24,7 @@ import { useGlobalData } from "../context/GlobalContext";
 import type { QuoteStatus } from "../types";
 import { api } from "../services/api";
 import { showToast, ToastContainer } from "../components/Toast";
-import { BrandLogo } from "../components/common/BrandLogo";
+import BrandLogo from "../components/common/BrandLogo";
 
 
 export default function Quoter() {

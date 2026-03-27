@@ -13,7 +13,7 @@ import { HotelCard, FullDayCard } from "../components/public/Cards";
 import { api } from "../services/api";
 import { type Hotel } from "../data/inventory";
 import { useGlobalData } from "../context/GlobalContext";
-import { BrandLogo } from "../components/common/BrandLogo";
+import BrandLogo from "../components/common/BrandLogo";
 
 interface HomeProps {
   onAdminClick: () => void;
