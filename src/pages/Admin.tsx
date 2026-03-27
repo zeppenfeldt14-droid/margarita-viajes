@@ -649,7 +649,21 @@ export default function AdminDashboard({ user }: AdminProps) {
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Logo del Sitio</p>
                         <span className="text-[8px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md font-black italic">BIFURCADO</span>
                       </div>
-                      <div className="h-44 bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200 flex items-center justify-center relative overflow-hidden group hover:bg-gray-100 transition-all">
+                      <div 
+                        className="h-44 rounded-[2.5rem] relative overflow-hidden group hover:bg-gray-100 transition-all"
+                        style={{
+                          backgroundImage: 'linear-gradient(45deg, #e5e7eb 25%, transparent 25%), linear-gradient(-45deg, #e5e7eb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e5e7eb 75%), linear-gradient(-45deg, transparent 75%, #e5e7eb 75%)',
+                          backgroundSize: '20px 20px',
+                          backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
+                          backgroundColor: '#ffffff',
+                          padding: '1rem',
+                          borderRadius: '2.5rem',
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          border: '2px dashed #d1d5db'
+                        }}
+                      >
                         {config[`${deviceMode}_logoImage`] || config.logoImage ? (
                           <img src={config[`${deviceMode}_logoImage`] || config.logoImage} className="max-h-24 object-contain" />
                         ) : (

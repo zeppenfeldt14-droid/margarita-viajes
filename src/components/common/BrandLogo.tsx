@@ -15,9 +15,9 @@ const BrandLogo: React.FC<BrandLogoProps> = ({ className = "", ...props }) => {
       alt="Margarita Viajes" 
       // RESTAURAMOS EL TRUCO: Oculta el fondo blanco sobre fondo blanco de la web
       className={`mix-blend-multiply select-none ${className}`} 
-      // ELIMINAMOS EL RESPLANDOR CUADRADO. POTENCIAMOS EL DESTELLO INTERNO.
-      //brightness(1.15) hace que los naranjas y amarillos "brillen" con más fuerza.
-      style={{ filter: 'brightness(1.15) contrast(1.1)' }}
+      // ELIMINAMOS EL RESPLANDOR DIFUMINADO EXTERNO.
+      // POTENCIAMOS EL "DESTELLO" INTERNO: Brightness y Contrast hacen que los naranjas/amarillos brillen con más fuerza.
+      style={{ filter: 'brightness(1.2) contrast(1.1)' }}
       {...props}
     />
   );
