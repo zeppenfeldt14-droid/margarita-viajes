@@ -13,7 +13,7 @@ import { HotelCard, FullDayCard } from "../components/public/Cards";
 import { api } from "../services/api";
 import { type Hotel } from "../data/inventory";
 import { useGlobalData } from "../context/GlobalContext";
-import BrandLogo from "../components/common/BrandLogo";
+import { BrandLogo } from "../components/common/BrandLogo";
 
 interface HomeProps {
   onAdminClick: () => void;
@@ -133,47 +133,22 @@ export default function Home({ onAdminClick }: HomeProps) {
     <div className="bg-white min-h-screen font-sans relative overflow-x-hidden selection:bg-orange-100 pt-20">
 
       {/* HEADER NAV - LOGO SEGÚN DISEÑO SOLICITADO - SIN FIXED (SCROLL NORMAL) */}
-      <header className="px-6 md:px-12 h-20 md:h-auto flex items-center justify-between bg-transparent transition-all duration-300 relative z-[60]">
-        <div className="flex items-center gap-4 md:gap-8 w-full md:w-auto">
-          
-          {/* LOGO STICKY LOGIC (md:sticky) - EL LOGO VOLADOR */}
-          <div className="md:sticky md:top-4 md:z-50 transition-all duration-500 group cursor-default">
-            <div className="relative">
-              <div className="absolute -inset-2 bg-orange-500/5 rounded-full blur-xl group-hover:opacity-100 transition duration-1000 opacity-70"></div>
-              <BrandLogo className="h-14 md:h-24 w-auto object-contain relative" />
-            </div>
-          </div>
-
-          {/* CONTENEDOR BLANCO - TEXTO SECUNDARIO (SIN WHITESPACE-NOWRAP) */}
-          <div className="hidden md:flex flex-col items-start">
-            <div className="bg-white/80 backdrop-blur-md px-8 py-3 rounded-full shadow-sm border border-gray-100 flex items-center gap-2">
-              <span className="text-[10px] font-black text-[#0B132B] uppercase tracking-[0.2em]">
-                AGENCIA DE VIAJES / {config?.agencyName || 'MARGARITA'} / {config?.agencySlogan || 'VIAJES Y TURISMO'}
-              </span>
-            </div>
+      <header className="sticky top-0 w-full bg-white py-3 px-4 md:px-8 flex items-center justify-between z-50 shadow-md">
+        {/* Lado Izquierdo: Logo + Textos */}
+        <div className="flex items-center gap-3 md:gap-4">
+          <BrandLogo className="h-14 md:h-20 w-auto object-contain" />
+          <div className="hidden md:flex flex-col">
+            <span className="text-[#EB5A0C] font-black text-xl md:text-2xl uppercase tracking-wider leading-none">Margarita Viajes</span>
+            <span className="text-[#0B132B] font-bold text-xs tracking-widest mt-1">AGENCIA DE VIAJES Y TURISMO</span>
           </div>
         </div>
 
-        <div className="hidden md:flex items-center gap-8">
-          <nav className="flex items-center gap-10">
-            <a href="#hoteles" className="text-[11px] font-black uppercase tracking-widest text-[#0B132B] hover:text-[#ea580c] transition-colors">{getConf('hotelesTitulo') || 'HOTELES'}</a>
-            <a href="#fulldays" className="text-[11px] font-black uppercase tracking-widest text-[#0B132B] hover:text-[#ea580c] transition-colors">FULL DAYS</a>
-            <a href="#nosotros" className="text-[11px] font-black uppercase tracking-widest text-[#0B132B] hover:text-[#ea580c] transition-colors">QUIÉNES SOMOS</a>
-          </nav>
-
-          <button
-            onClick={onAdminClick}
-            className="w-12 h-12 bg-white/40 backdrop-blur-md rounded-2xl flex items-center justify-center hover:bg-white transition-all border border-white/20 text-gray-400 hover:text-[#ea580c] shadow-sm"
-            title="Panel de Administración"
-          >
-            <Settings size={20} />
-          </button>
-        </div>
-
-        {/* BOTÓN MÓVIL (Admin) - Placeholder para mantener equilibrio si es necesario */}
-        <div className="md:hidden flex items-center">
-           <button onClick={onAdminClick} className="text-[#0B132B]/20"><Settings size={20} /></button>
-        </div>
+        {/* Lado Derecho: Menú */}
+        <nav className="hidden md:flex items-center gap-6 text-sm font-bold text-[#0B132B]">
+          <a href="#hoteles" className="hover:text-[#EB5A0C] transition duration-300">HOTELES</a>
+          <a href="#fulldays" className="hover:text-[#EB5A0C] transition duration-300">FULL DAYS</a>
+          <a href="#nosotros" className="hover:text-[#EB5A0C] transition duration-300">QUIÉNES SOMOS</a>
+        </nav>
       </header>
       {/* HERO SECTION CON BANNER Y BUSCADOR DROPDOWN */}
       <div 

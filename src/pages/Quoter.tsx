@@ -24,7 +24,7 @@ import { useGlobalData } from "../context/GlobalContext";
 import type { QuoteStatus } from "../types";
 import { api } from "../services/api";
 import { showToast, ToastContainer } from "../components/Toast";
-import BrandLogo from "../components/common/BrandLogo";
+import { BrandLogo } from "../components/common/BrandLogo";
 
 
 export default function Quoter() {
@@ -296,34 +296,17 @@ export default function Quoter() {
   return (
     <div className="min-h-screen bg-[#F8F9FA] selection:bg-orange-100">
       {/* HEADER NAV - RECONSTRUCCIÓN TOTAL (v18) - CENTRADO ABSOLUTO - SIN FIXED */}
-      <header className="px-6 md:px-12 h-20 md:h-auto flex items-center justify-center bg-transparent relative z-[60]">
-        {/* BOTÓN VOLVER - IZQUIERDA ABSOLUTA */}
+      <header className="sticky top-0 w-full bg-white py-3 px-4 md:px-8 flex items-center justify-center z-50 shadow-sm border-b border-gray-100 h-[70px] md:h-[100px]">
+        {/* Botón Volver (Absoluto a la izquierda) */}
         <button 
-          onClick={() => setLocation('/')} 
-          className="absolute left-6 md:left-12 w-10 h-10 md:w-12 md:h-12 bg-white/40 backdrop-blur-md rounded-2xl flex items-center justify-center hover:bg-white transition-all border border-white/20 text-[#0B132B] hover:text-[#ea580c] shadow-sm z-50"
-          title="Volver"
+          onClick={() => window.history.back()}
+          className="absolute left-4 md:left-8 flex items-center justify-center w-10 h-10 bg-gray-50 hover:bg-orange-50 text-gray-500 hover:text-[#EB5A0C] transition-colors rounded-full"
         >
           <ChevronLeft size={24} />
         </button>
-
-        <div className="flex items-center gap-4 md:gap-8 w-full md:w-auto justify-center">
-          {/* LOGO STICKY LOGIC (md:sticky) */}
-          <div className="md:sticky md:top-4 md:z-50 transition-all duration-500 group cursor-default bg-transparent">
-            <div className="relative bg-transparent">
-              <div className="absolute -inset-2 bg-orange-500/5 rounded-full blur-xl group-hover:opacity-100 transition duration-1000 opacity-70"></div>
-              <BrandLogo className="h-14 md:h-24 w-auto object-contain relative" />
-            </div>
-          </div>
-
-          {/* CONTENEDOR BLANCO - UNIFICACIÓN (Solo PC) */}
-          <div className="hidden md:flex flex-col items-start ml-4">
-            <div className="bg-white/80 backdrop-blur-md px-8 py-3 rounded-full shadow-sm border border-gray-100 flex items-center gap-2">
-              <span className="text-[10px] font-black text-[#0B132B] uppercase tracking-[0.2em]">
-                AGENCIA DE VIAJES / {activeConfig?.agencyName || 'MARGARITA'} / {activeConfig?.agencySlogan || 'VIAJES Y TURISMO'}
-              </span>
-            </div>
-          </div>
-        </div>
+        
+        {/* Logo Centrado */}
+        <BrandLogo className="h-12 md:h-20 w-auto object-contain" />
       </header>
 
       <main className="max-w-7xl mx-auto p-2 md:p-12 lg:p-20 pt-32 md:pt-48">
