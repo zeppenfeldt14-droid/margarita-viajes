@@ -296,37 +296,31 @@ export default function Quoter() {
   return (
     <div className="min-h-screen bg-[#F8F9FA] selection:bg-orange-100">
       {/* HEADER NAV - RECONSTRUCCIÓN TOTAL (v18) - CENTRADO ABSOLUTO - SIN FIXED */}
-      {/* LOGO MÓVIL (Centrado, Grande, Sin Cabecera) */}
-      <div className="md:hidden w-full flex justify-center pt-8 pb-4 absolute top-0 z-50 pointer-events-none">
-        <BrandLogo className="h-28 w-auto object-contain drop-shadow-md pointer-events-auto" />
+      {/* MISMOS LOGOS QUE EN LA HOME PARA CONSISTENCIA */}
+      <div className="md:hidden w-full flex justify-center pt-10 absolute top-0 z-50 pointer-events-none">
+        <BrandLogo className="h-36 w-auto object-contain pointer-events-auto" />
       </div>
 
-      {/* LOGO PC (Margen Izquierdo, Fijo/Scroll, Resplandor Naranja, Gigante - Idéntico a Home) */}
       <div className="hidden md:block fixed top-6 left-8 z-[100] pointer-events-none">
-        <BrandLogo className="h-36 w-auto object-contain drop-shadow-[0_0_25px_rgba(235,90,12,0.8)] pointer-events-auto" />
+        <BrandLogo className="h-40 w-auto object-contain pointer-events-auto" />
       </div>
 
-      {/* BOTÓN VOLVER (Flotante) */}
       <button
         onClick={() => window.history.back()}
-        className="fixed top-6 right-4 md:top-8 md:right-8 z-[110] flex items-center justify-center w-12 h-12 bg-white shadow-lg hover:bg-orange-50 text-gray-600 hover:text-[#EB5A0C] transition-colors rounded-full"
+        className="fixed top-6 right-4 md:top-8 md:right-8 z-[110] flex items-center justify-center w-12 h-12 bg-white shadow-xl text-gray-600 hover:text-[#EB5A0C] rounded-full"
       >
         <ChevronLeft size={28} />
       </button>
 
-      {/* CABECERA PC (Igual a Home para no desentonar) */}
-      <header className="hidden md:flex w-full bg-white py-6 px-8 items-center justify-between z-40 relative shadow-sm pl-[240px] h-[92px]">
-        <div className="flex flex-col">
-          <span className="text-[#EB5A0C] font-black text-2xl uppercase tracking-wider">Módulo de Cotización</span>
-        </div>
+      <header className="hidden md:flex w-full bg-white py-6 px-8 items-center justify-between z-40 relative shadow-sm pl-[280px] h-[100px]">
+        <h1 className="text-[#EB5A0C] font-black text-2xl uppercase tracking-wider">Módulo de Cotización</h1>
       </header>
 
-      {/* Espaciador Móvil */}
-      <div className="md:hidden h-36 w-full"></div>
+      <div className="md:hidden h-40 w-full bg-transparent"></div>
 
       <main className="max-w-7xl mx-auto p-2 md:p-12 lg:p-20 pt-32 md:pt-48">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mt-8">
-          <div className="lg:col-span-4 space-y-4 md:space-y-10 animate-in slide-in-from-left-8 duration-700 mt-20 md:mt-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start mt-8">
+          <div className="lg:col-span-5 xl:col-span-4 space-y-4 md:space-y-10 animate-in slide-in-from-left-8 duration-700 mt-20 md:mt-12 z-10">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
               <div className="w-32 h-32 md:w-40 md:h-40 bg-white shadow-xl rounded-2xl p-4 border border-gray-100 flex items-center justify-center shrink-0">
                 {selectedHotel?.logo || (selectedHotel as any).logoImage ? (
@@ -386,7 +380,7 @@ export default function Quoter() {
             </div>
           </div>
 
-            <div className={`lg:col-span-8 bg-white rounded-[2.5rem] md:rounded-[3rem] shadow-2xl p-4 md:p-14 border border-gray-50 flex flex-col space-y-4 md:space-y-8 animate-in slide-in-from-right-8 duration-700 ${isSuccess ? 'justify-center' : ''}`}>
+            <div className={`lg:col-span-7 xl:col-span-8 bg-white rounded-[2.5rem] md:rounded-[3rem] shadow-2xl p-4 md:p-14 border border-gray-50 flex flex-col space-y-4 md:space-y-8 animate-in slide-in-from-right-8 duration-700 ${isSuccess ? 'justify-center' : ''}`}>
               {isSuccess ? (
                 <div className="text-center py-10 animate-in fade-in zoom-in duration-500">
                   <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8">

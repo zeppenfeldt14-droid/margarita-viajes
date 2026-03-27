@@ -133,18 +133,18 @@ export default function Home({ onAdminClick }: HomeProps) {
     <div className="bg-white min-h-screen font-sans relative overflow-x-hidden selection:bg-orange-100 pt-20">
 
       {/* HEADER NAV - LOGO SEGÚN DISEÑO SOLICITADO - SIN FIXED (SCROLL NORMAL) */}
-      {/* LOGO MÓVIL (Centrado, Grande, Sin Cabecera Blanca) */}
-      <div className="md:hidden w-full flex justify-center pt-8 pb-4 absolute top-0 z-50 pointer-events-none">
-        <BrandLogo className="h-28 w-auto object-contain drop-shadow-md pointer-events-auto" />
+      {/* LOGO MÓVIL (Gigante, Centrado, Sin fondo blanco, Con Resplandor) */}
+      <div className="md:hidden w-full flex justify-center pt-10 absolute top-0 z-50 pointer-events-none">
+        <BrandLogo className="h-36 w-auto object-contain pointer-events-auto" />
       </div>
 
-      {/* LOGO PC (Margen Izquierdo, Fijo/Scroll, Resplandor Naranja, Gigante) */}
+      {/* LOGO PC (Margen Izquierdo, Fijo, Gigante, Con Resplandor) */}
       <div className="hidden md:block fixed top-6 left-8 z-[100] pointer-events-none">
-        <BrandLogo className="h-36 w-auto object-contain drop-shadow-[0_0_25px_rgba(235,90,12,0.8)] pointer-events-auto cursor-pointer" />
+        <BrandLogo className="h-40 w-auto object-contain pointer-events-auto cursor-pointer" />
       </div>
 
-      {/* CABECERA PC (Franja Blanca, Textos Originales, Oculta en Móvil) */}
-      <header className="hidden md:flex w-full bg-white py-6 px-8 items-center justify-between z-40 relative shadow-sm pl-[240px]">
+      {/* CABECERA PC (Solo franja blanca para textos, oculta en móvil) */}
+      <header className="hidden md:flex w-full bg-white/95 py-6 px-8 items-center justify-between z-40 relative shadow-sm pl-[280px]">
         <div className="flex flex-col">
           <span className="text-[#EB5A0C] font-black text-2xl uppercase tracking-wider">Margarita Viajes</span>
           <span className="text-[#0B132B] font-bold text-sm tracking-widest">AGENCIA DE VIAJES Y TURISMO</span>
@@ -156,8 +156,7 @@ export default function Home({ onAdminClick }: HomeProps) {
         </nav>
       </header>
 
-      {/* Espaciador Móvil para que el contenido no quede debajo del logo */}
-      <div className="md:hidden h-36 w-full"></div>
+      <div className="md:hidden h-40 w-full bg-transparent"></div>
       {/* HERO SECTION CON BANNER Y BUSCADOR DROPDOWN */}
       <div 
         className="w-full h-[400px] md:h-[500px] bg-cover bg-center relative" 
