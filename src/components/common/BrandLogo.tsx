@@ -9,8 +9,9 @@ const BrandLogo: React.FC<BrandLogoProps> = ({ className = "", ...props }) => {
   const { config } = useGlobal();
   const rawUrl = config?.logoImage || '/assets/img/logo.png';
   
-  // Rompe-caché para forzar la carga del PNG transparente
-  const logoUrl = rawUrl.includes('?') ? rawUrl : `${rawUrl}?v=clean`;
+  // Rompe-caché solo si no es un data URI (Base64)
+  const isDataUrl = rawUrl.startsWith('data:');
+  const logoUrl = (isDataUrl || rawUrl.includes('?')) ? rawUrl : `${rawUrl}?v=clean`;
 
   return (
     <img 
