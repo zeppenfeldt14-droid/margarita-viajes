@@ -20,6 +20,14 @@
     font-family: var(--font-sans);
   }
 
+  /* Purga de Fondos Blancos en Imágenes Transparentes */
+  img.bg-transparent, 
+  .bg-transparent img,
+  [class*="BrandLogo"] img {
+    background-color: transparent !important;
+    background-image: none !important;
+  }
+
 /* Custom Scrollbar Global y Específico */
 .custom-scrollbar::-webkit-scrollbar,
 *::-webkit-scrollbar {

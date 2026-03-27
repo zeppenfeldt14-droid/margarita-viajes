@@ -380,7 +380,7 @@ export default function Quoter() {
             </div>
           </div>
 
-            <div className={`lg:col-span-7 xl:col-span-8 bg-white rounded-[2.5rem] md:rounded-[3rem] shadow-2xl p-4 md:p-14 border border-gray-50 flex flex-col space-y-4 md:space-y-8 animate-in slide-in-from-right-8 duration-700 ${isSuccess ? 'justify-center' : ''}`}>
+            <div className={`lg:col-span-4 xl:col-span-4 bg-white rounded-[2.5rem] md:rounded-[3rem] shadow-2xl p-4 md:p-14 border border-gray-50 flex flex-col space-y-4 md:space-y-8 animate-in slide-in-from-right-8 duration-700 ${isSuccess ? 'justify-center' : ''}`}>
               {isSuccess ? (
                 <div className="text-center py-10 animate-in fade-in zoom-in duration-500">
                   <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8">
