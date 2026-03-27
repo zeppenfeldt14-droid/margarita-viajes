@@ -297,12 +297,8 @@ export default function Quoter() {
     <div className="min-h-screen bg-[#F8F9FA] selection:bg-orange-100">
       {/* HEADER NAV - RECONSTRUCCIÓN TOTAL (v18) - CENTRADO ABSOLUTO - SIN FIXED */}
       {/* MISMOS LOGOS QUE EN LA HOME PARA CONSISTENCIA */}
-      <div className="md:hidden w-full flex justify-center pt-10 absolute top-0 z-50 pointer-events-none !bg-transparent !shadow-none">
-        <BrandLogo className="h-36 w-auto object-contain pointer-events-auto" />
-      </div>
-
       <div className="hidden md:block fixed top-6 left-8 z-[100] pointer-events-none !bg-transparent !shadow-none">
-        <BrandLogo className="h-40 w-auto object-contain pointer-events-auto" />
+        <BrandLogo className="h-40 w-auto object-contain pointer-events-auto cursor-pointer" />
       </div>
 
       <button
@@ -316,7 +312,13 @@ export default function Quoter() {
         <h1 className="text-[#EB5A0C] font-black text-2xl uppercase tracking-wider">Módulo de Cotización</h1>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 md:px-12 lg:px-20 pt-36 md:pt-40">
+      {/* CONTENEDOR PRINCIPAL CORREGIDO (v39) */}
+      <main className="max-w-7xl mx-auto px-4 md:px-12 lg:px-20 pt-8 md:pt-48">
+        {/* NUEVO LOGO MÓVIL (Compacto, Centrado, Se mueve con el Scroll, Sin Fondo Propio) */}
+        <div className="md:hidden w-full flex justify-center mb-6 mt-4">
+          <BrandLogo className="h-28 w-auto object-contain" />
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start mt-8">
           <div className="lg:col-span-5 xl:col-span-5 space-y-4 md:space-y-10 animate-in slide-in-from-left-8 duration-700 mt-20 md:mt-12 z-10 max-w-md">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
