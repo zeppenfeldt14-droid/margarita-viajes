@@ -133,23 +133,31 @@ export default function Home({ onAdminClick }: HomeProps) {
     <div className="bg-white min-h-screen font-sans relative overflow-x-hidden selection:bg-orange-100 pt-20">
 
       {/* HEADER NAV - LOGO SEGÚN DISEÑO SOLICITADO - SIN FIXED (SCROLL NORMAL) */}
-      <header className="sticky top-0 w-full bg-white py-3 px-4 md:px-8 flex items-center justify-between z-50 shadow-md">
-        {/* Lado Izquierdo: Logo + Textos */}
-        <div className="flex items-center gap-3 md:gap-4">
-          <BrandLogo className="h-14 md:h-20 w-auto object-contain" />
-          <div className="hidden md:flex flex-col">
-            <span className="text-[#EB5A0C] font-black text-xl md:text-2xl uppercase tracking-wider leading-none">Margarita Viajes</span>
-            <span className="text-[#0B132B] font-bold text-xs tracking-widest mt-1">AGENCIA DE VIAJES Y TURISMO</span>
-          </div>
-        </div>
+      {/* LOGO MÓVIL (Centrado, Grande, Sin Cabecera Blanca) */}
+      <div className="md:hidden w-full flex justify-center pt-8 pb-4 absolute top-0 z-50 pointer-events-none">
+        <BrandLogo className="h-28 w-auto object-contain drop-shadow-md pointer-events-auto" />
+      </div>
 
-        {/* Lado Derecho: Menú */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-bold text-[#0B132B]">
+      {/* LOGO PC (Margen Izquierdo, Fijo/Scroll, Resplandor Naranja, Gigante) */}
+      <div className="hidden md:block fixed top-6 left-8 z-[100] pointer-events-none">
+        <BrandLogo className="h-36 w-auto object-contain drop-shadow-[0_0_25px_rgba(235,90,12,0.8)] pointer-events-auto cursor-pointer" />
+      </div>
+
+      {/* CABECERA PC (Franja Blanca, Textos Originales, Oculta en Móvil) */}
+      <header className="hidden md:flex w-full bg-white py-6 px-8 items-center justify-between z-40 relative shadow-sm pl-[240px]">
+        <div className="flex flex-col">
+          <span className="text-[#EB5A0C] font-black text-2xl uppercase tracking-wider">Margarita Viajes</span>
+          <span className="text-[#0B132B] font-bold text-sm tracking-widest">AGENCIA DE VIAJES Y TURISMO</span>
+        </div>
+        <nav className="flex items-center gap-8 text-sm font-bold text-[#0B132B]">
           <a href="#hoteles" className="hover:text-[#EB5A0C] transition duration-300">HOTELES</a>
           <a href="#fulldays" className="hover:text-[#EB5A0C] transition duration-300">FULL DAYS</a>
           <a href="#nosotros" className="hover:text-[#EB5A0C] transition duration-300">QUIÉNES SOMOS</a>
         </nav>
       </header>
+
+      {/* Espaciador Móvil para que el contenido no quede debajo del logo */}
+      <div className="md:hidden h-36 w-full"></div>
       {/* HERO SECTION CON BANNER Y BUSCADOR DROPDOWN */}
       <div 
         className="w-full h-[400px] md:h-[500px] bg-cover bg-center relative" 

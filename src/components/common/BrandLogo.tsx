@@ -5,18 +5,10 @@ interface BrandLogoProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   className?: string;
 }
 
-const BrandLogo: React.FC<BrandLogoProps> = ({ className = "h-16 w-auto object-contain", ...props }) => {
+const BrandLogo: React.FC<BrandLogoProps> = ({ className = "", ...props }) => {
   const { config } = useGlobal();
   const logoUrl = config?.logoImage || '/assets/img/logo.png';
-
-  return (
-    <img 
-      src={logoUrl} 
-      alt="Margarita Viajes" 
-      className={`bg-transparent ${className}`} 
-      {...props}
-    />
-  );
+  return <img src={logoUrl} alt="Margarita Viajes" className={className} {...props} />;
 };
 
 export default BrandLogo;
