@@ -13,10 +13,10 @@ const BrandLogo: React.FC<BrandLogoProps> = ({ className = "", ...props }) => {
     <img 
       src={logoUrl} 
       alt="Margarita Viajes" 
-      // RESTAURAMOS EL TRUCO: Oculta el fondo blanco sobre fondo blanco de la web
-      className={`mix-blend-multiply select-none ${className}`} 
-      // ELIMINAMOS EL RESPLANDOR DIFUMINADO EXTERNO.
-      // POTENCIAMOS EL "DESTELLO" INTERNO: Saturate y Contrast recuperan la fuerza de los colores ante el Multiply.
+      // TRANSPARENCIA ABSOLUTA: Eliminamos el truco de multiply ya que el PNG es nativamente transparente.
+      // Forzamos bg-transparent y shadow-none para evitar recuadros blancos.
+      className={`BrandLogo bg-transparent shadow-none border-none select-none ${className}`} 
+      // POTENCIAMOS LA VIBRANCIA: Saturate y Contrast mantienen la fuerza de los colores.
       style={{ filter: 'brightness(1.1) contrast(1.2) saturate(1.4)' }}
       {...props}
     />

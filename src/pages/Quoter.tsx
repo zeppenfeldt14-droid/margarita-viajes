@@ -297,7 +297,7 @@ export default function Quoter() {
     <div className="min-h-screen bg-[#F8F9FA] selection:bg-orange-100">
       {/* HEADER NAV - RECONSTRUCCIÓN TOTAL (v18) - CENTRADO ABSOLUTO - SIN FIXED */}
       {/* MISMOS LOGOS QUE EN LA HOME PARA CONSISTENCIA */}
-      <div className="md:hidden w-full flex justify-center pt-10 absolute top-0 z-50 pointer-events-none">
+      <div className="md:hidden w-full flex justify-center pt-10 absolute top-0 z-50 pointer-events-none !bg-transparent !shadow-none">
         <BrandLogo className="h-36 w-auto object-contain pointer-events-auto" />
       </div>
 

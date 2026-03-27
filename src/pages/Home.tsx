@@ -134,12 +134,12 @@ export default function Home({ onAdminClick }: HomeProps) {
 
       {/* HEADER NAV - LOGO SEGÚN DISEÑO SOLICITADO - SIN FIXED (SCROLL NORMAL) */}
       {/* LOGO MÓVIL (Gigante, Centrado, Sin fondo blanco, Con Resplandor) */}
-      <div className="md:hidden w-full flex justify-center pt-10 absolute top-0 z-50 pointer-events-none">
+      <div className="md:hidden w-full flex justify-center pt-10 absolute top-0 z-50 pointer-events-none !bg-transparent !shadow-none">
         <BrandLogo className="h-36 w-auto object-contain pointer-events-auto" />
       </div>
 
       {/* LOGO PC (Margen Izquierdo, Fijo, Gigante, Con Resplandor) */}
-      <div className="hidden md:block fixed top-6 left-8 z-[100] pointer-events-none">
+      <div className="hidden md:block fixed top-6 left-8 z-[100] pointer-events-none !bg-transparent !shadow-none">
         <BrandLogo className="h-40 w-auto object-contain pointer-events-auto cursor-pointer" />
       </div>
 

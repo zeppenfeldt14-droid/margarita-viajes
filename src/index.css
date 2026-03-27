@@ -23,9 +23,14 @@
   /* Purga de Fondos Blancos en Imágenes Transparentes */
   img.bg-transparent, 
   .bg-transparent img,
-  [class*="BrandLogo"] img {
+  .BrandLogo,
+  [class*="BrandLogo"],
+  img[alt="Margarita Viajes"] {
     background-color: transparent !important;
     background-image: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    mix-blend-mode: normal !important;
   }
 
 /* Custom Scrollbar Global y Específico */
