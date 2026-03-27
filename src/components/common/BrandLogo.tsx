@@ -29,6 +29,7 @@ export default function BrandLogo({ className, ...props }: BrandLogoProps) {
       src={getLogoSrc()} 
       alt={config?.agencyName || 'Margarita Viajes'} 
       className={className}
+      style={{ mixBlendMode: 'multiply', ...props.style }}
       {...props}
     />
   );

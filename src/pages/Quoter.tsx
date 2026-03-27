@@ -306,11 +306,12 @@ export default function Quoter() {
           <ChevronLeft size={20} />
         </button>
 
-        {/* LOGO - CENTRADO ABSOLUTO SIN NAVEGACIÓN */}
-        <div className="flex items-center justify-center group cursor-default">
-          <div className="relative">
-            <div className="absolute -inset-1 bg-orange-500/10 rounded-full blur group-hover:opacity-100 transition duration-1000"></div>
-            <BrandLogo className="h-24 w-auto object-contain relative" />
+        {/* LOGO - CENTRADO ABSOLUTO SIN NAVEGACION - SIN FONDO BLANCO */}
+        <div className="flex items-center justify-center group cursor-default bg-transparent">
+          <div className="relative bg-transparent">
+            {/* Brillo sutil de marca */}
+            <div className="absolute -inset-2 bg-orange-500/5 rounded-full blur-xl group-hover:opacity-100 transition duration-1000 opacity-70"></div>
+            <BrandLogo className="h-28 w-auto object-contain relative" />
           </div>
         </div>
       </header>
