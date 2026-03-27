@@ -85,7 +85,7 @@
   }
 
   /* 3. El truco mágico: Romper la caja del modal para que pagine hacia abajo */
-  .fixed {
+  .print-area {
     position: absolute !important;
     top: 0 !important;
     left: 0 !important;

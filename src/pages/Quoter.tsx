@@ -301,7 +301,7 @@ export default function Quoter() {
         <BrandLogo className="h-36 w-auto object-contain pointer-events-auto" />
       </div>
 
-      <div className="hidden md:block fixed top-6 left-8 z-[100] pointer-events-none">
+      <div className="hidden md:block fixed top-6 left-8 z-[100] pointer-events-none !bg-transparent !shadow-none">
         <BrandLogo className="h-40 w-auto object-contain pointer-events-auto" />
       </div>
 
@@ -320,7 +320,7 @@ export default function Quoter() {
 
       <main className="max-w-7xl mx-auto p-2 md:p-12 lg:p-20 pt-32 md:pt-48">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start mt-8">
-          <div className="lg:col-span-8 xl:col-span-8 space-y-4 md:space-y-10 animate-in slide-in-from-left-8 duration-700 mt-20 md:mt-12 z-10">
+          <div className="lg:col-span-5 xl:col-span-5 space-y-4 md:space-y-10 animate-in slide-in-from-left-8 duration-700 mt-20 md:mt-12 z-10 max-w-md">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
               <div className="w-32 h-32 md:w-40 md:h-40 bg-white shadow-xl rounded-2xl p-4 border border-gray-100 flex items-center justify-center shrink-0">
                 {selectedHotel?.logo || (selectedHotel as any).logoImage ? (
@@ -330,7 +330,7 @@ export default function Quoter() {
                 )}
               </div>
               <div>
-                <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter text-[#0B132B] mb-1 break-words line-clamp-2">{selectedHotel.name}</h2>
+                <h2 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter text-[#0B132B] mb-1 break-words line-clamp-2">{selectedHotel.name}</h2>
                 <div className="flex items-center gap-2 text-orange-500 font-black uppercase text-[10px] tracking-widest">
                   <MapPin size={14} /> {selectedHotel.location}
                 </div>
@@ -380,7 +380,7 @@ export default function Quoter() {
             </div>
           </div>
 
-            <div className={`lg:col-span-4 xl:col-span-4 bg-white rounded-[2.5rem] md:rounded-[3rem] shadow-2xl p-4 md:p-14 border border-gray-50 flex flex-col space-y-4 md:space-y-8 animate-in slide-in-from-right-8 duration-700 ${isSuccess ? 'justify-center' : ''}`}>
+            <div className={`lg:col-span-7 xl:col-span-7 bg-white rounded-[2.5rem] md:rounded-[3rem] shadow-2xl p-4 md:p-14 border border-gray-50 flex flex-col space-y-4 md:space-y-8 animate-in slide-in-from-right-8 duration-700 ${isSuccess ? 'justify-center' : ''}`}>
               {isSuccess ? (
                 <div className="text-center py-10 animate-in fade-in zoom-in duration-500">
                   <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8">
