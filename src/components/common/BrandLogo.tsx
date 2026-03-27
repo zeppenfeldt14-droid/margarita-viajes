@@ -13,11 +13,8 @@ const BrandLogo: React.FC<BrandLogoProps> = ({ className = "", ...props }) => {
     <img 
       src={logoUrl} 
       alt="Margarita Viajes" 
-      // TRANSPARENCIA ABSOLUTA: Eliminamos el truco de multiply ya que el PNG es nativamente transparente.
-      // Forzamos bg-transparent y shadow-none para evitar recuadros blancos.
-      className={`BrandLogo bg-transparent shadow-none border-none select-none ${className}`} 
-      // POTENCIAMOS LA VIBRANCIA: Saturate y Contrast mantienen la fuerza de los colores.
-      style={{ filter: 'brightness(1.1) contrast(1.2) saturate(1.4)' }}
+      // CERO FILTROS, CERO BLEND MODES: Dejamos que el PNG transparente brille con su color nativo real.
+      className={`select-none ${className}`} 
       {...props}
     />
   );
