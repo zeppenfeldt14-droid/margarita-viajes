@@ -316,9 +316,7 @@ export default function Quoter() {
         <h1 className="text-[#EB5A0C] font-black text-2xl uppercase tracking-wider">Módulo de Cotización</h1>
       </header>
 
-      <div className="md:hidden h-40 w-full bg-transparent"></div>
-
-      <main className="max-w-7xl mx-auto p-2 md:p-12 lg:p-20 pt-32 md:pt-48">
+      <main className="max-w-7xl mx-auto px-4 md:px-12 lg:px-20 pt-36 md:pt-40">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start mt-8">
           <div className="lg:col-span-5 xl:col-span-5 space-y-4 md:space-y-10 animate-in slide-in-from-left-8 duration-700 mt-20 md:mt-12 z-10 max-w-md">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
@@ -330,7 +328,9 @@ export default function Quoter() {
                 )}
               </div>
               <div>
-                <h2 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter text-[#0B132B] mb-1 break-words line-clamp-2">{selectedHotel.name}</h2>
+                <h2 className="text-xl md:text-2xl lg:text-3xl font-black italic uppercase tracking-tighter text-[#0B132B] mb-2 break-words leading-tight">
+                  {selectedHotel.name}
+                </h2>
                 <div className="flex items-center gap-2 text-orange-500 font-black uppercase text-[10px] tracking-widest">
                   <MapPin size={14} /> {selectedHotel.location}
                 </div>
