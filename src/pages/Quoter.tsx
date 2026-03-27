@@ -295,23 +295,23 @@ export default function Quoter() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] selection:bg-orange-100">
-      {/* HEADER NAV - RECONSTRUCCIÓN TOTAL (v18) - CENTRADO ABSOLUTO */}
-      <header className="px-6 md:px-12 py-8 flex items-center justify-center fixed top-0 left-0 right-0 z-50 bg-transparent">
+      {/* HEADER NAV - RECONSTRUCCIÓN TOTAL (v18) - CENTRADO ABSOLUTO - SIN FIXED */}
+      <header className="px-6 md:px-12 py-10 flex items-center justify-center bg-transparent relative z-[60]">
         {/* BOTÓN VOLVER - IZQUIERDA ABSOLUTA PARA NO DESPLAZAR EL LOGO */}
         <button 
           onClick={() => setLocation('/')} 
-          className="absolute left-6 md:left-12 w-11 h-11 bg-white/40 backdrop-blur-md rounded-2xl flex items-center justify-center hover:bg-white transition-all border border-white/20 text-[#0B132B] hover:text-[#ea580c] shadow-sm z-50"
+          className="absolute left-6 md:left-12 w-12 h-12 bg-white/40 backdrop-blur-md rounded-2xl flex items-center justify-center hover:bg-white transition-all border border-white/20 text-[#0B132B] hover:text-[#ea580c] shadow-sm z-50 mt-4"
           title="Volver"
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={24} />
         </button>
 
-        {/* LOGO - CENTRADO ABSOLUTO SIN NAVEGACION - SIN FONDO BLANCO */}
-        <div className="flex items-center justify-center group cursor-default bg-transparent">
+        {/* LOGO STICKY LOGIC (md:sticky) */}
+        <div className="md:sticky md:top-4 md:z-[100] transition-all duration-500 group cursor-default bg-transparent">
           <div className="relative bg-transparent">
             {/* Brillo sutil de marca */}
             <div className="absolute -inset-2 bg-orange-500/5 rounded-full blur-xl group-hover:opacity-100 transition duration-1000 opacity-70"></div>
-            <BrandLogo className="h-28 w-auto object-contain relative" />
+            <BrandLogo className="h-32 w-auto object-contain relative" />
           </div>
         </div>
       </header>
