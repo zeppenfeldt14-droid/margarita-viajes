@@ -13,7 +13,7 @@ const BrandLogo: React.FC<BrandLogoProps> = ({ className = "", ...props }) => {
     <img 
       src={logoUrl} 
       alt="Margarita Viajes" 
-      className={`bg-transparent select-none ${className}`} 
+      className={`bg-transparent !bg-none !shadow-none select-none ${className}`} 
       style={{ filter: 'drop-shadow(0 0 15px rgba(235, 90, 12, 0.7))' }}
       {...props}
     />
