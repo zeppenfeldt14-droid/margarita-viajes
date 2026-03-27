@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Camera, Plus, Search, ShieldCheck, Target, Trash2, X, User } from 'lucide-react';
+import { Camera, Plus, Search, ShieldCheck, Trash2, X, User } from 'lucide-react';
 import { api } from '../../services/api';
 import { SectionTitle } from './Common';
 import { InputField } from './FormFields';
@@ -9,7 +9,6 @@ export default function UsersList() {
   const [users, setUsers] = useState<any[]>([]);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showLogsModal, setShowLogsModal] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   
   const currentUserLevel = parseInt(localStorage.getItem('user_level') || '3');
   const currentUserRole = localStorage.getItem('staff_user_role') || '';
@@ -23,10 +22,6 @@ export default function UsersList() {
   // BITACORA STATES
   const [allLogs, setAllLogs] = useState<any[]>([]);
   const [filterMonth, setFilterMonth] = useState('');
-  const [filterStart, setFilterStart] = useState('');
-  const [filterEnd, setFilterEnd] = useState('');
-  const [filterLogUser, setFilterLogUser] = useState('');
-  const [filterLogAction, setFilterLogAction] = useState('');
   const [isGlobalLog, setIsGlobalLog] = useState(false);
 
   const fetchUsers = async () => {
@@ -36,7 +31,7 @@ export default function UsersList() {
     } catch (error) {
       console.error('Error al cargar usuarios:', error);
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
@@ -337,62 +332,67 @@ export default function UsersList() {
         </div>
       )}
 
-      {showLogsModal && (
-        <div className="fixed inset-0 bg-[#0B132B]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="p-8 border-b border-gray-100 flex items-center justify-between shrink-0">
-              <div>
-                <h2 className="text-xl font-black text-[#0B132B] uppercase tracking-tighter">Auditoría de Bitácora</h2>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
-                  Enfoque: {isGlobalLog ? 'Sistema Global' : `Usuario: ${showLogsModal.name} (${showLogsModal.alias})`}
-                </p>
-              </div>
-              <button onClick={() => { setShowLogsModal(null); setIsGlobalLog(false); }} className="w-10 h-10 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-all"><X size={20} /></button>
-            </div>
-            <div className="p-6 bg-gray-50 border-b border-gray-100 flex flex-wrap gap-4 items-end shrink-0">
-              <div className="flex flex-col gap-1">
-                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Filtro por Mes</label>
-                <select value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} className="bg-white border-2 border-gray-100 rounded-xl px-4 py-2 text-[10px] font-bold outline-none focus:border-blue-500">
-                  <option value="">Todos los meses</option>
-                  {Array.from({ length: 12 }, (_, i) => {
-                    const d = new Date(); d.setMonth(d.getMonth() - i);
-                    return <option key={i} value={d.toISOString().substring(0, 7)}>{d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}</option>;
-                  })}
-                </select>
-              </div>
-              {/* Filtros simplificados para v52 */}
-              <button onClick={() => {}} className="bg-green-600 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-green-700 transition-all shadow-lg">Descargar Reporte</button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-white">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-left sticky top-0 bg-white">
-                    <th className="pb-4 pr-4">Fecha y Hora</th>
-                    <th className="pb-4 pr-4">Tipo</th>
-                    <th className="pb-4 pr-4">Usuario</th>
-                    <th className="pb-4 pr-4">Acción</th>
-                    <th className="pb-4 pr-4">Detalle</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {allLogs.filter(log => isGlobalLog || log.user_id === showLogsModal.id || log.user_name === showLogsModal.alias).map((log, idx) => (
+  {showLogsModal && (
+    <div className="fixed inset-0 bg-[#0B132B]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 isolate">
+      <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="p-8 border-b border-gray-100 flex items-center justify-between shrink-0">
+          <div>
+            <h2 className="text-xl font-black text-[#0B132B] uppercase tracking-tighter text-balance">Auditoría de Bitácora</h2>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+              Enfoque: {isGlobalLog ? 'Sistema Global' : `Usuario: ${showLogsModal.name} (${showLogsModal.alias})`}
+            </p>
+          </div>
+          <button onClick={() => { setShowLogsModal(null); setIsGlobalLog(false); }} className="w-10 h-10 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-all shrink-0"><X size={20} /></button>
+        </div>
+        <div className="p-6 bg-gray-50 border-b border-gray-100 flex flex-wrap gap-4 items-end shrink-0">
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Filtro por Mes</label>
+            <select value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} className="bg-white border-2 border-gray-100 rounded-xl px-4 py-2 text-[10px] font-bold outline-none focus:border-blue-500">
+              <option value="">Todos los meses</option>
+              {Array.from({ length: 12 }, (_, i) => {
+                const d = new Date(); d.setMonth(d.getMonth() - i);
+                return <option key={i} value={d.toISOString().substring(0, 7)}>{d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}</option>;
+              })}
+            </select>
+          </div>
+          <button onClick={() => {}} className="bg-green-600 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-green-700 transition-all shadow-lg">Descargar Reporte</button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-white">
+          <div className="overflow-x-auto min-w-full">
+            <table className="w-full border-collapse min-w-[700px]">
+              <thead>
+                <tr className="border-b border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-left sticky top-0 bg-white z-10">
+                  <th className="pb-4 pr-4">Fecha y Hora</th>
+                  <th className="pb-4 pr-4">Tipo</th>
+                  <th className="pb-4 pr-4">Usuario</th>
+                  <th className="pb-4 pr-4">Acción</th>
+                  <th className="pb-4 pr-4">Detalle</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {allLogs.length === 0 ? (
+                  <tr><td colSpan={5} className="py-20 text-center text-gray-300 text-[10px] font-black uppercase tracking-widest">Sin registros encontrados</td></tr>
+                ) : (
+                  allLogs.filter(log => isGlobalLog || log.user_id === showLogsModal.id || log.user_name === showLogsModal.alias).map((log, idx) => (
                     <tr key={idx} className="hover:bg-gray-50 transition-all text-[10px] font-bold uppercase">
-                      <td className="py-3 pr-4 text-gray-400">{new Date(log.created_at || log.date).toLocaleString()}</td>
+                      <td className="py-3 pr-4 text-gray-400 whitespace-nowrap">{new Date(log.created_at || log.date).toLocaleString()}</td>
                       <td className="py-3 pr-4"><span className={`px-2 py-0.5 rounded-md ${log.action_type === 'LOGIN' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'}`}>{log.action_type || 'Gestión'}</span></td>
-                      <td className="py-3 pr-4 font-black">{log.user_name || log.alias}</td>
+                      <td className="py-3 pr-4 font-black whitespace-nowrap">{log.user_name || log.alias}</td>
                       <td className="py-3 pr-4">{log.action_type || log.action}</td>
-                      <td className="py-3 pr-4 text-gray-500 max-w-[200px] truncate">{log.details || log.detail}</td>
+                      <td className="py-3 pr-4 text-gray-500 max-w-[250px] truncate" title={log.details || log.detail}>{log.details || log.detail}</td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end shrink-0">
-               <button onClick={() => { setShowLogsModal(null); setIsGlobalLog(false); }} className="bg-white border-2 border-gray-200 text-gray-600 px-8 py-3 rounded-xl font-black text-[10px] uppercase hover:bg-gray-100">Cerrar</button>
-            </div>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
-      )}
+        <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end shrink-0">
+           <button onClick={() => { setShowLogsModal(null); setIsGlobalLog(false); }} className="bg-white border-2 border-gray-200 text-gray-600 px-8 py-3 rounded-xl font-black text-[10px] uppercase hover:bg-gray-100">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  )}
     </div>
   );
 }

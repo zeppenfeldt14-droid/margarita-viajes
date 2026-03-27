@@ -12,6 +12,8 @@ import {
 import { HotelCard, FullDayCard } from "../components/public/Cards";
 import { api } from "../services/api";
 import { type Hotel } from "../data/inventory";
+import { useGlobalData } from "../context/GlobalContext";
+import BrandLogo from "../components/common/BrandLogo";
 
 interface HomeProps {
   onAdminClick: () => void;
@@ -19,6 +21,7 @@ interface HomeProps {
 
 export default function Home({ onAdminClick }: HomeProps) {
   const [, setLocation] = useLocation();
+  const { config } = useGlobalData();
 
   // --- ESTADO: HOTELES Y PAQUETES ---
   const [hotels, setHotels] = useState<Hotel[]>([]);
@@ -26,7 +29,6 @@ export default function Home({ onAdminClick }: HomeProps) {
   const [randomHotels, setRandomHotels] = useState<Hotel[]>([]);
   const [randomFullDays, setRandomFullDays] = useState<Hotel[]>([]);
   const [randomPackages, setRandomPackages] = useState<Hotel[]>([]);
-  const [config, setConfig] = useState<any>({});
   const [sectionOrder, setSectionOrder] = useState<string[]>(['hotels', 'fulldays', 'packages']);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [winnerCategory, setWinnerCategory] = useState<string>('');
@@ -61,6 +63,7 @@ export default function Home({ onAdminClick }: HomeProps) {
   }, []);
 
   const getConf = (key: string) => {
+    if (!config) return '';
     const prefix = isMobile ? 'mobile_' : 'pc_';
     return config[prefix + key] || config[key];
   };
@@ -71,14 +74,10 @@ export default function Home({ onAdminClick }: HomeProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [hotelsData, configData] = await Promise.all([
-          api.getHotels(),
-          api.getConfig()
-        ]);
+        const hotelsData = await api.getHotels();
         
         const hList = Array.isArray(hotelsData) ? hotelsData : [];
         setHotels(hList);
-        setConfig(configData);
 
         const h = hList.filter((item: any) => item.type === 'hotel');
         const f = hList.filter((item: any) => item.type === 'full-day');
@@ -139,11 +138,7 @@ export default function Home({ onAdminClick }: HomeProps) {
           <div className="flex items-center gap-4 group cursor-default">
             <div className="relative">
               <div className="absolute -inset-1 bg-orange-500/10 rounded-full blur group-hover:opacity-100 transition duration-1000"></div>
-              {getConf('logoImage') ? (
-                <img src={getConf('logoImage')} alt="Margarita Viajes" className="h-24 w-auto object-contain relative" />
-              ) : (
-                <img src="/assets/img/logo.png" alt="Margarita Viajes" className="h-24 w-auto object-contain relative" />
-              )}
+              <BrandLogo className="h-24 w-auto object-contain relative" />
             </div>
             <div className="flex flex-col">
               <h1 className="text-[32px] font-black italic text-[#ea580c] leading-[0.75] tracking-tighter uppercase hidden md:block">

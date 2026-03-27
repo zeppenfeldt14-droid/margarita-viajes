@@ -15,6 +15,8 @@ interface GlobalContextProps {
   setOperations: React.Dispatch<React.SetStateAction<Operation[]>>;
   users: StaffUser[];
   setUsers: React.Dispatch<React.SetStateAction<StaffUser[]>>;
+  config: any;
+  setConfig: React.Dispatch<React.SetStateAction<any>>;
   loading: boolean;
   refreshData: () => Promise<void>;
 }
@@ -28,6 +30,7 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [operations, setOperations] = useState<Operation[]>([]);
   const [users, setUsers] = useState<StaffUser[]>([]);
+  const [config, setConfig] = useState<any>({});
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchInitialData = async () => {
@@ -36,13 +39,15 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
       const token = localStorage.getItem('staff_token');
       
       // Peticiones públicas
-      const [hotelsData, transfersData] = await Promise.all([
+      const [hotelsData, transfersData, configData] = await Promise.all([
         api.getHotels(),
-        api.getTransfers()
+        api.getTransfers(),
+        api.getConfig()
       ]);
 
       setHotels(Array.isArray(hotelsData) ? hotelsData : []);
       setTransfers(Array.isArray(transfersData) ? transfersData : []);
+      setConfig(configData || {});
 
       // Peticiones administrativas (solo si hay token)
       if (token) {
@@ -95,6 +100,8 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
         setOperations,
         users,
         setUsers,
+        config,
+        setConfig,
         loading,
         refreshData: fetchInitialData,
       }}

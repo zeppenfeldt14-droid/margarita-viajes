@@ -1,21 +1,14 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { useLocation } from "wouter";
 import { LayoutDashboard, Inbox, Hotel, FileText, Settings, Users, LogOut, Menu, X as CloseIcon } from "lucide-react";
 import { api } from "../services/api";
 import { useGlobalData } from "../context/GlobalContext";
+import BrandLogo from "../components/common/BrandLogo";
 
 export default function AdminLayout({ children, onLogout, userPermissions }: { children: React.ReactNode, onLogout?: () => void, userPermissions?: any }) {
   const [location, setLocation] = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
   const { quotes, reservations, operations } = useGlobalData();
-  const [activeConfig, setActiveConfig] = React.useState<any>({});
-
-  // Cargar configuración de marca para el Sidebar (v18)
-  useEffect(() => {
-    api.getConfig().then(data => {
-      if (data) setActiveConfig(data);
-    }).catch(err => console.error("Error loading brand for sidebar:", err));
-  }, []);
   
   // Condición de visibilidad del logo (Fase 9)
   const showLogo = location !== "/admin/webconfig";
@@ -102,11 +95,7 @@ export default function AdminLayout({ children, onLogout, userPermissions }: { c
             {showLogo && (
               <div className="relative group mb-2">
                 <div className="absolute -inset-1 bg-orange-500/10 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-1000"></div>
-                {activeConfig.logoImage ? (
-                  <img src={activeConfig.logoImage} alt="Margarita Viajes" className="h-16 w-auto object-contain relative" />
-                ) : (
-                  <img src="/assets/img/logo.png" alt="Margarita Viajes" className="h-16 w-auto object-contain relative" />
-                )}
+                <BrandLogo className="h-16 w-auto object-contain relative" />
               </div>
             )}
             

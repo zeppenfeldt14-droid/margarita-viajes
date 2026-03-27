@@ -6,6 +6,7 @@ import { api } from '../../services/api';
 import { showToast } from '../Toast';
 import { Card, SectionTitle } from './Common';
 import { formatDateVisual } from '../../utils/helpers';
+import BrandLogo from '../common/BrandLogo';
 import type { Operation, ReservationStatus } from '../../types';
 
 export default function OperationsList({
@@ -389,11 +390,7 @@ export default function OperationsList({
                 
                 {/* Izquierda: Logo Agencia */}
                 <div className="w-32 h-20 flex items-center justify-start shrink-0">
-                  {config?.logoImage ? (
-                    <img src={config.logoImage} alt="Margarita Viajes" className="max-h-full max-w-full object-contain" crossOrigin="anonymous" />
-                  ) : (
-                    <span className="font-black text-orange-500 text-xl leading-none">Margarita Viajes</span>
-                  )}
+                  <BrandLogo className="max-h-full max-w-full object-contain" />
                 </div>
 
                 {/* Centro: Datos Agencia */}

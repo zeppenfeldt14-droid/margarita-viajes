@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Users, Calendar, ShieldCheck, AlertCircle, Briefcase, X, Search, Mail, Printer, Download, Eye } from 'lucide-react';
+import { Users, Calendar, ShieldCheck, AlertCircle, X, Search, Mail, Download, Eye } from 'lucide-react';
 import { api } from '../../services/api';
 import { showToast } from '../Toast';
-import { Card, SectionTitle } from './Common';
+import { SectionTitle } from './Common';
 import type { Reservation, Hotel as HotelType } from '../../types';
 import { formatDateVisual, compressImage } from '../../utils/helpers';
+import BrandLogo from '../common/BrandLogo';
 
 export default function ReservationsList({ hotels, isDataMaster, userAlias, users, config }: { 
   hotels: HotelType[]; 
@@ -249,11 +250,7 @@ export default function ReservationsList({ hotels, isDataMaster, userAlias, user
                 {/* ENCABEZADO DEL PDF: 3 COLUMNAS (AGENCIA - INFO - HOTEL) */}
                 <div className="flex items-center justify-between border-b-2 border-gray-200 pb-6 mb-6">
                   <div className="w-32 h-20 flex items-center justify-start shrink-0">
-                    {config?.logoImage ? (
-                      <img src={config.logoImage} alt="Margarita Viajes" className="max-h-full max-w-full object-contain" crossOrigin="anonymous" />
-                    ) : (
-                      <span className="font-black text-orange-500 text-xl leading-none">Margarita Viajes</span>
-                    )}
+                    <BrandLogo className="max-h-full max-w-full object-contain" />
                   </div>
                   <div className="flex-1 text-center px-4">
                     <h2 className="font-black text-lg uppercase text-[#0B132B]">{config?.agencyName || config?.nombreEmpresa || 'Margarita Viajes'}</h2>

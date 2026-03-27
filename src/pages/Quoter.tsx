@@ -24,6 +24,7 @@ import { useGlobalData } from "../context/GlobalContext";
 import type { QuoteStatus } from "../types";
 import { api } from "../services/api";
 import { showToast, ToastContainer } from "../components/Toast";
+import BrandLogo from "../components/common/BrandLogo";
 
 
 export default function Quoter() {
@@ -31,21 +32,7 @@ export default function Quoter() {
   const queryParams = new URLSearchParams(window.location.search);
   const hotelName = queryParams.get('hotel') || '';
 
-  const [activeConfig, setActiveConfig] = useState<Record<string, string>>({});
-  const { hotels, transfers: availableTransfers } = useGlobalData();
-
-  useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        const data = await api.getConfig();
-        setActiveConfig(data);
-      } catch (err) {
-        console.error('Error fetching config:', err);
-      }
-    };
-
-    fetchConfig();
-  }, []);
+  const { config: activeConfig, hotels, transfers: availableTransfers } = useGlobalData();
 
   const selectedHotel = hotels.find(h => h.name === hotelName);
 
@@ -323,11 +310,7 @@ export default function Quoter() {
         <div className="flex items-center justify-center group cursor-default">
           <div className="relative">
             <div className="absolute -inset-1 bg-orange-500/10 rounded-full blur group-hover:opacity-100 transition duration-1000"></div>
-            {activeConfig.logoImage ? (
-              <img src={activeConfig.logoImage} alt="Margarita Viajes" className="h-24 w-auto object-contain relative" />
-            ) : (
-              <img src="/assets/img/logo.png" alt="Margarita Viajes" className="h-24 w-auto object-contain relative" />
-            )}
+            <BrandLogo className="h-24 w-auto object-contain relative" />
           </div>
         </div>
       </header>
@@ -705,11 +688,10 @@ export default function Quoter() {
           
           {/* Logo Agencia */}
           <div style={{ width: '128px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-            {activeConfig?.logoImage ? (
-              <img src={activeConfig.logoImage} alt="Logo" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} crossOrigin="anonymous" />
-            ) : (
-              <span style={{ fontWeight: '900', color: '#f97316', fontSize: '20px' }}>Margarita Viajes</span>
-            )}
+            <BrandLogo 
+              style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} 
+              crossOrigin="anonymous" 
+            />
           </div>
 
           {/* Datos Agencia */}
