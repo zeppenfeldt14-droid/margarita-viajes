@@ -133,25 +133,24 @@ export default function Home({ onAdminClick }: HomeProps) {
     <div className="bg-white min-h-screen font-sans relative overflow-x-hidden selection:bg-orange-100 pt-20">
 
       {/* HEADER NAV - LOGO SEGÚN DISEÑO SOLICITADO - SIN FIXED (SCROLL NORMAL) */}
-      <header className="px-6 md:px-12 py-8 flex items-center justify-center md:justify-between bg-transparent transition-all duration-300">
-        <div className="flex flex-col md:flex-row items-center md:gap-8 relative w-full md:w-auto justify-center md:justify-start">
+      <header className="px-6 md:px-12 h-20 md:h-auto flex items-center justify-between bg-transparent transition-all duration-300 relative z-[60]">
+        <div className="flex items-center gap-4 md:gap-8 w-full md:w-auto">
           
-          {/* LOGO STICKY LOGIC (md:sticky) */}
-          <div className="md:sticky md:top-4 md:z-[100] transition-all duration-500 group cursor-default">
+          {/* LOGO STICKY LOGIC (md:sticky) - EL LOGO VOLADOR */}
+          <div className="md:sticky md:top-4 md:z-50 transition-all duration-500 group cursor-default">
             <div className="relative">
               <div className="absolute -inset-2 bg-orange-500/5 rounded-full blur-xl group-hover:opacity-100 transition duration-1000 opacity-70"></div>
-              <BrandLogo className="h-28 w-auto object-contain relative" />
+              <BrandLogo className="h-14 md:h-24 w-auto object-contain relative" />
             </div>
           </div>
 
-          {/* CONTENEDOR BLANCO - TEXTO SECUNDARIO CENTRADO (image_e7bba2.jpg) */}
-          <div className="mt-6 md:mt-0 flex flex-col items-center md:items-start">
-            <div className="bg-white/80 backdrop-blur-md px-8 py-3 rounded-full shadow-sm border border-gray-100 flex items-center justify-center md:justify-start gap-2 hidden md:flex">
-              <span className="text-[10px] font-black text-[#0B132B] uppercase tracking-[0.2em] whitespace-nowrap">
+          {/* CONTENEDOR BLANCO - TEXTO SECUNDARIO (SIN WHITESPACE-NOWRAP) */}
+          <div className="hidden md:flex flex-col items-start">
+            <div className="bg-white/80 backdrop-blur-md px-8 py-3 rounded-full shadow-sm border border-gray-100 flex items-center gap-2">
+              <span className="text-[10px] font-black text-[#0B132B] uppercase tracking-[0.2em]">
                 AGENCIA DE VIAJES / {config?.agencyName || 'MARGARITA'} / {config?.agencySlogan || 'VIAJES Y TURISMO'}
               </span>
             </div>
-            {/* Versión móvil simple si es necesario, pero el director pide PC UI Polish */}
           </div>
         </div>
 
@@ -169,6 +168,11 @@ export default function Home({ onAdminClick }: HomeProps) {
           >
             <Settings size={20} />
           </button>
+        </div>
+
+        {/* BOTÓN MÓVIL (Admin) - Placeholder para mantener equilibrio si es necesario */}
+        <div className="md:hidden flex items-center">
+           <button onClick={onAdminClick} className="text-[#0B132B]/20"><Settings size={20} /></button>
         </div>
       </header>
       {/* HERO SECTION CON BANNER Y BUSCADOR DROPDOWN */}
