@@ -7,18 +7,17 @@ interface BrandLogoProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 
 const BrandLogo: React.FC<BrandLogoProps> = ({ className = "", ...props }) => {
   const { config } = useGlobal();
-  const rawUrl = config?.logoImage || '/assets/img/logo.png';
-  
-  // Rompe-caché solo si no es un data URI (Base64)
-  const isDataUrl = rawUrl.startsWith('data:');
-  const logoUrl = (isDataUrl || rawUrl.includes('?')) ? rawUrl : `${rawUrl}?v=clean`;
+  const logoUrl = config?.logoImage || '/assets/img/logo.png';
 
   return (
     <img 
       src={logoUrl} 
       alt="Margarita Viajes" 
-      className={`bg-transparent select-none ${className}`} 
-      style={{ filter: 'drop-shadow(0 0 15px rgba(235, 90, 12, 0.7))' }}
+      // RESTAURAMOS EL TRUCO: Oculta el fondo blanco sobre fondo blanco de la web
+      className={`mix-blend-multiply select-none ${className}`} 
+      // ELIMINAMOS EL RESPLANDOR CUADRADO. POTENCIAMOS EL DESTELLO INTERNO.
+      //brightness(1.15) hace que los naranjas y amarillos "brillen" con más fuerza.
+      style={{ filter: 'brightness(1.15) contrast(1.1)' }}
       {...props}
     />
   );
