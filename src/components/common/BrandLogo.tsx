@@ -8,16 +8,14 @@ interface BrandLogoProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 const BrandLogo: React.FC<BrandLogoProps> = ({ className = "", ...props }) => {
   const { config } = useGlobal();
   const logoUrl = config?.logoImage || '/assets/img/logo.png';
-
   return (
     <img 
       src={logoUrl} 
       alt="Margarita Viajes" 
-      // CERO FILTROS, CERO BLEND MODES: Dejamos que el PNG transparente brille con su color nativo real.
-      className={`select-none ${className}`} 
+      className={`select-none !bg-transparent !shadow-none border-0 outline-none ${className}`} 
+      style={{ background: 'none', backgroundColor: 'transparent' }}
       {...props}
     />
   );
 };
-
 export default BrandLogo;

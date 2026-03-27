@@ -313,11 +313,8 @@ export default function Quoter() {
       </header>
 
       {/* CONTENEDOR PRINCIPAL CORREGIDO (v39) */}
-      <main className="max-w-7xl mx-auto px-4 md:px-12 lg:px-20 pt-8 md:pt-48">
-        {/* NUEVO LOGO MÓVIL (Compacto, Centrado, Se mueve con el Scroll, Sin Fondo Propio) */}
-        <div className="md:hidden w-full flex justify-center mb-6 mt-4">
-          <BrandLogo className="h-28 w-auto object-contain" />
-        </div>
+      <main className="max-w-7xl mx-auto px-4 md:px-12 lg:px-20 pt-6 md:pt-48">
+        <div className="md:hidden w-full flex justify-center mt-2 mb-4"><BrandLogo className="h-20 w-auto object-contain" /></div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start mt-8">
           <div className="lg:col-span-5 xl:col-span-5 space-y-4 md:space-y-10 animate-in slide-in-from-left-8 duration-700 mt-20 md:mt-12 z-10 max-w-md">
