@@ -148,6 +148,7 @@ export async function initDatabase(db: Knex) {
       table.text('photos'); // JSON string
       table.string('type').defaultTo('hotel');
       table.string('email');
+      table.string('whatsapp').nullable();
       table.string('plan');
       table.timestamp('created_at').defaultTo(db.fn.now());
     });
@@ -156,10 +157,12 @@ export async function initDatabase(db: Knex) {
     // Verificar y agregar columnas faltantes
     const hasEmail = await db.schema.hasColumn('hotels', 'email');
     const hasPlan = await db.schema.hasColumn('hotels', 'plan');
+    const hasWhatsapp = await db.schema.hasColumn('hotels', 'whatsapp');
 
     await db.schema.alterTable('hotels', (table: any) => {
       if (!hasEmail) table.string('email').nullable();
       if (!hasPlan) table.string('plan').nullable();
+      if (!hasWhatsapp) table.string('whatsapp').nullable();
     });
     console.log('[Database] Verificación de columnas en "hotels" completada.');
   }

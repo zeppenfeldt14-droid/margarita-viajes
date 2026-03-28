@@ -137,6 +137,14 @@ export class AdminController {
 
   async createHotel(req: Request, res: Response) {
     try {
+      const { name, type } = req.body;
+      if (!name || !name.trim()) {
+        return res.status(400).json({ message: 'El nombre del hotel/servicio es obligatorio.' });
+      }
+      if (!type) {
+        return res.status(400).json({ message: 'El tipo de inventario es obligatorio.' });
+      }
+
       const hotel = await this.hotelRepo.create(req.body);
       
       await this.auditRepo.log({

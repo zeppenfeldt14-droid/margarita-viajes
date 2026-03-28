@@ -62,7 +62,7 @@ export class PostgresHotelRepository implements IHotelRepository {
         photos: JSON.stringify(hotel.photos || []),
         type: hotel.type || 'hotel',
         email: hotel.email,
-        whatsapp: hotel.whatsapp,
+        whatsapp: hotel.whatsapp || null,
         plan: hotel.plan
       }).returning('*');
 
