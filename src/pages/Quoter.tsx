@@ -176,15 +176,19 @@ export default function Quoter() {
 
       const response = await api.createQuote(newQuote);
 
-      if (!response.ok) throw new Error('El servidor rechazó la petición');
+      if (!response.ok) {
+        let errStr = 'El servidor rechazó la petición';
+        try { errStr = await response.text(); } catch(e){}
+        throw new Error(`Error API (${response.status}): ${errStr}`);
+      }
       
       setIsSuccess(true);
       showToast('Cotización enviada con éxito al correo y WhatsApp.', 'success');
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error de conexión:', error);
-      alert("Error al procesar la cotización. Intente nuevamente.");
+      alert(`Error al procesar la cotización: ${error.message}`);
     }
   };
 
@@ -273,7 +277,11 @@ export default function Quoter() {
       };
 
       const response = await api.createQuote(newQuote);
-      if (!response.ok) throw new Error('Error al guardar la cotización');
+      if (!response.ok) {
+        let errStr = 'Error al guardar la cotización';
+        try { errStr = await response.text(); } catch(e){}
+        throw new Error(`Error API (${response.status}): ${errStr}`);
+      }
 
       const pdfLink = `${window.location.origin}/api/public/quotes/${quoteId}/pdf`;
       const message = `Hola, mi nombre es ${formData.name}. Acabo de cotizar ${selectedHotel.name}.\n\n📄 *Descargar Cotización:* ${pdfLink}\n\n*Folio:* ${quoteId}`;
@@ -283,9 +291,9 @@ export default function Quoter() {
       setIsSuccess(true);
       showToast('✅ Cotización registrada y WhatsApp abierto.', 'success');
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error en flujo WhatsApp:', error);
-      showToast('❌ Error al procesar el envío por WhatsApp.', 'error');
+      showToast(`❌ Error al procesar el envío: ${error.message}`, 'error');
     } finally {
       setIsGenerating(false);
     }
@@ -716,7 +724,7 @@ export default function Quoter() {
           {/* Logo Hotel */}
           <div style={{ width: '128px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: 'transparent' }}>
             {selectedHotel?.logo ? (
-              <img src={selectedHotel.logo} alt="Hotel" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', backgroundColor: 'transparent', isolation: 'isolate' }} crossOrigin="anonymous" />
+              <img src={selectedHotel.logo} alt="Hotel" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', borderRadius: '8px' }} crossOrigin="anonymous" />
             ) : (
               <div style={{ width: '64px', height: '64px', backgroundColor: '#f3f4f6', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', color: '#9ca3af', fontWeight: 'bold', textAlign: 'center' }}>SIN LOGO<br/>HOTEL</div>
             )}
@@ -754,14 +762,14 @@ export default function Quoter() {
           </table>
 
           {/* TOTALES FINALES */}
-          <div style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+          <div style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', width: '100%' }}>
             {discountPercent > 0 && (
               <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', padding: '0 32px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', padding: '0 32px', marginBottom: '8px' }}>
                   <span style={{ fontWeight: 'bold', color: '#6b7280', fontSize: '14px', textTransform: 'uppercase' }}>Subtotal Acumulado</span>
                   <span style={{ fontWeight: 'bold', color: '#0B132B', fontSize: '18px' }}>$ {totalPrice.toLocaleString()}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', padding: '0 32px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', padding: '0 32px', marginBottom: '8px' }}>
                   <span style={{ fontWeight: 'bold', color: '#8b5cf6', fontSize: '14px', textTransform: 'uppercase' }}>
                     {couponCode ? `Cupón Reclamado (${couponCode} - ${discountPercent}%)` : `Descuento Especial Aplicado (${discountPercent}%)`}
                   </span>
