@@ -115,7 +115,7 @@ export default function AdminDashboard({ user }: AdminProps) {
     };
   }, [user, users, isMaster]);
 
-  const [quoteFilter, setQuoteFilter] = useState<'original' | 'discounted' | 'unassigned' | 'history'>('original');
+  const [quoteFilter, setQuoteFilter] = useState<'original' | 'discounted' | 'coupon' | 'no-discount' | 'history'>('original');
   const [quoteSearchTerm, setQuoteSearchTerm] = useState('');
   const [selectedQuote, setSelectedQuote] = useState<Quotation | null>(null);
   const [discount, setDiscount] = useState<number>(0);
@@ -415,10 +415,20 @@ export default function AdminDashboard({ user }: AdminProps) {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <SectionTitle className="mb-0">Gestión de Cotizaciones</SectionTitle>
                   <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
-                      {(['original', 'discounted', 'history'] as const).map(f => (
-                        <button key={f} onClick={() => setQuoteFilter(f)} className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${quoteFilter === f ? 'bg-[#0B132B] text-white shadow-lg' : 'text-gray-400 hover:text-[#0B132B]'}`}>
-                          {f === 'original' ? 'Originales' : f === 'discounted' ? 'Con Desc.' : 'Historial'}
+                    <div className="flex bg-gray-50 p-1.5 rounded-2xl border border-gray-100 flex-wrap gap-1">
+                      {([
+                        { key: 'original', label: 'Originales' },
+                        { key: 'discounted', label: 'Con Desc.' },
+                        { key: 'coupon', label: 'Con Cupón', alert: (quotes || []).filter((q: Quotation) => !!(q?.couponCode) && q?.status === 'Nuevo').length },
+                        { key: 'no-discount', label: 'Sin Desc.' },
+                        { key: 'history', label: 'Historial' },
+                      ] as const).map(f => (
+                        <button key={f.key} onClick={() => setQuoteFilter(f.key as any)}
+                          className={`relative px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${quoteFilter === f.key ? 'bg-[#0B132B] text-white shadow-lg' : 'text-gray-400 hover:text-[#0B132B]'}`}>
+                          {f.label}
+                          {'alert' in f && f.alert > 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-purple-600 text-white text-[7px] font-black rounded-full flex items-center justify-center shadow-md animate-pulse">{f.alert}</span>
+                          )}
                         </button>
                       ))}
                     </div>
@@ -455,9 +465,16 @@ export default function AdminDashboard({ user }: AdminProps) {
                           }
                           const matchesSearch = (q?.clientName || q?.client_name)?.toLowerCase().includes(quoteSearchTerm.toLowerCase()) || q?.id?.toString().includes(quoteSearchTerm);
                           if (!matchesSearch) return false;
-                          if (quoteFilter === 'original') return q?.status === 'Nuevo' && !String(q?.id).includes('-01') && !String(q?.id).includes('-02');
-                          if (quoteFilter === 'discounted') return String(q?.id).includes('-01') || String(q?.id).includes('-02');
-                          if (quoteFilter === 'history') return ['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(q?.status || '');
+                          const qId = String(q?.id || '');
+                          const isTerminal = ['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(q?.status || '');
+                          const hasCoupon = !!(q as any)?.couponCode;
+                          const isDiscounted = qId.includes('-01');  // descuento comercial desde admin
+                          const isCouponSuffix = qId.includes('-02'); // cupón desde página pública
+                          if (quoteFilter === 'original')    return !isTerminal && !isDiscounted && !isCouponSuffix && !hasCoupon && q?.status === 'Nuevo';
+                          if (quoteFilter === 'discounted')  return !isTerminal && isDiscounted;
+                          if (quoteFilter === 'coupon')      return !isTerminal && (isCouponSuffix || hasCoupon);
+                          if (quoteFilter === 'no-discount') return !isTerminal && !isDiscounted && !isCouponSuffix && !hasCoupon && q?.status !== 'Nuevo';
+                          if (quoteFilter === 'history')     return isTerminal;
                           return true;
                         })
                         .map((quote: Quotation) => (
@@ -1038,13 +1055,15 @@ export default function AdminDashboard({ user }: AdminProps) {
 
       {/* MODALES */}
       {selectedQuote && (() => {
-        const hasExistingDiscount = Number(selectedQuote.discount || 0) > 0 || Number(selectedQuote.discountAmount || 0) > 0;
-        const baseAmount = hasExistingDiscount
+        const hasCouponApplied = !!(selectedQuote as any).couponCode;
+        // hasExistingDiscount: solo descuento COMERCIAL (-01), NO cupones
+        const hasExistingDiscount = !hasCouponApplied && (Number(selectedQuote.discount || 0) > 0 || Number(selectedQuote.discountAmount || 0) > 0);
+        const baseAmount = (hasExistingDiscount || hasCouponApplied)
           ? Number(selectedQuote.totalAmount || selectedQuote.total_amount) + Number(selectedQuote.discountAmount || 0)
           : Number(selectedQuote.totalAmount || selectedQuote.total_amount || 0);
         const discountPercent = discount > 0 ? discount : (hasExistingDiscount ? Number(selectedQuote.discount) : (customDiscount ? parseFloat(customDiscount) : 0));
         const discountAmount = baseAmount * (discountPercent / 100);
-        const finalTotal = hasExistingDiscount
+        const finalTotal = (hasExistingDiscount || hasCouponApplied)
           ? Number(selectedQuote.totalAmount || selectedQuote.total_amount)
           : baseAmount - discountAmount;
 
@@ -1166,6 +1185,25 @@ export default function AdminDashboard({ user }: AdminProps) {
                   )}
                 </div>
 
+                {/* Bloque cupón aplicado desde página pública */}
+                {hasCouponApplied && (
+                  <div className="bg-purple-50 p-5 rounded-[2rem] border border-purple-200">
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="text-[9px] font-black bg-purple-600 text-white px-3 py-1 rounded-full uppercase tracking-widest">🎟️ CUPÓN APLICADO</span>
+                      <span className="text-sm font-black text-purple-700 uppercase">{(selectedQuote as any).couponCode}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Precio Original</span>
+                      <span className="text-lg font-black italic text-gray-400 line-through">$ {baseAmount.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-purple-200">
+                      <span className="text-[10px] font-black text-purple-600 uppercase">Descuento por Cupón</span>
+                      <span className="text-lg font-black italic text-purple-600">-$ {(selectedQuote.discountAmount || 0).toLocaleString()}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bloque descuento comercial aplicado desde admin (-01) */}
                 {hasExistingDiscount && (
                   <div className="bg-gray-50 p-6 rounded-[2rem]">
                     <div className="flex items-center justify-between">
@@ -1221,7 +1259,8 @@ export default function AdminDashboard({ user }: AdminProps) {
                         }}
                         className="flex-1 bg-[#0B132B] text-white py-3 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-orange-600 transition-all flex items-center justify-center gap-2"
                       >Generar y Enviar +Descuento</button>
-                      {selectedQuote.id && (
+                      {/* Botón enviar con descuento (en layout 60/40) */}
+                {selectedQuote.id && (
                         <button
                           onClick={async () => {
                             const folio = selectedQuote.id || (selectedQuote as any).folio;
@@ -1230,12 +1269,23 @@ export default function AdminDashboard({ user }: AdminProps) {
                             if (!hasEmail && !hasWA) { showToast('El cliente no tiene email ni WhatsApp registrado'); return; }
                             const pdfLink = `${api.getBaseUrl()}/public/quotes/${folio}/pdf`;
                             if (hasEmail) { try { await api.dispatchCommunication({ type: 'email', target: 'client', recipient: selectedQuote.email, documentId: folio, documentType: 'quote' }); } catch (e) { console.warn(e); } }
-                            if (hasWA) { const n = (selectedQuote.whatsapp || '').replace(/\D/g, ''); window.open(`https://wa.me/${n}?text=${encodeURIComponent(`Hola ${selectedQuote.clientName || ''}, adjunto tu cotización.\n\n${pdfLink}`)}`, '_blank'); }
+                            if (hasWA) {
+                              const n = (selectedQuote.whatsapp || '').replace(/\D/g, '');
+                              const couponCode = (selectedQuote as any).couponCode;
+                              const hasDsc = Number(selectedQuote.discountAmount || 0) > 0;
+                              let msg = `Hola ${selectedQuote.clientName || ''}!`;
+                              if (couponCode) msg += `\n\n🎟️ ¡Tu cupón *${couponCode}* fue aplicado exitosamente! Tienes un beneficio especial en esta cotización.`;
+                              else if (hasDsc) msg += `\n\n🎉 ¡Hemos aplicado un *descuento especial* a tu cotización! Aprovecha este precio exclusivo.`;
+                              msg += `\n\n📄 *Tu Cotización:* ${pdfLink}`;
+                              window.open(`https://wa.me/${n}?text=${encodeURIComponent(msg)}`, '_blank');
+                            }
                             if (selectedQuote.status === 'Nuevo') { await api.updateQuote(selectedQuote.id, { status: 'Atendido' as QuoteStatus }).catch(() => {}); setSelectedQuote(prev => prev ? { ...prev, status: 'Atendido' as QuoteStatus } : null); }
-                            showToast('✅ Cotización enviada');
+                            showToast('✅ Cotización enviada al cliente');
                           }}
-                          className="flex-1 bg-green-600 text-white py-3 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-green-700 transition-all flex items-center justify-center gap-2"
-                        >Enviar Cotización</button>
+                          className={`flex-1 text-white py-3 rounded-2xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+                            hasCouponApplied ? 'bg-purple-600 hover:bg-purple-700' : 'bg-green-600 hover:bg-green-700'
+                          }`}
+                        >{hasCouponApplied ? '🎟️ Enviar con Cupón' : hasExistingDiscount ? '🎉 Enviar con Descuento' : 'Enviar Cotización'}</button>
                       )}
                     </div>
                   </div>
@@ -1249,12 +1299,23 @@ export default function AdminDashboard({ user }: AdminProps) {
                         if (!hasEmail && !hasWA) { showToast('El cliente no tiene email ni WhatsApp registrado'); return; }
                         const pdfLink = `${api.getBaseUrl()}/public/quotes/${folio}/pdf`;
                         if (hasEmail) { try { await api.dispatchCommunication({ type: 'email', target: 'client', recipient: selectedQuote.email, documentId: folio, documentType: 'quote' }); } catch (e) { console.warn(e); } }
-                        if (hasWA) { const n = (selectedQuote.whatsapp || '').replace(/\D/g, ''); window.open(`https://wa.me/${n}?text=${encodeURIComponent(`Hola ${selectedQuote.clientName || ''}, adjunto tu cotización.\n\n${pdfLink}`)}`, '_blank'); }
+                        if (hasWA) {
+                          const n = (selectedQuote.whatsapp || '').replace(/\D/g, '');
+                          const couponCode = (selectedQuote as any).couponCode;
+                          const hasDsc = Number(selectedQuote.discountAmount || 0) > 0;
+                          let msg = `Hola ${selectedQuote.clientName || ''}!`;
+                          if (couponCode) msg += `\n\n🎟️ ¡Tu cupón *${couponCode}* fue aplicado exitosamente! Tienes un beneficio especial en esta cotización.`;
+                          else if (hasDsc) msg += `\n\n🎉 ¡Hemos aplicado un *descuento especial* a tu cotización! Aprovecha este precio exclusivo.`;
+                          msg += `\n\n📄 *Tu Cotización:* ${pdfLink}`;
+                          window.open(`https://wa.me/${n}?text=${encodeURIComponent(msg)}`, '_blank');
+                        }
                         if (selectedQuote.status === 'Nuevo') { await api.updateQuote(selectedQuote.id, { status: 'Atendido' as QuoteStatus }).catch(() => {}); setSelectedQuote(prev => prev ? { ...prev, status: 'Atendido' as QuoteStatus } : null); }
-                        showToast('✅ Cotización enviada');
+                        showToast('✅ Cotización enviada al cliente');
                       }}
-                      className="w-full bg-green-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-green-700 transition-all flex items-center justify-center gap-2"
-                    >Enviar Cotización</button>
+                      className={`w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+                        hasCouponApplied ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-green-600 text-white hover:bg-green-700'
+                      }`}
+                    >{hasCouponApplied ? '🎟️ Enviar Cotización con Cupón' : 'Enviar Cotización'}</button>
                   ) : null
                 )}
 

@@ -95,6 +95,7 @@ export default function Quoter() {
   const [totalPrice, setTotalPrice] = useState(0);
   const [couponCode, setCouponCode] = useState('');
   const [discountPercent, setDiscountPercent] = useState(0);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
 
   const applyCoupon = async () => {
     try {
@@ -102,10 +103,12 @@ export default function Quoter() {
       const valid = coupons.find((c: any) => c.code === couponCode.toUpperCase() && c.active && new Date(c.expiry) >= new Date());
       if (valid) {
         setDiscountPercent(Number(valid.discount));
+        setAppliedCoupon({ code: valid.code, discount: Number(valid.discount) });
         alert(`🎉 ¡Cupón aplicado! ${valid.discount}% de descuento.`);
       } else {
         alert('❌ Cupón inválido o expirado.');
         setDiscountPercent(0);
+        setAppliedCoupon(null);
       }
     } catch (e) {
       console.error(e);
@@ -166,7 +169,7 @@ export default function Quoter() {
         assignedTo: 'Sin Asignar',
         plan: selectedHotel?.plan || 'No especificado',
         season: priceInfo?.season || '-',
-        couponCode: discountPercent > 0 && appliedCoupon ? appliedCoupon.code : undefined, // B.3d
+        couponCode: appliedCoupon ? appliedCoupon.code : undefined,
         includeTransfer: formData.includeTransfer,
         transferId: formData.transferId,
       };
@@ -263,6 +266,7 @@ export default function Quoter() {
         assignedTo: 'Sin Asignar',
         plan: selectedHotel?.plan || 'No especificado',
         season: priceInfo?.season || '-',
+        couponCode: appliedCoupon ? appliedCoupon.code : undefined,
         includeTransfer: formData.includeTransfer,
         transferId: formData.transferId,
         pdfBase64

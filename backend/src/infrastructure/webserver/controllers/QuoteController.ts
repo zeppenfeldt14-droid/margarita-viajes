@@ -198,15 +198,15 @@ export class QuoteController {
             return;
           }
           
-          doc.image(buf, x, y, { width, fit: [width, width] });
+          doc.image(buf, x, y, { width, fit: [width, 60] });
         } catch (err) { 
           console.error(`[PDF] Error cargando imagen ${url}:`, err); 
         }
       };
 
       // --- ENCABEZADO TRIPLE (ESTÁNDAR) ---
-      await drawWebImage(config.logoImage, 50, 40, 80);
-      await drawWebImage(hotelLogoUrl, 465, 40, 80);
+      await drawWebImage(config.logoImage, 50, 42, 70);
+      await drawWebImage(hotelLogoUrl, 475, 42, 70);
 
       doc.fillColor(brandColor).fontSize(14).font('Helvetica-Bold').text(config.agencyName?.toUpperCase() || 'MARGARITA VIAJES', 150, 45, { align: 'center', width: 295 });
       doc.fontSize(8).font('Helvetica').text(`RIF: ${config.rif || 'J-40156646-4'} | RTN: ${config.rtn || '13314'}`, 150, 62, { align: 'center', width: 295 });
@@ -214,12 +214,15 @@ export class QuoteController {
 
       doc.moveTo(50, 110).lineTo(545, 110).lineWidth(2).stroke(brandColor);
 
-      // --- CUADRO COTIZACIÓN / FECHA ---
-      doc.fillColor(labelColor).fontSize(8).font('Helvetica-Bold').text('ESTIMADO SR./A:', 50, 130);
-      doc.fillColor(brandColor).fontSize(12).text((quote.clientName || 'CLIENTE').toUpperCase(), 50, 142);
+      // --- Número de Cotización (en rojo, encima de ESTIMADO SR./A) ---
+      doc.fillColor('#CC0000').fontSize(8).font('Helvetica-Bold').text(`Nº DE COTIZACIÓN: ${id}`, 50, 118);
 
-      doc.fillColor(labelColor).fontSize(8).text('FECHA DE EMISIÓN:', 400, 130, { align: 'right' });
-      doc.fillColor(brandColor).fontSize(10).text(new Date(quote.date || new Date()).toLocaleDateString() || 'S/F', 400, 142, { align: 'right' });
+      // --- CUADRO COTIZACIÓN / FECHA ---
+      doc.fillColor(labelColor).fontSize(8).font('Helvetica-Bold').text('ESTIMADO SR./A:', 50, 132);
+      doc.fillColor(brandColor).fontSize(12).text((quote.clientName || 'CLIENTE').toUpperCase(), 50, 144);
+
+      doc.fillColor(labelColor).fontSize(8).text('FECHA DE EMISIÓN:', 400, 132, { align: 'right' });
+      doc.fillColor(brandColor).fontSize(10).text(new Date(quote.date || new Date()).toLocaleDateString() || 'S/F', 400, 144, { align: 'right' });
 
       // --- GRILLA DE DETALLES ---
       const gridY = 185;

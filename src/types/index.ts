@@ -59,6 +59,7 @@ export type Quotation = {
   season?: string;
   includeTransfer?: boolean;
   transferId?: string;
+  couponCode?: string;
   client_email?: string;
   client_phone?: string;
 }

@@ -59,6 +59,19 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
 
   const today = new Date().toISOString().split('T')[0];
 
+  // Usos reales de cupón cruzando con cotizaciones (fuente de verdad en tiempo real)
+  const couponUsageFromQuotes = (quotes || []).reduce((acc: Record<string, number>, q: any) => {
+    if (q?.couponCode) {
+      acc[q.couponCode.toUpperCase()] = (acc[q.couponCode.toUpperCase()] || 0) + 1;
+    }
+    return acc;
+  }, {});
+
+  // Cotizaciones nuevas con cupón (para badge de alerta en la sección de cup ones)
+  const newCouponQuotes = (quotes || []).filter((q: any) =>
+    q?.couponCode && q?.status === 'Nuevo'
+  ).length;
+
   const coldQuotes = (quotes || []).filter(q => {
     if (['Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(q.status)) return false;
     const quoteDate = new Date(q.date || new Date());
@@ -249,6 +262,16 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
           {/* VISTA DE GESTIÓN DE CUPONES */}
           <Card className="shadow-xl border-none ring-1 ring-gray-100">
             <div className="space-y-8">
+              {/* Badge de alerta cupones nuevos */}
+              <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+                <h4 className="text-xs font-black uppercase text-[#0B132B] tracking-widest">Gestión de Cupones</h4>
+                {newCouponQuotes > 0 && (
+                  <span className="bg-purple-600 text-white text-[8px] font-black px-3 py-1 rounded-full animate-pulse">
+                    🎟️ {newCouponQuotes} nuevo{newCouponQuotes > 1 ? 's' : ''} con cupón
+                  </span>
+                )}
+              </div>
+
               {/* ACTIVOS */}
               <div className="pb-6 border-b border-gray-100">
                 <h4 className="flex items-center gap-2 text-[10px] font-black uppercase text-green-600 tracking-widest mb-4">
@@ -261,7 +284,9 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
                     coupons.filter(c => c.active && c.expiry >= today).map((c, i) => (
                       <div key={i} className="flex items-center justify-between p-3 bg-green-50/50 rounded-xl border border-green-100">
                         <span className="text-[10px] font-black text-green-700 italic uppercase">{c.code} ({c.discount}%)</span>
-                        <span className="text-[8px] font-bold text-purple-500 bg-purple-50 px-2 py-0.5 rounded-full">{(c as any).times_used || 0} usos</span>
+                        <span className="text-[8px] font-bold text-purple-500 bg-purple-50 px-2 py-0.5 rounded-full">
+                          {couponUsageFromQuotes[c.code?.toUpperCase()] || (c as any).times_used || 0} usos
+                        </span>
                         <button onClick={() => setSelectedDetailCoupon(c)} className="text-[8px] font-black uppercase text-green-600 hover:text-green-800 underline decoration-2 transition-colors">Detalles</button>
                       </div>
                     ))
@@ -281,7 +306,7 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
                     coupons.filter(c => c.expiry < today).map((c, i) => (
                       <div key={i} className="flex items-center justify-between p-3 bg-red-50/50 rounded-xl border border-red-100">
                         <span className="text-[10px] font-black text-red-700 italic uppercase">{c.code} ({c.discount}%)</span>
-                        <span className="text-[8px] font-bold text-purple-500 bg-purple-50 px-2 py-0.5 rounded-full">{(c as any).times_used || 0} usos</span>
+                        <span className="text-[8px] font-bold text-purple-500 bg-purple-50 px-2 py-0.5 rounded-full">{couponUsageFromQuotes[c.code?.toUpperCase()] || (c as any).times_used || 0} usos</span>
                         <button onClick={() => setSelectedDetailCoupon(c)} className="text-[8px] font-black uppercase text-red-500 hover:text-red-700 underline decoration-2 transition-colors">Detalles</button>
                       </div>
                     ))
@@ -301,7 +326,7 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
                     coupons.filter(c => !c.active).map((c, i) => (
                       <div key={i} className="flex items-center justify-between p-3 bg-blue-50/50 rounded-xl border border-blue-100">
                         <span className="text-[10px] font-black text-blue-700 italic uppercase">{c.code} ({c.discount}%)</span>
-                        <span className="text-[8px] font-bold text-purple-500 bg-purple-50 px-2 py-0.5 rounded-full">{(c as any).times_used || 0} usos</span>
+                        <span className="text-[8px] font-bold text-purple-500 bg-purple-50 px-2 py-0.5 rounded-full">{couponUsageFromQuotes[c.code?.toUpperCase()] || (c as any).times_used || 0} usos</span>
                         <button onClick={() => setSelectedDetailCoupon(c)} className="text-[8px] font-black uppercase text-blue-500 hover:text-blue-700 underline decoration-2 transition-colors">Detalles</button>
                       </div>
                     ))
