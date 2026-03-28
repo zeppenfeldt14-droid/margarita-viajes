@@ -132,9 +132,8 @@ export default function Home({ onAdminClick }: HomeProps) {
   return (
     <div className="bg-white min-h-screen font-sans relative overflow-x-hidden selection:bg-orange-100 pt-20">
 
-      {/* HEADER NAV - LOGO SEGÚN DISEÑO SOLICITADO - SIN FIXED (SCROLL NORMAL) */}
-      {/* LOGO MÓVIL (Gigante, Centrado, Sin fondo blanco, Con Resplandor) */}
-      <div className="md:hidden w-full flex justify-center pt-10 absolute top-0 z-50 pointer-events-none !bg-transparent !shadow-none">
+      {/* LOGO MÓVIL — Fixed, centrado en la parte superior, acompaña el scroll */}
+      <div className="md:hidden w-full flex justify-center pt-4 fixed top-0 z-50 pointer-events-none !bg-transparent !shadow-none">
         <BrandLogo className="h-36 w-auto object-contain pointer-events-auto" />
       </div>
 

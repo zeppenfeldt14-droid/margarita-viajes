@@ -314,13 +314,13 @@ export default function Quoter() {
 
       {/* CONTENEDOR PRINCIPAL CORREGIDO (v39) */}
       <main className="max-w-7xl mx-auto px-4 md:px-12 lg:px-20 pt-2 md:pt-48">
-        {/* LOGO MÓVIL: Recupera tamaño h-32 pero sin espacio extra arriba */}
-        <div className="md:hidden w-full flex justify-center mb-2 bg-transparent">
-          <BrandLogo className="h-32 w-auto object-contain" />
+        {/* LOGO MÓVIL: Fixed, centrado, acompaña el scroll (mismo comportamiento que PC) */}
+        <div className="md:hidden w-full flex justify-center pt-4 fixed top-0 z-50 pointer-events-none !bg-transparent !shadow-none">
+          <BrandLogo className="h-32 w-auto object-contain pointer-events-auto" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
-          <div className="lg:col-span-5 xl:col-span-5 space-y-4 md:space-y-10 animate-in slide-in-from-left-8 duration-700 mt-20 md:mt-12 z-10 max-w-md">
+          <div className="lg:col-span-5 xl:col-span-5 space-y-4 md:space-y-10 animate-in slide-in-from-left-8 duration-700 mt-36 md:mt-12 z-10 max-w-md">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
               <div className="w-32 h-32 md:w-40 md:h-40 bg-white shadow-xl rounded-2xl p-4 border border-gray-100 flex items-center justify-center shrink-0">
                 {selectedHotel?.logo || (selectedHotel as any).logoImage ? (
