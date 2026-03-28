@@ -46,6 +46,8 @@ export function createRouter(
   router.delete('/admin/hotels/:id', (req: Request, res: Response) => adminController.deleteHotel(req, res));
   router.get('/admin/hotels/:hotelId/rooms', (req: Request, res: Response) => adminController.getRoomsByHotel(req, res));
   router.post('/admin/rooms', (req: Request, res: Response) => adminController.createRoom(req, res));
+  router.put('/admin/rooms/:id', (req: Request, res: Response) => adminController.updateRoom(req, res));
+  router.delete('/admin/rooms/:id', (req: Request, res: Response) => adminController.deleteRoom(req, res));
   
   // Usuarios: Lectura permitida para Niveles 2 y 3 (para selectores de reasignación)
   router.get('/admin/users', (req: Request, res: Response) => adminController.getUsers(req, res));

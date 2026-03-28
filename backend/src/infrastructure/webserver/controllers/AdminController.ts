@@ -216,6 +216,40 @@ export class AdminController {
     }
   }
 
+  async updateRoom(req: Request, res: Response) {
+    try {
+      const id = req.params['id'] as string;
+      const { name, capacity } = req.body;
+
+      if (!name?.trim() && capacity === undefined) {
+        return res.status(400).json({ message: 'Debe proporcionar nombre o capacidad para actualizar.' });
+      }
+
+      const updated = await this.roomRepo.update(id, { name, capacity: Number(capacity) });
+      await this.auditRepo.log({
+        action: 'UPDATE',
+        tableName: 'rooms',
+        recordId: id,
+        newValue: JSON.stringify({ name, capacity })
+      });
+      return res.json(updated);
+    } catch (error: any) {
+      console.error('[AdminController] Error en updateRoom:', error);
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
+  async deleteRoom(req: Request, res: Response) {
+    try {
+      const id = req.params['id'] as string;
+      await this.roomRepo.delete(id);
+      await this.auditRepo.log({ action: 'DELETE', tableName: 'rooms', recordId: id });
+      return res.status(204).send();
+    } catch (error: any) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
   // --- TRANSFERS ---
   async getTransfers(req: Request, res: Response) {
     try {

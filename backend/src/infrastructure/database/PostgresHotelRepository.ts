@@ -8,25 +8,26 @@ export class PostgresHotelRepository implements IHotelRepository {
 
   async findAll(): Promise<Hotel[]> {
     const hotels = await this.db('hotels').select('*').orderBy('name', 'asc');
-    const result: Hotel[] = [];
-    
-    for (const hotel of hotels) {
-      const rooms = await this.db('rooms').where('hotel_id', hotel.id);
-      const seasons = await this.db('seasons').where('hotel_id', hotel.id);
-      
-      result.push({
-        ...hotel,
-        photos: hotel.photos ? JSON.parse(hotel.photos) : [],
-        rooms: rooms,
-        seasons: seasons.map(s => ({
+    if (hotels.length === 0) return [];
+
+    // B.3: Batch fetch — 3 queries totales sin importar cuántos hoteles haya
+    const hotelIds = hotels.map((h: any) => h.id);
+    const allRooms = await this.db('rooms').whereIn('hotel_id', hotelIds);
+    const allSeasons = await this.db('seasons').whereIn('hotel_id', hotelIds);
+
+    return hotels.map((hotel: any) => ({
+      ...hotel,
+      photos: hotel.photos ? JSON.parse(hotel.photos) : [],
+      rooms: allRooms.filter((r: any) => r.hotel_id === hotel.id),
+      seasons: allSeasons
+        .filter((s: any) => s.hotel_id === hotel.id)
+        .map((s: any) => ({
           ...s,
           startDate: s.start_date,
           endDate: s.end_date,
           roomPrices: typeof s.room_prices === 'string' ? JSON.parse(s.room_prices) : s.room_prices
         }))
-      });
-    }
-    return result;
+    }));
   }
 
   async findById(id: string): Promise<Hotel | null> {

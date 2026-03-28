@@ -8,5 +8,6 @@ export interface Room {
 export interface IRoomRepository {
   findByHotelId(hotelId: string): Promise<Room[]>;
   create(room: Room): Promise<Room>;
+  update(id: string, data: Partial<Room>): Promise<Room>;
   delete(id: string): Promise<void>;
 }

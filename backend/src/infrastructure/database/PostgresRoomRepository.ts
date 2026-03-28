@@ -20,6 +20,18 @@ export class PostgresRoomRepository implements IRoomRepository {
     return result;
   }
 
+  async update(id: string, data: Partial<Room>): Promise<Room> {
+    const updateData: any = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.capacity !== undefined) updateData.capacity = data.capacity;
+
+    const [updated] = await this.db('rooms')
+      .where('id', id)
+      .update(updateData)
+      .returning('*');
+    return updated;
+  }
+
   async delete(id: string): Promise<void> {
     await this.db('rooms').where('id', id).del();
   }

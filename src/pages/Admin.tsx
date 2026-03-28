@@ -146,6 +146,10 @@ export default function AdminDashboard({ user }: AdminProps) {
   const [newTransfer, setNewTransfer] = useState<Partial<Transfer>>({ route: '', netCost: 0, salePrice: 0, whatsapp: '' });
   const [roomName, setRoomName] = useState('');
   const [roomCapacity, setRoomCapacity] = useState('');
+  // B.1: Estado para edición inline de habitaciones individuales
+  const [editingRoomId, setEditingRoomId] = useState<string | null>(null);
+  const [editingRoomName, setEditingRoomName] = useState('');
+  const [editingRoomCapacity, setEditingRoomCapacity] = useState('');
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -852,9 +856,68 @@ export default function AdminDashboard({ user }: AdminProps) {
                         </div>
                         <div className="grid grid-cols-1 gap-2 max-h-[140px] overflow-y-auto pr-2 custom-scrollbar">
                           {newHotel.rooms?.map((r: { id: string, name: string, capacity: number }) => (
-                            <div key={r.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl">
-                              <span className="text-xs font-black uppercase italic text-[#0B132B]">{r.name} - <span className="text-gray-400 font-bold">{r.capacity} Pax</span></span>
-                              <button onClick={() => removeRoom(r.id)} className="text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+                            <div key={r.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl gap-2">
+                              {editingRoomId === r.id ? (
+                                // Modo edición inline
+                                <>
+                                  <input
+                                    value={editingRoomName}
+                                    onChange={e => setEditingRoomName(e.target.value)}
+                                    className="flex-1 bg-white border border-orange-300 rounded-lg px-3 py-1.5 text-xs font-bold outline-none"
+                                  />
+                                  <input
+                                    type="number"
+                                    value={editingRoomCapacity}
+                                    onChange={e => setEditingRoomCapacity(e.target.value)}
+                                    className="w-16 bg-white border border-orange-300 rounded-lg px-2 py-1.5 text-xs font-bold outline-none"
+                                  />
+                                  <button
+                                    onClick={async () => {
+                                      if (editingId) {
+                                        // Hotel guardado: llamar API directamente
+                                        const res = await api.updateRoom(r.id, { name: editingRoomName, capacity: Number(editingRoomCapacity) });
+                                        if (res.ok) {
+                                          setNewHotel(prev => ({ ...prev, rooms: prev.rooms?.map(rm => rm.id === r.id ? { ...rm, name: editingRoomName, capacity: Number(editingRoomCapacity) } : rm) }));
+                                          showToast('Habitación actualizada');
+                                        } else { showToast('Error al actualizar'); }
+                                      } else {
+                                        // Hotel nuevo: solo actualizar estado local
+                                        setNewHotel(prev => ({ ...prev, rooms: prev.rooms?.map(rm => rm.id === r.id ? { ...rm, name: editingRoomName, capacity: Number(editingRoomCapacity) } : rm) }));
+                                      }
+                                      setEditingRoomId(null);
+                                    }}
+                                    className="bg-green-500 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase hover:bg-green-600 transition-colors"
+                                  >✓</button>
+                                  <button onClick={() => setEditingRoomId(null)} className="text-gray-400 hover:text-red-500 transition-colors"><X size={14} /></button>
+                                </>
+                              ) : (
+                                // Modo vista
+                                <>
+                                  <span className="text-xs font-black uppercase italic text-[#0B132B] flex-1">{r.name} - <span className="text-gray-400 font-bold">{r.capacity} Pax</span></span>
+                                  <button
+                                    onClick={() => { setEditingRoomId(r.id); setEditingRoomName(r.name); setEditingRoomCapacity(String(r.capacity)); }}
+                                    className="text-gray-400 hover:text-orange-500 transition-colors p-1"
+                                    title="Editar habitación"
+                                  ><Edit2 size={13} /></button>
+                                  <button
+                                    onClick={async () => {
+                                      if (!confirm(`¿Eliminar habitación "${r.name}"?`)) return;
+                                      if (editingId) {
+                                        // Hotel guardado: llamar API directamente
+                                        const res = await api.deleteRoom(r.id);
+                                        if (res.ok) {
+                                          setNewHotel(prev => ({ ...prev, rooms: prev.rooms?.filter(rm => rm.id !== r.id) }));
+                                          showToast('Habitación eliminada');
+                                        } else { showToast('Error al eliminar'); }
+                                      } else {
+                                        removeRoom(r.id);
+                                      }
+                                    }}
+                                    className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                                    title="Eliminar habitación"
+                                  ><Trash2 size={13} /></button>
+                                </>
+                              )}
                             </div>
                           ))}
                         </div>

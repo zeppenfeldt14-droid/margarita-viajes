@@ -56,6 +56,17 @@ export const api = {
     return fetchWithAuth(`/admin/hotels/${id}`, { method: 'DELETE' });
   },
 
+  // Rooms (individual)
+  updateRoom: async (id: string, data: { name?: string; capacity?: number }) => {
+    return fetchWithAuth(`/admin/rooms/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+  deleteRoom: async (id: string) => {
+    return fetchWithAuth(`/admin/rooms/${id}`, { method: 'DELETE' });
+  },
+
   // Transfers
   getTransfers: async () => {
     const res = await fetchWithAuth('/public/transfers');
