@@ -15,7 +15,9 @@ import {
   Globe,
   Camera,
   Download,
-  Eye
+  Eye,
+  Mail,
+  MessageCircle
 } from 'lucide-react';
 import { api } from '../services/api';
 import { showToast, ToastContainer } from '../components/Toast';
@@ -453,9 +455,9 @@ export default function AdminDashboard({ user }: AdminProps) {
                           }
                           const matchesSearch = (q?.clientName || q?.client_name)?.toLowerCase().includes(quoteSearchTerm.toLowerCase()) || q?.id?.toString().includes(quoteSearchTerm);
                           if (!matchesSearch) return false;
-                          if (quoteFilter === 'original') return q?.status === 'Nuevo' && !String(q?.id).includes('-01');
-                          if (quoteFilter === 'discounted') return String(q?.id).includes('-01');
-                          if (quoteFilter === 'history') return q?.status === 'Atendido' || q?.status === 'Reserva' || q?.status === 'Nuevo';
+                          if (quoteFilter === 'original') return q?.status === 'Nuevo' && !String(q?.id).includes('-01') && !String(q?.id).includes('-02');
+                          if (quoteFilter === 'discounted') return String(q?.id).includes('-01') || String(q?.id).includes('-02');
+                          if (quoteFilter === 'history') return ['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(q?.status || '');
                           return true;
                         })
                         .map((quote: Quotation) => (
@@ -544,7 +546,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                                       'bg-green-500 !text-white'
                                     }`}
                                   >
-                                    <option value="Nuevo">Nuevo</option>
+                                    {quote.status === 'Nuevo' && <option value="Nuevo">Nuevo</option>}
                                     <option value="Atendido">Atendido</option>
                                   </select>
                                 )}
@@ -1177,7 +1179,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                   </div>
                 )}
 
-                {!hasExistingDiscount && !selectedQuote.originalQuoteId && (
+                {!hasExistingDiscount && !selectedQuote.originalQuoteId && !['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(selectedQuote.status) && (
                   <div className="bg-orange-50 p-6 rounded-[2rem] border border-orange-200 space-y-4">
                     <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Aplicar Descuento Comercial</p>
                     <div className="flex gap-3">
@@ -1259,16 +1261,51 @@ export default function AdminDashboard({ user }: AdminProps) {
                     >
                       <Globe size={16} /> Ver PDF Guardado en Servidor
                     </button>
-                    <button 
-                      onClick={() => {
+                    <button
+                      onClick={async () => {
                         const folio = selectedQuote.id || (selectedQuote as any).folio;
+                        const hasEmail = !!(selectedQuote.email || '').trim();
+                        const hasWA = !!(selectedQuote.whatsapp || '').replace(/\D/g, '');
+
+                        if (!hasEmail && !hasWA) {
+                          showToast('El cliente no tiene email ni WhatsApp registrado');
+                          return;
+                        }
+
                         const pdfLink = `${api.getBaseUrl()}/public/quotes/${folio}/pdf`;
-                        const whatsappText = encodeURIComponent(`Hola ${selectedQuote.clientName || selectedQuote.client_name}, aquí tienes tu cotización en PDF: ${pdfLink}`);
-                        window.open(`https://wa.me/${(selectedQuote.whatsapp || '').replace(/\D/g, '')}?text=${whatsappText}`, '_blank');
-                      }} 
+
+                        if (hasEmail) {
+                          try {
+                            await api.dispatchCommunication({
+                              type: 'email',
+                              target: 'client',
+                              recipient: selectedQuote.email,
+                              documentId: folio,
+                              documentType: 'quote',
+                            });
+                          } catch (e) { console.warn('[Enviar] Error enviando email:', e); }
+                        }
+
+                        if (hasWA) {
+                          const waNumber = (selectedQuote.whatsapp || '').replace(/\D/g, '');
+                          const waMsg = encodeURIComponent(`Hola ${selectedQuote.clientName || selectedQuote.client_name}, aquí tienes tu cotización:\n\n📄 ${pdfLink}\n\nFolio: ${folio}`);
+                          window.open(`https://wa.me/${waNumber}?text=${waMsg}`, '_blank');
+                        }
+
+                        // C.7: Auto-transición a Atendido si status es Nuevo
+                        if (selectedQuote.status === 'Nuevo') {
+                          try {
+                            await api.updateQuote(selectedQuote.id, { status: 'Atendido' as QuoteStatus });
+                            setSelectedQuote(prev => prev ? { ...prev, status: 'Atendido' as QuoteStatus } : null);
+                            setQuotes(prev => prev.map(q => q.id === selectedQuote.id ? { ...q, status: 'Atendido' as QuoteStatus } : q));
+                          } catch (e) { console.warn('[Enviar] Error actualizando estado:', e); }
+                        }
+
+                        showToast(`✅ Enviado${hasEmail ? ' por Email' : ''}${hasEmail && hasWA ? ' y' : ''}${hasWA ? ' por WhatsApp' : ''}`);
+                      }}
                       className="w-full bg-green-500 text-white py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-green-600 transition-all flex items-center justify-center gap-2 shadow-lg"
                     >
-                      <Briefcase size={16} /> Contactar por WhatsApp
+                      <Mail size={16} /> Enviar Cotización
                     </button>
                   </div>
                 )}
@@ -1351,14 +1388,22 @@ export default function AdminDashboard({ user }: AdminProps) {
                     <ShieldCheck size={16} /> Guardar Lista
                   </button>
 
-                  {/* Botón Pasar a Reserva */}
+                  {/* Botón Pasar a Reserva — C.3: solo visible si no es estado terminal */}
+                  {!['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(selectedQuote.status) && (
                   <button
                     onClick={async () => {
                       const totalExpected = Number(selectedQuote.pax || 0) + Number(selectedQuote.children || 0) + Number(selectedQuote.infants || 0);
-                      const currentCompanions = selectedQuote.companions || companions || [];
-                      const hasEmptyNames = currentCompanions.some((c: { name: string }) => !c.name || c.name.trim() === '');
+                      // C.4: Parsear companions desde DB (puede ser string JSON)
+                      const parsedCompanions = Array.isArray(selectedQuote.companions)
+                        ? selectedQuote.companions
+                        : (typeof selectedQuote.companions === 'string'
+                            ? JSON.parse(selectedQuote.companions || '[]')
+                            : companions || []);
+                      const hasEmptyNames = parsedCompanions.some((c: { name: string }) => !c.name || c.name.trim() === '');
+                      // C.4: ficha válida si existe technicalSheet en DB o si companions están completos
+                      const fichaOk = !!selectedQuote.technicalSheet || (parsedCompanions.length >= totalExpected && !hasEmptyNames);
 
-                      if (currentCompanions.length !== totalExpected || hasEmptyNames || (!selectedQuote.technicalSheet && !technicalSheetSaved)) {
+                      if (!fichaOk || parsedCompanions.length < totalExpected || hasEmptyNames) {
                         alert('⚠️ ACCIÓN DENEGADA: Debe guardar la lista de pasajeros completa antes de pasar a Reserva.');
                         return;
                       }
@@ -1394,8 +1439,8 @@ export default function AdminDashboard({ user }: AdminProps) {
                           totalAmount: selectedQuote.totalAmount || selectedQuote.total_amount,
                           discount: selectedQuote.discount || null,
                           discountAmount: selectedQuote.discountAmount || null,
-                          companions: currentCompanions,
-                          technicalSheet: selectedQuote.technicalSheet || { savedAt: new Date().toISOString(), passengers: currentCompanions },
+                          companions: parsedCompanions,
+                          technicalSheet: selectedQuote.technicalSheet || { savedAt: new Date().toISOString(), passengers: parsedCompanions },
                           plan: selectedQuote.plan || (selectedQuote as any).hotel_plan || 'No especificado',
                           status: 'Confirmada' as ReservationStatus
                         };
@@ -1419,6 +1464,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                   >
                     <Briefcase size={16} /> Pasar a Reserva
                   </button>
+                  )} {/* C.3: Fin condición estado no terminal */}
                 </div>
 
                 <div className="flex flex-col gap-2">

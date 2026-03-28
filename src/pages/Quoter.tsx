@@ -144,7 +144,8 @@ export default function Quoter() {
 
     try {
       const newQuote = {
-        id: quoteId,
+        id: discountPercent > 0 ? `${quoteId}-02` : quoteId,
+        originalQuoteId: discountPercent > 0 ? quoteId : undefined,
         date: new Date().toISOString(),
         clientName: formData.name,
         email: formData.email,
@@ -239,7 +240,8 @@ export default function Quoter() {
       setShowPdfPreview(false);
 
       const newQuote = {
-        id: quoteId,
+        id: discountPercent > 0 ? `${quoteId}-02` : quoteId,
+        originalQuoteId: discountPercent > 0 ? quoteId : undefined,
         date: new Date().toISOString(),
         clientName: formData.name,
         email: formData.email,

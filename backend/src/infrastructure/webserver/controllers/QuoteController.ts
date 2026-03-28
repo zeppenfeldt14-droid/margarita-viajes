@@ -168,23 +168,28 @@ export class QuoteController {
 
       const drawWebImage = async (url: string, x: number, y: number, width: number) => {
         try {
-          if (!url) return;
+          if (!url || url.trim() === '') return;
           
           let buf: Buffer;
           if (url.startsWith('data:image')) {
             const base64Data = url.split(',')[1];
+            if (!base64Data) return;
             buf = Buffer.from(base64Data, 'base64');
-          } else if (url.startsWith('http')) {
-            const resp = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-            if (!resp.ok) throw new Error(`HTTP Error ${resp.status}`);
+          } else if (url.startsWith('http://') || url.startsWith('https://')) {
+            const resp = await fetch(url, {
+              headers: { 'User-Agent': 'Mozilla/5.0' },
+              signal: AbortSignal.timeout(5000)
+            });
+            if (!resp.ok) { console.warn(`[PDF] Logo HTTP ${resp.status}: ${url}`); return; }
             buf = Buffer.from(await resp.arrayBuffer());
           } else {
+            console.warn(`[PDF] Logo URL no soportado (requiere http/https o data:image): "${url.substring(0, 80)}"`);
             return;
           }
           
-          doc.image(buf, x, y, { width });
+          doc.image(buf, x, y, { width, fit: [width, width] });
         } catch (err) { 
-          console.error(`[PDF] Error loading image:`, err); 
+          console.error(`[PDF] Error cargando imagen ${url}:`, err); 
         }
       };
 
