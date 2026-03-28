@@ -120,6 +120,7 @@ export default function AdminDashboard({ user }: AdminProps) {
   const [selectedQuote, setSelectedQuote] = useState<Quotation | null>(null);
   const [discount, setDiscount] = useState<number>(0);
   const [customDiscount, setCustomDiscount] = useState<string>('');
+  const [couponCodeInput, setCouponCodeInput] = useState<string>('');
   const [companions, setCompanions] = useState<{ name: string, type: string }[]>([]);
   const [technicalSheetSaved, setTechnicalSheetSaved] = useState(false);
 
@@ -153,6 +154,8 @@ export default function AdminDashboard({ user }: AdminProps) {
   const [editingRoomName, setEditingRoomName] = useState('');
   const [editingRoomCapacity, setEditingRoomCapacity] = useState('');
 
+  const [activeCoupons, setActiveCoupons] = useState<any[]>([]);
+
   useEffect(() => {
     const fetchConfig = async () => {
       try {
@@ -161,6 +164,16 @@ export default function AdminDashboard({ user }: AdminProps) {
       } catch (error) { }
     };
     fetchConfig();
+
+    const fetchCoupons = async () => {
+      try {
+        const data = await api.getAdminCoupons();
+        setActiveCoupons((data || []).filter((c: any) => c.active && new Date(c.expiry) >= new Date()));
+      } catch (err) {
+        console.error('Error fetching admin coupons:', err);
+      }
+    };
+    fetchCoupons();
   }, []);
 
   // Sincronizar acompañantes cuando se selecciona una cotización
@@ -1144,11 +1157,25 @@ export default function AdminDashboard({ user }: AdminProps) {
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Correo</p>
-                    <p className="text-sm font-bold text-[#0B132B]">{selectedQuote.email || '-'}</p>
+                    <input 
+                      type="email" 
+                      value={selectedQuote.email || ''} 
+                      onChange={(e) => setSelectedQuote({ ...selectedQuote, email: e.target.value })}
+                      onBlur={() => selectedQuote.id && api.updateQuote(selectedQuote.id, { email: selectedQuote.email }).catch(() => {})}
+                      className="w-full bg-white border border-gray-200 px-3 py-1.5 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-orange-500/20 transition-all text-[#0B132B]"
+                      placeholder="Correo o '-' "
+                    />
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">WhatsApp</p>
-                    <p className="text-sm font-bold text-[#0B132B]">{selectedQuote.whatsapp || '-'}</p>
+                    <input 
+                      type="text" 
+                      value={selectedQuote.whatsapp || ''} 
+                      onChange={(e) => setSelectedQuote({ ...selectedQuote, whatsapp: e.target.value })}
+                      onBlur={() => selectedQuote.id && api.updateQuote(selectedQuote.id, { whatsapp: selectedQuote.whatsapp }).catch(() => {})}
+                      className="w-full bg-white border border-gray-200 px-3 py-1.5 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-orange-500/20 transition-all text-[#0B132B]"
+                      placeholder="WhatsApp o '-'"
+                    />
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Check-in</p>
@@ -1227,38 +1254,77 @@ export default function AdminDashboard({ user }: AdminProps) {
                 {/* B.6: LAYOUT 60/40 — Descuento + Botones */}
                 {!hasExistingDiscount && !selectedQuote.originalQuoteId && !['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(selectedQuote.status) ? (
                   <div className="flex gap-4 items-stretch">
-                    <div className="w-[60%] bg-orange-50 p-5 rounded-[2rem] border border-orange-200 space-y-3">
-                      <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Aplicar Descuento Comercial</p>
-                      <div className="flex gap-2">
-                        <button onClick={() => { setDiscount(4); setCustomDiscount(''); }} className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${discount === 4 ? 'bg-orange-500 text-white' : 'bg-white text-orange-500 border border-orange-200'}`}>4%</button>
-                        <button onClick={() => { setDiscount(6); setCustomDiscount(''); }} className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${discount === 6 ? 'bg-orange-500 text-white' : 'bg-white text-orange-500 border border-orange-200'}`}>6%</button>
-                        <input type="number" placeholder="%" value={customDiscount} onChange={(e) => { setCustomDiscount(e.target.value); setDiscount(0); }} className="flex-1 bg-white px-3 py-3 rounded-xl font-black text-[10px] uppercase outline-none border border-orange-200" />
-                      </div>
-                      {discountPercent > 0 && (
-                        <div className="flex items-center justify-between pt-2 border-t border-orange-200">
-                          <span className="text-[10px] font-black text-orange-600 uppercase">Descuento ({discountPercent}%)</span>
-                          <span className="text-base font-black italic text-orange-600">-$ {discountAmount.toLocaleString()}</span>
+                    <div className="w-[60%] flex flex-col gap-3">
+                      {/* Descuento Comercial */}
+                      <div className="bg-orange-50 p-5 rounded-[2rem] border border-orange-200 space-y-3">
+                        <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Aplicar Descuento Comercial</p>
+                        <div className="flex gap-2">
+                          <button onClick={() => { setDiscount(4); setCustomDiscount(''); setCouponCodeInput(''); }} className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${discount === 4 && !couponCodeInput ? 'bg-orange-500 text-white' : 'bg-white text-orange-500 border border-orange-200'}`}>4%</button>
+                          <button onClick={() => { setDiscount(6); setCustomDiscount(''); setCouponCodeInput(''); }} className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${discount === 6 && !couponCodeInput ? 'bg-orange-500 text-white' : 'bg-white text-orange-500 border border-orange-200'}`}>6%</button>
+                          <input type="number" placeholder="%" value={customDiscount} onChange={(e) => { setCustomDiscount(e.target.value); setDiscount(0); setCouponCodeInput(''); }} className="flex-1 bg-white px-3 py-3 rounded-xl font-black text-[10px] uppercase outline-none border border-orange-200" />
                         </div>
-                      )}
+                        {discountPercent > 0 && !couponCodeInput && (
+                          <div className="flex items-center justify-between pt-2 border-t border-orange-200">
+                            <span className="text-[10px] font-black text-orange-600 uppercase">Descuento ({discountPercent}%)</span>
+                            <span className="text-base font-black italic text-orange-600">-$ {discountAmount.toLocaleString()}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Cupón Marketing */}
+                      <div className="bg-purple-50 p-5 rounded-[2rem] border border-purple-200 space-y-3">
+                        <p className="text-[10px] font-black text-purple-600 uppercase tracking-widest">Aplicar Cupón Activo</p>
+                        <select
+                          className="w-full py-3 px-4 rounded-xl text-[10px] font-black uppercase text-purple-700 outline-none border border-purple-200 bg-white"
+                          value={couponCodeInput}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setCouponCodeInput(val);
+                            if (val) {
+                              const found = activeCoupons.find(c => c.code === val);
+                              if (found) { setDiscount(Number(found.discount)); setCustomDiscount(''); }
+                            } else {
+                              setDiscount(0);
+                            }
+                          }}
+                        >
+                          <option value="">-- SELECCIONAR CUPÓN --</option>
+                          {activeCoupons.map(c => (
+                            <option key={c.code} value={c.code}>{c.code} ({c.discount}%)</option>
+                          ))}
+                        </select>
+                        {discountPercent > 0 && couponCodeInput && (
+                          <div className="flex items-center justify-between pt-2 border-t border-purple-200">
+                            <span className="text-[10px] font-black text-purple-600 uppercase">Beneficio ({discountPercent}%)</span>
+                            <span className="text-base font-black italic text-purple-600">-$ {discountAmount.toLocaleString()}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="flex-1 flex flex-col gap-3">
                       <button
                         onClick={async () => {
                           if (discountPercent > 0) {
                             try {
-                              showToast('Generando cotización con descuento...');
-                              const newQuoteId = `${selectedQuote.id}-01`;
-                              const newQuoteData = { ...selectedQuote, id: newQuoteId, originalQuoteId: selectedQuote.id, discount: discountPercent, discountAmount, finalAmount: finalTotal, totalAmount: finalTotal, status: 'Atendido' as QuoteStatus };
+                              showToast('Generando cotización...');
+                              const isCoupon = !!couponCodeInput;
+                              const newQuoteId = `${selectedQuote.id}-${isCoupon ? '02' : '01'}`;
+                              const newQuoteData = { ...selectedQuote, id: newQuoteId, originalQuoteId: selectedQuote.id, discount: discountPercent, discountAmount, finalAmount: finalTotal, totalAmount: finalTotal, status: 'Atendido' as QuoteStatus, couponCode: isCoupon ? couponCodeInput : undefined };
                               const createRes = await api.createQuote(newQuoteData);
                               if (!createRes.ok) { const ed = await createRes.json().catch(() => ({})); throw new Error(ed.error || 'Error del servidor'); }
                               await api.updateQuote(selectedQuote.id, { status: 'Atendido' as QuoteStatus });
-                              recordActivity('APPLY_DISCOUNT', `Descuento ${discountPercent}% a ${selectedQuote.id}. Nuevo: ${newQuoteId}`);
-                              showToast('✅ Cotización con descuento generada.'); refreshData(); setSelectedQuote(null);
+                              recordActivity('APPLY_DISCOUNT', `${isCoupon ? 'Cupón ' + couponCodeInput : 'Descuento ' + discountPercent + '%'} a ${selectedQuote.id}. Nuevo: ${newQuoteId}`);
+                              showToast('✅ Cotización generada. Puedes enviarla ahora.'); 
+                              refreshData(); 
+                              setSelectedQuote(newQuoteData as Quotation);
+                              setCouponCodeInput('');
+                              setDiscount(0);
+                              setCustomDiscount('');
                             } catch (error: any) { showToast(`❌ Error: ${error.message}`); }
-                          } else { showToast('Selecciona un porcentaje de descuento'); }
+                          } else { showToast('Selecciona un porcentaje de descuento o cupón'); }
                         }}
-                        className="flex-1 bg-[#0B132B] text-white py-3 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-orange-600 transition-all flex items-center justify-center gap-2"
-                      >Generar y Enviar +Descuento</button>
+                        className={`flex-1 text-white py-3 rounded-2xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${couponCodeInput ? 'bg-purple-600 hover:bg-purple-700' : 'bg-[#0B132B] hover:bg-orange-600'}`}
+                      >{couponCodeInput ? 'Generar +Cupón' : 'Generar +Descuento'}</button>
                       {/* Botón enviar con descuento (en layout 60/40) */}
                 {selectedQuote.id && (
                         <button

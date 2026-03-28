@@ -714,9 +714,9 @@ export default function Quoter() {
           </div>
 
           {/* Logo Hotel */}
-          <div style={{ width: '128px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+          <div style={{ width: '128px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: 'transparent' }}>
             {selectedHotel?.logo ? (
-              <img src={selectedHotel.logo} alt="Hotel" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', borderRadius: '8px' }} crossOrigin="anonymous" />
+              <img src={selectedHotel.logo} alt="Hotel" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', backgroundColor: 'transparent', isolation: 'isolate' }} crossOrigin="anonymous" />
             ) : (
               <div style={{ width: '64px', height: '64px', backgroundColor: '#f3f4f6', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', color: '#9ca3af', fontWeight: 'bold', textAlign: 'center' }}>SIN LOGO<br/>HOTEL</div>
             )}
@@ -739,8 +739,8 @@ export default function Quoter() {
                 <td style={{ padding: '12px 0', fontWeight: '900', color: '#0B132B', textTransform: 'uppercase' }}>{formData.checkIn}</td>
               </tr>
               <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
-                <td style={{ padding: '12px 0', fontWeight: 'bold', color: '#6b7280', fontSize: '10px', textTransform: 'uppercase' }}>Plan Seleccionado:</td>
-                <td style={{ padding: '12px 0', fontWeight: '900', color: '#f97316', textTransform: 'uppercase' }}>{selectedHotel.plan || 'No especificado'}</td>
+                <td style={{ padding: '12px 0', fontWeight: 'bold', color: '#6b7280', fontSize: '10px', textTransform: 'uppercase' }}>Temporada:</td>
+                <td style={{ padding: '12px 0', fontWeight: '900', color: '#f97316', textTransform: 'uppercase' }}>{priceInfo?.season || 'Regular'}</td>
                 <td style={{ padding: '12px 0', fontWeight: 'bold', color: '#6b7280', fontSize: '10px', textTransform: 'uppercase' }}>Check-Out:</td>
                 <td style={{ padding: '12px 0', fontWeight: '900', color: '#0B132B', textTransform: 'uppercase' }}>{formData.checkOut}</td>
               </tr>
@@ -753,10 +753,27 @@ export default function Quoter() {
             </tbody>
           </table>
 
-          {/* TOTAL */}
-          <div style={{ backgroundColor: '#0B132B', padding: '32px', borderRadius: '24px', color: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '40px' }}>
-            <span style={{ fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '14px' }}>Total Neto a Pagar</span>
-            <span style={{ fontSize: '36px', fontWeight: '900', fontStyle: 'italic' }}>$ {finalPrice.toLocaleString()}</span>
+          {/* TOTALES FINALES */}
+          <div style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+            {discountPercent > 0 && (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', padding: '0 32px' }}>
+                  <span style={{ fontWeight: 'bold', color: '#6b7280', fontSize: '14px', textTransform: 'uppercase' }}>Subtotal Acumulado</span>
+                  <span style={{ fontWeight: 'bold', color: '#0B132B', fontSize: '18px' }}>$ {totalPrice.toLocaleString()}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', padding: '0 32px' }}>
+                  <span style={{ fontWeight: 'bold', color: '#8b5cf6', fontSize: '14px', textTransform: 'uppercase' }}>
+                    {couponCode ? `Cupón Reclamado (${couponCode} - ${discountPercent}%)` : `Descuento Especial Aplicado (${discountPercent}%)`}
+                  </span>
+                  <span style={{ fontWeight: 'bold', color: '#8b5cf6', fontSize: '18px' }}>-$ {Math.round(totalPrice * (discountPercent / 100)).toLocaleString()}</span>
+                </div>
+              </>
+            )}
+            
+            <div style={{ backgroundColor: '#0B132B', padding: '32px', borderRadius: '24px', color: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginTop: discountPercent > 0 ? '16px' : '0' }}>
+              <span style={{ fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '14px' }}>Total Neto a Pagar</span>
+              <span style={{ fontSize: '36px', fontWeight: '900', fontStyle: 'italic' }}>$ {finalPrice.toLocaleString()}</span>
+            </div>
           </div>
 
           <p style={{ fontSize: '10px', fontWeight: 'bold', color: '#dc2626', textAlign: 'center', marginTop: '80px', textTransform: 'uppercase', padding: '0 48px', lineHeight: '1.5' }}>
