@@ -289,6 +289,14 @@ export async function initDatabase(db: Knex) {
       if (!hasIncTransfer) table.boolean('include_transfer').defaultTo(false);
       if (!hasTransfId) table.string('transfer_id').nullable();
     });
+
+    // B.3a: columna coupon_code para trazabilidad del cupón aplicado
+    const hasCouponCode = await db.schema.hasColumn('quotations', 'coupon_code');
+    if (hasCouponCode === false) {
+      await db.schema.alterTable('quotations', (table: any) => {
+        table.string('coupon_code').nullable();
+      });
+    }
     console.log('[Database] Verificación de columnas en "quotations" completada.');
   }
 
@@ -421,6 +429,15 @@ export async function initDatabase(db: Knex) {
       table.timestamp('created_at').defaultTo(db.fn.now());
     });
     console.log('[Database] Tabla "coupons" creada.');
+  } else {
+    // B.4a: agregar times_used si no existe
+    const hasTimesUsed = await db.schema.hasColumn('coupons', 'times_used');
+    if (hasTimesUsed === false) {
+      await db.schema.alterTable('coupons', (table: any) => {
+        table.integer('times_used').defaultTo(0);
+      });
+      console.log('[Database] Columna "times_used" agregada a "coupons".');
+    }
   }
 
   // Tabla: logs (Bitácora de actividad)

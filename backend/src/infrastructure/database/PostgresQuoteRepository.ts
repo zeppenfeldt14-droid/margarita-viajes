@@ -9,9 +9,10 @@ export class PostgresQuoteRepository implements IQuoteRepository {
     if (!dbQuote) return dbQuote;
     return {
       ...dbQuote,
-      id: dbQuote.folio, // El frontend espera que el folio sea el ID
-      db_id: dbQuote.id, // Guardamos el ID real por si acaso
+      id: dbQuote.folio,
+      db_id: dbQuote.id,
       clientName: dbQuote.client_name,
+      hotelId: dbQuote.hotel_id,          // B.2: exponer hotelId para PDF controller
       hotelName: dbQuote.hotel_name,
       checkIn: dbQuote.check_in,
       checkOut: dbQuote.check_out,
@@ -25,6 +26,7 @@ export class PostgresQuoteRepository implements IQuoteRepository {
       assignedTo: dbQuote.assigned_to,
       previousId: dbQuote.previous_id,
       originalQuoteId: dbQuote.original_quote_id,
+      couponCode: dbQuote.coupon_code,    // B.3c: exponer couponCode para PDF
       plan: dbQuote.plan,
       season: dbQuote.season,
       includeTransfer: dbQuote.include_transfer,
@@ -68,6 +70,7 @@ export class PostgresQuoteRepository implements IQuoteRepository {
       technical_sheet: quote.technicalSheet ? JSON.stringify(quote.technicalSheet) : null,
       previous_id: quote.previousId,
       original_quote_id: quote.originalQuoteId,
+      coupon_code: quote.couponCode || null,  // B.3b: guardar código de cupón
       plan: quote.plan,
       season: quote.season,
       include_transfer: quote.includeTransfer || false,

@@ -27,6 +27,7 @@ export interface Quote {
   plan?: string;
   season?: string;
   assignedTo?: string;
+  couponCode?: string;  // B.3: código de cupón aplicado
   includeTransfer?: boolean;
   transferId?: string;
 }

@@ -166,6 +166,7 @@ export default function Quoter() {
         assignedTo: 'Sin Asignar',
         plan: selectedHotel?.plan || 'No especificado',
         season: priceInfo?.season || '-',
+        couponCode: discountPercent > 0 && appliedCoupon ? appliedCoupon.code : undefined, // B.3d
         includeTransfer: formData.includeTransfer,
         transferId: formData.transferId,
       };

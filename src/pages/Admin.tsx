@@ -1144,8 +1144,8 @@ export default function AdminDashboard({ user }: AdminProps) {
                     <p className="text-sm font-bold text-[#0B132B]">{selectedQuote.roomType || '-'}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Plan de Comidas</p>
-                    <p className="text-sm font-black text-orange-600 uppercase">{selectedQuote.plan || (selectedQuote as any).hotel_plan || 'No especificado'}</p>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Temporada</p>
+                    <p className="text-sm font-black text-orange-600 uppercase">{(selectedQuote as any).season || '-'}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Pasajeros</p>
@@ -1157,7 +1157,7 @@ export default function AdminDashboard({ user }: AdminProps) {
                     <div className="space-y-1">
                       <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Servicio de Traslado</p>
                       <p className="text-sm font-black italic text-[#0B132B] uppercase flex items-center gap-1">
-                        SOLICITADO ✓ 
+                        SOLICITADO ✓{' '}
                         <span className="text-[10px] font-bold text-gray-400 normal-case">
                           ({transfers.find(t => t.id === (selectedQuote as any).transferId)?.route || 'Ruta no especificada'})
                         </span>
@@ -1179,23 +1179,6 @@ export default function AdminDashboard({ user }: AdminProps) {
                   </div>
                 )}
 
-                {!hasExistingDiscount && !selectedQuote.originalQuoteId && !['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(selectedQuote.status) && (
-                  <div className="bg-orange-50 p-6 rounded-[2rem] border border-orange-200 space-y-4">
-                    <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Aplicar Descuento Comercial</p>
-                    <div className="flex gap-3">
-                      <button onClick={() => { setDiscount(4); setCustomDiscount(''); }} className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${discount === 4 ? 'bg-orange-500 text-white' : 'bg-white text-orange-500 border border-orange-200'}`}>4%</button>
-                      <button onClick={() => { setDiscount(6); setCustomDiscount(''); }} className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${discount === 6 ? 'bg-orange-500 text-white' : 'bg-white text-orange-500 border border-orange-200'}`}>6%</button>
-                      <input type="number" placeholder="Personalizado %" value={customDiscount} onChange={(e) => { setCustomDiscount(e.target.value); setDiscount(0); }} className="flex-1 bg-white px-4 py-3 rounded-xl font-black text-[10px] uppercase outline-none border border-orange-200" />
-                    </div>
-                    {discountPercent > 0 && (
-                      <div className="flex items-center justify-between pt-2 border-t border-orange-200">
-                        <span className="text-[10px] font-black text-orange-600 uppercase">Descuento ({discountPercent}%)</span>
-                        <span className="text-lg font-black italic text-orange-600">-$ {discountAmount.toLocaleString()}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 <div className="bg-green-50 p-6 rounded-[2rem] border border-green-200">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black text-green-600 uppercase tracking-widest">Total Final a Pagar</span>
@@ -1203,120 +1186,84 @@ export default function AdminDashboard({ user }: AdminProps) {
                   </div>
                 </div>
 
-                <button onClick={async () => {
-                  if (discountPercent > 0) {
-                    try {
-                      // 1. Generar PDF antes de guardar
-                      showToast('Generando cotización con descuento...');
-
-                      const newQuoteId = `${selectedQuote.id}-01`;
-                      const newQuoteData = {
-                        ...selectedQuote,
-                        id: newQuoteId,
-                        originalQuoteId: selectedQuote.id,
-                        discount: discountPercent,
-                        discountAmount: discountAmount,
-                        finalAmount: finalTotal,
-                        totalAmount: finalTotal,
-                        status: 'Atendido' as QuoteStatus
-                      };
-                      
-                      const createRes = await api.createQuote(newQuoteData);
-                      if (!createRes.ok) {
-                        const errorData = await createRes.json().catch(() => ({}));
-                        throw new Error(errorData.error || 'Error del servidor al crear presupuesto con descuento');
-                      }
-
-                      const updateRes = await api.updateQuote(selectedQuote.id, { status: 'Atendido' as QuoteStatus });
-                      if (!updateRes.ok) {
-                        console.warn('No se pudo marcar la cotización original como Atendida, pero el descuento fue generado.');
-                      } else {
-                        recordActivity('UPDATE_QUOTE_STATUS', `Cotización ${selectedQuote.id} marcada como ATENDIDO al generar descuento.`);
-                      }
-
-                      showToast(`Exito: Cotización enviada.`);
-                      recordActivity('APPLY_DISCOUNT', `Aplicado descuento de ${discountPercent}% a folio ${selectedQuote.id}. Nuevo folio: ${newQuoteId}`);
-                      refreshData();
-                      setSelectedQuote(null);
-                    } catch (error: any) {
-                      console.error('Error in discount application:', error);
-                      showToast(`Error: ${error.message || 'No se pudo aplicar el descuento'}`);
-                    }
-                  } else {
-                    showToast('Selecciona un porcentaje de descuento');
-                  }
-                }} className="w-full bg-[#0B132B] text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-600 transition-all flex items-center justify-center gap-2">
-                  Generar y Enviar con Descuento
-                </button>
-
-
-                {selectedQuote.id && (
-                  <div className="flex flex-col gap-4">
-                    <button 
-                      onClick={() => {
-                        const folio = selectedQuote.id || (selectedQuote as any).folio;
-                        window.open(`${api.getBaseUrl()}/public/quotes/${folio}/pdf`, '_blank');
-                      }} 
-                      className="w-full bg-teal-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-teal-700 transition-all flex items-center justify-center gap-2"
-                    >
-                      <Globe size={16} /> Ver PDF Guardado en Servidor
-                    </button>
+                {/* B.6: LAYOUT 60/40 — Descuento + Botones */}
+                {!hasExistingDiscount && !selectedQuote.originalQuoteId && !['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(selectedQuote.status) ? (
+                  <div className="flex gap-4 items-stretch">
+                    <div className="w-[60%] bg-orange-50 p-5 rounded-[2rem] border border-orange-200 space-y-3">
+                      <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Aplicar Descuento Comercial</p>
+                      <div className="flex gap-2">
+                        <button onClick={() => { setDiscount(4); setCustomDiscount(''); }} className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${discount === 4 ? 'bg-orange-500 text-white' : 'bg-white text-orange-500 border border-orange-200'}`}>4%</button>
+                        <button onClick={() => { setDiscount(6); setCustomDiscount(''); }} className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${discount === 6 ? 'bg-orange-500 text-white' : 'bg-white text-orange-500 border border-orange-200'}`}>6%</button>
+                        <input type="number" placeholder="%" value={customDiscount} onChange={(e) => { setCustomDiscount(e.target.value); setDiscount(0); }} className="flex-1 bg-white px-3 py-3 rounded-xl font-black text-[10px] uppercase outline-none border border-orange-200" />
+                      </div>
+                      {discountPercent > 0 && (
+                        <div className="flex items-center justify-between pt-2 border-t border-orange-200">
+                          <span className="text-[10px] font-black text-orange-600 uppercase">Descuento ({discountPercent}%)</span>
+                          <span className="text-base font-black italic text-orange-600">-$ {discountAmount.toLocaleString()}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 flex flex-col gap-3">
+                      <button
+                        onClick={async () => {
+                          if (discountPercent > 0) {
+                            try {
+                              showToast('Generando cotización con descuento...');
+                              const newQuoteId = `${selectedQuote.id}-01`;
+                              const newQuoteData = { ...selectedQuote, id: newQuoteId, originalQuoteId: selectedQuote.id, discount: discountPercent, discountAmount, finalAmount: finalTotal, totalAmount: finalTotal, status: 'Atendido' as QuoteStatus };
+                              const createRes = await api.createQuote(newQuoteData);
+                              if (!createRes.ok) { const ed = await createRes.json().catch(() => ({})); throw new Error(ed.error || 'Error del servidor'); }
+                              await api.updateQuote(selectedQuote.id, { status: 'Atendido' as QuoteStatus });
+                              recordActivity('APPLY_DISCOUNT', `Descuento ${discountPercent}% a ${selectedQuote.id}. Nuevo: ${newQuoteId}`);
+                              showToast('✅ Cotización con descuento generada.'); refreshData(); setSelectedQuote(null);
+                            } catch (error: any) { showToast(`❌ Error: ${error.message}`); }
+                          } else { showToast('Selecciona un porcentaje de descuento'); }
+                        }}
+                        className="flex-1 bg-[#0B132B] text-white py-3 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-orange-600 transition-all flex items-center justify-center gap-2"
+                      >Generar y Enviar +Descuento</button>
+                      {selectedQuote.id && (
+                        <button
+                          onClick={async () => {
+                            const folio = selectedQuote.id || (selectedQuote as any).folio;
+                            const hasEmail = !!(selectedQuote.email || '').trim();
+                            const hasWA = !!(selectedQuote.whatsapp || '').replace(/\D/g, '');
+                            if (!hasEmail && !hasWA) { showToast('El cliente no tiene email ni WhatsApp registrado'); return; }
+                            const pdfLink = `${api.getBaseUrl()}/public/quotes/${folio}/pdf`;
+                            if (hasEmail) { try { await api.dispatchCommunication({ type: 'email', target: 'client', recipient: selectedQuote.email, documentId: folio, documentType: 'quote' }); } catch (e) { console.warn(e); } }
+                            if (hasWA) { const n = (selectedQuote.whatsapp || '').replace(/\D/g, ''); window.open(`https://wa.me/${n}?text=${encodeURIComponent(`Hola ${selectedQuote.clientName || ''}, adjunto tu cotización.\n\n${pdfLink}`)}`, '_blank'); }
+                            if (selectedQuote.status === 'Nuevo') { await api.updateQuote(selectedQuote.id, { status: 'Atendido' as QuoteStatus }).catch(() => {}); setSelectedQuote(prev => prev ? { ...prev, status: 'Atendido' as QuoteStatus } : null); }
+                            showToast('✅ Cotización enviada');
+                          }}
+                          className="flex-1 bg-green-600 text-white py-3 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-green-700 transition-all flex items-center justify-center gap-2"
+                        >Enviar Cotización</button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  selectedQuote.id ? (
                     <button
                       onClick={async () => {
                         const folio = selectedQuote.id || (selectedQuote as any).folio;
                         const hasEmail = !!(selectedQuote.email || '').trim();
                         const hasWA = !!(selectedQuote.whatsapp || '').replace(/\D/g, '');
-
-                        if (!hasEmail && !hasWA) {
-                          showToast('El cliente no tiene email ni WhatsApp registrado');
-                          return;
-                        }
-
+                        if (!hasEmail && !hasWA) { showToast('El cliente no tiene email ni WhatsApp registrado'); return; }
                         const pdfLink = `${api.getBaseUrl()}/public/quotes/${folio}/pdf`;
-
-                        if (hasEmail) {
-                          try {
-                            await api.dispatchCommunication({
-                              type: 'email',
-                              target: 'client',
-                              recipient: selectedQuote.email,
-                              documentId: folio,
-                              documentType: 'quote',
-                            });
-                          } catch (e) { console.warn('[Enviar] Error enviando email:', e); }
-                        }
-
-                        if (hasWA) {
-                          const waNumber = (selectedQuote.whatsapp || '').replace(/\D/g, '');
-                          const waMsg = encodeURIComponent(`Hola ${selectedQuote.clientName || selectedQuote.client_name}, aquí tienes tu cotización:\n\n📄 ${pdfLink}\n\nFolio: ${folio}`);
-                          window.open(`https://wa.me/${waNumber}?text=${waMsg}`, '_blank');
-                        }
-
-                        // C.7: Auto-transición a Atendido si status es Nuevo
-                        if (selectedQuote.status === 'Nuevo') {
-                          try {
-                            await api.updateQuote(selectedQuote.id, { status: 'Atendido' as QuoteStatus });
-                            setSelectedQuote(prev => prev ? { ...prev, status: 'Atendido' as QuoteStatus } : null);
-                            setQuotes(prev => prev.map(q => q.id === selectedQuote.id ? { ...q, status: 'Atendido' as QuoteStatus } : q));
-                          } catch (e) { console.warn('[Enviar] Error actualizando estado:', e); }
-                        }
-
-                        showToast(`✅ Enviado${hasEmail ? ' por Email' : ''}${hasEmail && hasWA ? ' y' : ''}${hasWA ? ' por WhatsApp' : ''}`);
+                        if (hasEmail) { try { await api.dispatchCommunication({ type: 'email', target: 'client', recipient: selectedQuote.email, documentId: folio, documentType: 'quote' }); } catch (e) { console.warn(e); } }
+                        if (hasWA) { const n = (selectedQuote.whatsapp || '').replace(/\D/g, ''); window.open(`https://wa.me/${n}?text=${encodeURIComponent(`Hola ${selectedQuote.clientName || ''}, adjunto tu cotización.\n\n${pdfLink}`)}`, '_blank'); }
+                        if (selectedQuote.status === 'Nuevo') { await api.updateQuote(selectedQuote.id, { status: 'Atendido' as QuoteStatus }).catch(() => {}); setSelectedQuote(prev => prev ? { ...prev, status: 'Atendido' as QuoteStatus } : null); }
+                        showToast('✅ Cotización enviada');
                       }}
-                      className="w-full bg-green-500 text-white py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-green-600 transition-all flex items-center justify-center gap-2 shadow-lg"
-                    >
-                      <Mail size={16} /> Enviar Cotización
-                    </button>
-                  </div>
+                      className="w-full bg-green-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-green-700 transition-all flex items-center justify-center gap-2"
+                    >Enviar Cotización</button>
+                  ) : null
                 )}
 
+                {/* PASAJEROS */}
                 <div className="bg-purple-50 p-6 rounded-[2rem] border border-purple-200 space-y-4">
                   <div className="flex items-center justify-between">
                     <p className="text-[10px] font-black text-purple-600 uppercase tracking-widest">Lista de Pasajeros</p>
-                    {(!['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(selectedQuote.status)) && (
-                      <button onClick={() => setCompanions([...companions, { name: '', type: 'Adulto' }])} className="text-[9px] font-black text-purple-600 uppercase flex items-center gap-1 hover:text-purple-700">
-                        <Plus size={14} /> Agregar
-                      </button>
+                    {!['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(selectedQuote.status) && (
+                      <button onClick={() => setCompanions([...companions, { name: '', type: 'Adulto' }])} className="text-[9px] font-black text-purple-600 uppercase flex items-center gap-1 hover:text-purple-700"><Plus size={14} /> Agregar</button>
                     )}
                   </div>
                   {companions.length === 0 ? (
@@ -1325,26 +1272,11 @@ export default function AdminDashboard({ user }: AdminProps) {
                     <div className="space-y-2">
                       {companions.map((comp, idx) => (
                         <div key={idx} className="flex gap-2 items-center">
-                          <input type="text" value={comp.name} onChange={(e) => {
-                            const newComps = [...companions];
-                            newComps[idx].name = e.target.value;
-                            setCompanions(newComps);
-                          }} placeholder="Nombre completo" className="flex-1 bg-white px-3 py-2 rounded-lg text-xs font-bold outline-none" />
-                          <select
-                            disabled={['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(selectedQuote.status)}
-                            value={comp.type}
-                            onChange={(e) => {
-                              const newComps = [...companions];
-                              newComps[idx].type = e.target.value;
-                              setCompanions(newComps);
-                            }}
-                            className="bg-white px-3 py-2 rounded-lg text-[9px] font-black uppercase outline-none"
-                          >
-                            <option value="Adulto">Adulto</option>
-                            <option value="Niño">Niño</option>
-                            <option value="Infante">Infante</option>
+                          <input type="text" value={comp.name} onChange={(e) => { const nc = [...companions]; nc[idx].name = e.target.value; setCompanions(nc); }} placeholder="Nombre completo" className="flex-1 bg-white px-3 py-2 rounded-lg text-xs font-bold outline-none" />
+                          <select disabled={['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(selectedQuote.status)} value={comp.type} onChange={(e) => { const nc = [...companions]; nc[idx].type = e.target.value; setCompanions(nc); }} className="bg-white px-3 py-2 rounded-lg text-[9px] font-black uppercase outline-none">
+                            <option value="Adulto">Adulto</option><option value="Niño">Niño</option><option value="Infante">Infante</option>
                           </select>
-                          {(!['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(selectedQuote.status)) && (
+                          {!['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(selectedQuote.status) && (
                             <button onClick={() => setCompanions(companions.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600"><X size={14} /></button>
                           )}
                         </div>
@@ -1354,117 +1286,89 @@ export default function AdminDashboard({ user }: AdminProps) {
                 </div>
 
                 <div className="flex gap-4 mt-6">
-                  {/* Botón Guardar Lista de Pasajeros */}
                   <button
                     onClick={async () => {
                       const token = localStorage.getItem("staff_token");
                       if (!token) return alert('Error: No hay sesión activa.');
-
                       const hasEmptyNames = companions.some(c => !c.name || c.name.trim() === '');
-                      if (hasEmptyNames) {
-                        alert('⚠️ Error: Todos los pasajeros deben tener nombre y apellido.');
-                        return;
-                      }
-
+                      if (hasEmptyNames) { alert('⚠️ Error: Todos los pasajeros deben tener nombre y apellido.'); return; }
                       try {
                         const technicalSheet = { savedAt: new Date().toISOString(), passengers: companions };
                         const quoteUpdateRes = await api.updateQuote(selectedQuote.id, { companions, technicalSheet });
-
                         if (!quoteUpdateRes.ok) throw new Error('Error al actualizar la base de datos');
-
                         setSelectedQuote(prev => prev ? { ...prev, companions, technicalSheet } : null);
                         setTechnicalSheetSaved(true);
                         if (typeof refreshData === 'function') refreshData();
-
                         showToast('✅ Lista de pasajeros guardada con éxito');
                         recordActivity('SAVE_PASSENGERS', `Guardada lista de pasajeros para folio ${selectedQuote.id}`);
-                      } catch (error) {
-                        console.error(error);
-                        showToast('❌ Error al guardar la ficha técnica.');
-                      }
+                      } catch (error) { console.error(error); showToast('❌ Error al guardar la ficha técnica.'); }
                     }}
                     className="flex-1 bg-green-600 text-white py-3 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-green-700 transition-all flex items-center justify-center gap-2 shadow-lg"
-                  >
-                    <ShieldCheck size={16} /> Guardar Lista
-                  </button>
+                  ><ShieldCheck size={16} /> Guardar Lista</button>
 
-                  {/* Botón Pasar a Reserva — C.3: solo visible si no es estado terminal */}
+                  {/* Botón Pasar a Reserva — solo visible si no es estado terminal */}
                   {!['Reserva', 'Venta Cerrada', 'Venta Concretada', 'Confirmada'].includes(selectedQuote.status) && (
                   <button
                     onClick={async () => {
                       const totalExpected = Number(selectedQuote.pax || 0) + Number(selectedQuote.children || 0) + Number(selectedQuote.infants || 0);
-                      // C.4: Parsear companions desde DB (puede ser string JSON)
                       const parsedCompanions = Array.isArray(selectedQuote.companions)
                         ? selectedQuote.companions
                         : (typeof selectedQuote.companions === 'string'
                             ? JSON.parse(selectedQuote.companions || '[]')
                             : companions || []);
                       const hasEmptyNames = parsedCompanions.some((c: { name: string }) => !c.name || c.name.trim() === '');
-                      // C.4: ficha válida si existe technicalSheet en DB o si companions están completos
                       const fichaOk = !!selectedQuote.technicalSheet || (parsedCompanions.length >= totalExpected && !hasEmptyNames);
-
                       if (!fichaOk || parsedCompanions.length < totalExpected || hasEmptyNames) {
                         alert('⚠️ ACCIÓN DENEGADA: Debe guardar la lista de pasajeros completa antes de pasar a Reserva.');
                         return;
                       }
-
+                      // B.1 Guard: verificar si ya existe reserva para esta cotización
+                      try {
+                        const existingRes = await api.getReservations().catch(() => []);
+                        const alreadyExists = Array.isArray(existingRes) && existingRes.find((r: any) => (r.quote_id || r.quoteId) === selectedQuote.id);
+                        if (alreadyExists) { showToast('⚠️ Esta cotización ya tiene una reserva asociada.'); setSelectedQuote(null); return; }
+                      } catch (e) { /* continuar si falla la verificación */ }
                       try {
                         let nextResNum = 1001;
                         const resData = await api.getReservations().catch(() => []);
                         if (Array.isArray(resData) && resData.length > 0) {
-                          const rIds = resData
-                            .map((r: any) => r.id?.toString() || '')
-                            .filter((id: string) => id.startsWith('R'))
-                            .map((id: string) => parseInt(id.replace(/\D/g, '')) || 0);
+                          const rIds = resData.map((r: any) => r.id?.toString() || '').filter((id: string) => id.startsWith('R')).map((id: string) => parseInt(id.replace(/\D/g, '')) || 0);
                           if (rIds.length > 0) nextResNum = Math.max(...rIds) + 1;
                         }
                         const nextResId = 'R' + nextResNum.toString().padStart(6, '0');
-
                         const reservationData = {
-                          id: nextResId,
-                          previousId: selectedQuote.id,
+                          id: nextResId, previousId: selectedQuote.id,
                           originalQuoteId: selectedQuote.originalQuoteId || selectedQuote.id,
                           quoteId: selectedQuote.id,
                           clientName: selectedQuote.clientName || selectedQuote.client_name,
-                          email: selectedQuote.email,
-                          whatsapp: selectedQuote.whatsapp,
-                          hotelId: selectedQuote.hotelId || selectedQuote.hotel_id,
+                          email: selectedQuote.email, whatsapp: selectedQuote.whatsapp,
+                          hotelId: selectedQuote.hotelId || (selectedQuote as any).hotel_id,
                           hotelName: selectedQuote.hotelName || selectedQuote.hotel_name,
                           checkIn: selectedQuote.checkIn || selectedQuote.check_in,
                           checkOut: selectedQuote.checkOut || selectedQuote.check_out,
                           roomType: selectedQuote.roomType || selectedQuote.room_type,
-                          pax: selectedQuote.pax,
-                          children: selectedQuote.children,
-                          infants: selectedQuote.infants,
+                          pax: selectedQuote.pax, children: selectedQuote.children, infants: selectedQuote.infants,
                           totalAmount: selectedQuote.totalAmount || selectedQuote.total_amount,
-                          discount: selectedQuote.discount || null,
-                          discountAmount: selectedQuote.discountAmount || null,
+                          discount: selectedQuote.discount || null, discountAmount: selectedQuote.discountAmount || null,
                           companions: parsedCompanions,
                           technicalSheet: selectedQuote.technicalSheet || { savedAt: new Date().toISOString(), passengers: parsedCompanions },
                           plan: selectedQuote.plan || (selectedQuote as any).hotel_plan || 'No especificado',
                           status: 'Confirmada' as ReservationStatus
                         };
-
                         const resCreate = await api.createReservation(reservationData as Partial<Reservation>);
                         if (!resCreate.ok) throw new Error('Error al crear la reserva');
-
                         const resUpdate = await api.updateQuote(selectedQuote.id, { status: 'Reserva' as QuoteStatus });
                         if (!resUpdate.ok) throw new Error('Error al actualizar cotización');
-
                         showToast('✅ ¡Éxito! Pase a Reserva');
                         if (typeof refreshData === 'function') refreshData();
                         setSelectedQuote(null);
-
-                      } catch (error) {
-                        console.error(error);
-                        showToast('❌ Error al procesar el pase a reserva.');
-                      }
+                      } catch (error) { console.error(error); showToast('❌ Error al procesar el pase a reserva.'); }
                     }}
                     className="flex-1 bg-blue-600 text-white py-3 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg"
                   >
                     <Briefcase size={16} /> Pasar a Reserva
                   </button>
-                  )} {/* C.3: Fin condición estado no terminal */}
+                  )} {/* Fin condición estado no terminal */}
                 </div>
 
                 <div className="flex flex-col gap-2">

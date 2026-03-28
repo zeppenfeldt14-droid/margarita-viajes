@@ -107,7 +107,8 @@ const quoteController = new QuoteController(
   hotelRepository,
   userRepository,
   operationRepository,
-  notificationService
+  notificationService,
+  couponRepository   // B.4c: para incrementar contador de cupones
 );
 const adminController = new AdminController(
   hotelRepository,

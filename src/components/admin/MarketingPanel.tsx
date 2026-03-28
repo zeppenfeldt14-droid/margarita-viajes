@@ -261,6 +261,7 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
                     coupons.filter(c => c.active && c.expiry >= today).map((c, i) => (
                       <div key={i} className="flex items-center justify-between p-3 bg-green-50/50 rounded-xl border border-green-100">
                         <span className="text-[10px] font-black text-green-700 italic uppercase">{c.code} ({c.discount}%)</span>
+                        <span className="text-[8px] font-bold text-purple-500 bg-purple-50 px-2 py-0.5 rounded-full">{(c as any).times_used || 0} usos</span>
                         <button onClick={() => setSelectedDetailCoupon(c)} className="text-[8px] font-black uppercase text-green-600 hover:text-green-800 underline decoration-2 transition-colors">Detalles</button>
                       </div>
                     ))
@@ -280,6 +281,7 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
                     coupons.filter(c => c.expiry < today).map((c, i) => (
                       <div key={i} className="flex items-center justify-between p-3 bg-red-50/50 rounded-xl border border-red-100">
                         <span className="text-[10px] font-black text-red-700 italic uppercase">{c.code} ({c.discount}%)</span>
+                        <span className="text-[8px] font-bold text-purple-500 bg-purple-50 px-2 py-0.5 rounded-full">{(c as any).times_used || 0} usos</span>
                         <button onClick={() => setSelectedDetailCoupon(c)} className="text-[8px] font-black uppercase text-red-500 hover:text-red-700 underline decoration-2 transition-colors">Detalles</button>
                       </div>
                     ))
@@ -299,6 +301,7 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
                     coupons.filter(c => !c.active).map((c, i) => (
                       <div key={i} className="flex items-center justify-between p-3 bg-blue-50/50 rounded-xl border border-blue-100">
                         <span className="text-[10px] font-black text-blue-700 italic uppercase">{c.code} ({c.discount}%)</span>
+                        <span className="text-[8px] font-bold text-purple-500 bg-purple-50 px-2 py-0.5 rounded-full">{(c as any).times_used || 0} usos</span>
                         <button onClick={() => setSelectedDetailCoupon(c)} className="text-[8px] font-black uppercase text-blue-500 hover:text-blue-700 underline decoration-2 transition-colors">Detalles</button>
                       </div>
                     ))
@@ -441,13 +444,17 @@ export default function MarketingPanel({ quotes, config }: MarketingProps) {
                 )}
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100">
                   <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">ESTADO</p>
                   <p className={`text-[10px] font-black uppercase flex items-center gap-1.5 ${selectedDetailCoupon.expiry < today ? 'text-red-500' : (selectedDetailCoupon.active ? 'text-green-600' : 'text-blue-500')}`}>
                     <small className={`w-2 h-2 rounded-full ${selectedDetailCoupon.expiry < today ? 'bg-red-500' : (selectedDetailCoupon.active ? 'bg-green-600' : 'bg-blue-500')}`}></small>
                     {selectedDetailCoupon.expiry < today ? 'Vencido' : (selectedDetailCoupon.active ? 'Activo' : 'Aplicado')}
                   </p>
+                </div>
+                <div className="bg-purple-50 p-5 rounded-2xl border border-purple-100">
+                  <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">VECES APLICADO</p>
+                  <p className="text-lg font-black italic text-purple-600">{(selectedDetailCoupon as any).times_used || 0}</p>
                 </div>
                 <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100">
                   <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">EXPIRACIÓN</p>

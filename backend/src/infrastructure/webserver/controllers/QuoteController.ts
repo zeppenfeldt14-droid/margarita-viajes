@@ -8,6 +8,7 @@ import type { IWebConfigRepository } from '../../../domain/repositories/IWebConf
 import type { IHotelRepository } from '../../../domain/repositories/IHotelRepository.js';
 import type { IUserRepository } from '../../../domain/repositories/IUserRepository.js';
 import type { IOperationRepository } from '../../../domain/repositories/IOperationRepository.js';
+import type { ICouponRepository } from '../../../domain/repositories/ICouponRepository.js'; // B.4c
 import { NotificationService } from '../../services/NotificationService.js';
 
 export class QuoteController {
@@ -20,7 +21,8 @@ export class QuoteController {
     private hotelRepo: IHotelRepository,
     private userRepo: IUserRepository,
     private operationRepo: IOperationRepository,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private couponRepo?: ICouponRepository  // B.4c: opcional para compatibilidad
   ) {}
 
   async calculatePrice(req: Request, res: Response) {
@@ -40,22 +42,31 @@ export class QuoteController {
         req.body.date = new Date().toISOString();
       }
 
-      // Lógica de Asignación Round-Robin (Backend)
+      // B.5 FIX: level es string 'LEVEL_3', no número 3
       try {
         const users = await this.userRepo.findAll();
-        const sellers = (users || []).filter(u => u.level === 3);
+        const sellers = (users || []).filter((u: any) => u.level === 'LEVEL_3' && u.active !== false);
 
         if (sellers.length > 0) {
           QuoteController.lastAssignedIndex = (QuoteController.lastAssignedIndex + 1) % sellers.length;
           const assignedSeller = sellers[QuoteController.lastAssignedIndex].alias || sellers[QuoteController.lastAssignedIndex].fullName;
           req.body.assignedTo = assignedSeller;
           console.log(`[QuoteController] Cotización asignada a: ${assignedSeller} (Turno: ${QuoteController.lastAssignedIndex})`);
+        } else {
+          console.warn('[QuoteController] Round-Robin: no hay vendedores LEVEL_3 activos.');
         }
       } catch (err) {
         console.error('[QuoteController] Error en asignación Round-Robin:', err);
       }
 
       const quote = await this.quoteRepo.create(req.body);
+
+      // B.4d: Incrementar contador del cupón si fue aplicado
+      if (req.body.couponCode && this.couponRepo) {
+        this.couponRepo.incrementByCode(req.body.couponCode).catch((err: any) =>
+          console.warn('[QuoteController] Error al incrementar cupón:', err)
+        );
+      }
       
       // Lanzar proceso de notificación en segundo plano
       this.processQuoteNotifications(quote).catch(err => 
@@ -235,11 +246,32 @@ export class QuoteController {
         drawItem('TRASLADO:', 'SOLICITADO', 50, gridY + rowH * 4);
       }
 
-      // --- TOTAL ---
-      const totalY = gridY + rowH * 5 + 10;
+      // --- TOTAL CON DESGLOSE (B.3e) ---
+      const hasDiscount = Number(quote.discountAmount || 0) > 0;
+      const baseY = gridY + rowH * 5 + 10;
+      let totalY = baseY;
+
+      if (hasDiscount) {
+        // Fila: Precio Base
+        doc.fillColor(labelColor).fontSize(8).font('Helvetica-Bold').text('PRECIO BASE:', 50, baseY);
+        doc.fillColor(brandColor).fontSize(9).font('Helvetica').text(`$ ${Number(quote.totalAmount || 0).toLocaleString()}`, 300, baseY, { align: 'right', width: 245 });
+        doc.moveTo(50, baseY + 14).lineTo(545, baseY + 14).lineWidth(0.5).stroke(borderColor);
+
+        // Fila: Descuento o Cupón
+        const discLabel = quote.couponCode
+          ? `CUPÓN APLICADO: ${quote.couponCode}`
+          : `DESCUENTO COMERCIAL:`;
+        doc.fillColor('#E85B04').fontSize(8).font('Helvetica-Bold').text(discLabel, 50, baseY + 20);
+        doc.fillColor('#E85B04').fontSize(9).text(`- $ ${Number(quote.discountAmount || 0).toLocaleString()}`, 300, baseY + 20, { align: 'right', width: 245 });
+        doc.moveTo(50, baseY + 34).lineTo(545, baseY + 34).lineWidth(0.5).stroke(borderColor);
+
+        totalY = baseY + 44;
+      }
+
       doc.rect(50, totalY, 495, 50).fill('#F8F9FA');
       doc.fillColor(brandColor).fontSize(10).font('Helvetica-Bold').text('TOTAL A PAGAR', 70, totalY + 20);
       doc.fontSize(24).text(`$ ${(quote.finalAmount || 0).toLocaleString()}`, 300, totalY + 14, { align: 'right', width: 220 });
+
 
       // --- FOOTER ---
       const footerY = totalY + 70;

@@ -439,8 +439,10 @@ export class AdminController {
     try {
       const reservation = await this.reservationRepo.create(req.body);
       
-      // Sincronización v24: Auto-generar Operación
-      await this.syncOperationFromReservation(reservation);
+      // B.1 FIX: syncOperation es fire-and-forget — si falla no causa 500 después de guardar la reserva
+      this.syncOperationFromReservation(reservation).catch(err =>
+        console.error('[AdminController] syncOperation falló (no crítico):', err)
+      );
 
       await this.auditRepo.log({
         action: 'CREATE',
